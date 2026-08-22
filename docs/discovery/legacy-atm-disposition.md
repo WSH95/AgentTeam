@@ -1,0 +1,205 @@
+---
+title: Legacy ATM disposition — keep / demote / discard per ATM concept
+status: draft
+date: 2026-08-22
+owns: keep/demote/discard verdict per ATM concept and ADR; salvage list (requirements, fixtures, V1–V15 re-check, ADR ideas); ATM failure evidence carried forward as proposed RISKS rows; "tried and rejected" list; ATM repository disposition
+depends_on: product-intent.md (register, frozen 2026-08-22); existing-systems-fit-gap.md (ATM column = ideas only); evidence/atm-salvage.md; evidence/openclaw-native-and-telegram-verification.md; evidence/harness-cli-capabilities-b.md; evidence/claude-agent-teams-hermes-openbot.md; evidence/glossary.md
+---
+
+# Legacy ATM disposition
+
+> Reading guide. "ATM" = `agent-team-manager-dev@12a727e` (35 commits, 2026-08-19..21), read-only under `/home/wsh/Documents/00000/`. `ATM/<path>:<line>` abbreviates `agent-team-manager-dev/<path>:<line>`; `ADR NNNN` = `ATM/docs/adr/NNNN-*.md`. ATM's nouns (TeamDefinition, ProjectDefinition, RoleDefinition, ProjectRoleContext, Workspace, "runtime Agent", Team Steward) appear *as ATM's terms*, permitted by the glossary only here and in evidence. Requirement IDs are the frozen register (`product-intent.md` §3); nothing here authors a requirement. The authoritative ATM noun list is `ATM/.project-steward/PROJECT.md` and `ATM/docs/design/2026-08-19-architecture.md` §3, cross-checked against [ev:atm-salvage#F28].
+
+## 1. Why ATM is superseded (facts)
+
+1. **The pipeline never ran.** ATM's operating model was `validate → discover → plan/diff → human approval → reconcile → verify` of declared teams/projects onto a runtime (`ATM/docs/design/2026-08-19-architecture.md` §1, §4; ADR 0006:11-15). `ATM/packages/core/src/index.ts:1` contains only `export {};`; real product code is 666 lines (guard.ts 608, seam.ts 41), while spike/test/harness code is 15,948 lines; PLAN phases G/C/E/F are unchecked (`ATM/.project-steward/PLAN.md:105-108`) [ev:atm-salvage#F27][ev:atm-salvage §3].
+2. **Two load-bearing spikes returned `unsupported`.** U10: a persistent OpenClaw agent with project sessions "fail[s] workspace and A2A confinement"; per-project OpenClaw agents isolate workspaces but OpenClaw's global `tools.agentToAgent.allow` "permits cross-project delivery" (`ATM/.project-steward/QUESTIONS.md:56-65`) [ev:atm-salvage#F5]. U2: model-facing autonomy on OpenClaw 2026.7.1-2 with DeepSeek V4-Flash and V4-Pro passed 0/2 each — duplicate tool-call hops, omitted calls, "receipt-like prose instead of the required tool call" (`QUESTIONS.md:14-31,115-126`; `ATM/.project-steward/VERIFY.md` "Phase S4 U2 live result") [ev:atm-salvage#F24].
+3. **The last run ended in exit 137 with no evidence and no postmortem.** "The attended terminal exited 137 before native-U2 evidence construction. No fixture was written"; the "major problem" is never described (`ATM/.project-steward/HANDOFF.md:26-33,49-51`; `grep post-?mortem` → 0) [ev:atm-salvage#F25][ev:atm-salvage §3].
+4. **The architecture was centered on the wrong persistent objects for our brief.** Its four "non-negotiable distinctions" (architecture §2) all concern runtime deployment: materialization of roles as runtime Agents (ADR 0016), a persistent `ProjectRoleContext` per `(team, project, role)` surviving restart (ADR 0017:11), a `Deployment` state plane with namespaces, markers and adoption (ADR 0009:14; ADR 0018:11-13), and an A2A bus with isolation postures (ADR 0023/0025/0026 — three ADRs superseding each other on 2026-08-20). OpenClaw was the only adapter and Telegram the first surface (`ATM/.project-steward/PROJECT.md` goals); Claude Agent Teams, DeepSeek Harness and Hermes were "stipulated for pressure-testing … not verified" (`ATM/docs/design/runtime-portability-pressure-test.md:9`).
+5. **Our product object is absent from ATM.** Across ATM docs, schemas, examples and steward files: `nested` 0, `ephemeral` 0, `overlay` 0, `learning` 0, `ensemble` 0, `TeamRun` 0, `Assistant` 0, `Windows` 0, `tmux` 0, `Grok` 0; `harness` 82 hits, none meaning harness selection [ev:atm-salvage §3]. The fit-gap rates ATM only as *ideas* (§Method) with AD-07/TE-05/HB-05 `n/a`.
+
+What ATM got right survives as requirements and ideas (ADR 0016, 0022, 0010/0011/0021, 0026; V1–V15; the recorded fixtures). What it built around — deployment reconciliation, persistent runtime identity, per-tuple contexts, workspaces, OpenClaw materialization, a project-aware A2A router, Telegram topology — does not re-enter (`.project-steward/DECISIONS.md` 0002; `product-intent.md` §1.1, §5).
+
+## 2. Disposition table
+
+Verdicts: **keep** = the idea is already a requirement or a precedent for one (never ATM code or schema text, §6); **demote** = at most an adapter/HarnessProfile detail or a lesson; **discard** = no counterpart. "Lands in" names the register ID and the owning document/topic; anchors are fixed once the model drafts land (open question 6).
+
+| # | ATM concept (source) | Verdict | Reason | Lands in | Evidence |
+|---|---|---|---|---|---|
+| K1 | `RoleDefinition` ≠ runtime Agent; materialization recorded per invocation, "never written back into core models" (ADR 0016) | keep | = exclusion list + reuse without copy-editing; the *recording* half becomes the HarnessInvocation record | AD-05, AD-08, HB-07; `assistant-domain-model.md` (Assistant vs AssistantInstance vs Member); `harness-broker-model.md` (Invocation record) | ADR 0016:11-13 [ev:atm-salvage#F9] |
+| K2 | `requires.capabilities[]` vs `requires.artifacts[]`; `ArtifactSpec/Catalog/Lock`; `RequirementResolution`; readiness; fingerprints `clean/locally-modified/unmanaged` (ADR 0022) | keep (metadata ideas) | Near-verbatim AR-01; kinds/sources/no-secrets = AR-02..AR-04; outcomes = AR-05; lock = AR-06 (owner, 2026-08-22); no substrate has the distinction (G-AR-01, G-AR-06) | AR-01..AR-06, AD-02; `assistant-domain-model.md` (Capability/Skill/Artifact requirements) | ADR 0022:11-21 [ev:atm-salvage#F10] |
+| K3 | Role template = Markdown + frontmatter `{name, summary, metadata}`, referenced by path, never inlined; `allowed-tools` rejected as a host concern (ADR 0005; role-template schema) | keep | Matches AD-01/AD-08 and "Assistant ≠ Skill" (AD-09): a Skill has no persona/policy fields | AD-01, AD-02, AD-08, AD-09; `assistant-domain-model.md` (content model) | [ev:atm-salvage#F11][ev:atm-salvage#F12]; `ATM/docs/design/schemas.md:275` |
+| K4 | `modelPolicy{reasoningTier, codingCapability, costTier, preferredModels[]}` as portable intent; binding recorded at materialization | keep (precedent) | Same shape as "harness preferences are data, not a binding"; ATM had no harness dimension | AD-04, HB-03, HB-07; `harness-broker-model.md` (SelectionPolicy) | [ev:atm-salvage#F11][ev:atm-salvage#F9]; fit-gap AD-04 ATM C~ |
+| K5 | `collaboration.topology.allow[[a,b]]` (absent edge = independence); `spawn{intraRole, maxDepth 0..5}`; `access{rw|ro}` | keep (precedent) | Directed edges + dynamic-spawn policy are the TC-02/TC-03/TC-05 vocabulary; reviewer↔implementer edge "deliberately absent" | TC-02, TC-03, TC-05, AD-03; `team-execution-model.md` (TeamTemplate content) | `ATM/examples/demo-dev-team/teams/demo-development.yaml:3,45-57` [ev:atm-salvage#F12] |
+| K6 | Capability classes `native | emulated(strategy) | unsupported(reason)`; provisioning tiers `native | partially-automated | manual | unsupported`; `BootstrapInstruction[]` (ADR 0007; adapter-contract) | keep (vocabulary) | HarnessCapability / resolution-report vocabulary; "the plan must display the strategy chosen" | HB-01, HB-04, AR-05, MS-02; `harness-broker-model.md` (HarnessProfile/Capability) | ADR 0007:11-16 [ev:atm-salvage#F17] |
+| K7 | `x-*` extension blocks "never required for correct operation"; strict authoring; zero runtime-specific core fields; four-runtime pressure test (ADR 0004/0005) | keep (discipline) | Our AD-02 neutrality and HB-08 "adapter-level change only" | AD-02, HB-08; `harness-broker-model.md` (definition-injection matrix) | [ev:atm-salvage#F18]; `ATM/docs/design/runtime-portability-pressure-test.md:5-7,75-82` |
+| K8 | Trust zones Z0–Z4; proposals are hostile, typed intents only; decisions MAC'd with an operator-held key; plan-hash "applied == approved"; interrupted apply ⇒ new approval; bounded spam (ADR 0010/0011/0015/0021) | keep (principles) | Owner folded approval integrity, propose-only automation and bounded volume into EV-05 (2026-08-22); trust zones *not* added | EV-03, EV-05, XC-04; `assistant-domain-model.md` (OVERLAY pressure test: Proposal → review) | ADR 0021:19,28-30; ADR 0011:11-16 [ev:atm-salvage#F15] |
+| K9 | Four planes + secret late binding; portable set; `atm export` = tarball + hash manifest + `requiredSecretRefs` *names*; DR scenarios; "Not migrated by design: conversation state" (ADR 0008/0013; portability-dr) | keep | Credential-free export/import folded into AR-03 (owner); "runtime sessions ❌" = EV-04 | AR-03, AR-04, TE-07, EV-04; `assistant-domain-model.md` (portability); `team-execution-model.md` (archive) | `ATM/docs/design/portability-dr.md:9-20,26` [ev:atm-salvage#F16] |
+| K10 | `isolation.level` separated from `isolation.communication: trusted-runtime | hard`; `hard` "must not silently fall back"; `emulated` ⇒ explicit `degraded[]` (ADR 0026) | keep (enforcement-level declaration) | TC-03's "advisory vs mechanical" is this split, re-scoped from cross-project to within-run reviewer independence (D5) | TC-03, AR-05; `team-execution-model.md` (reviewer independence / TEMPORARY HIDDEN MEMBERS) | ADR 0026:28-43,66-69 [ev:atm-salvage#F14] |
+| K11 | Messaging Role Identity `(team, role)` ≠ Runtime Participant ≠ Project Route; surfaces optional, non-authoritative; manifests provisioning-tier-independent; `messaging: none` first-class (ADR 0012/0019/0024) | keep (stance) | MS-01/MS-04 in spirit; visible identity re-binds to a Member on a Surface, not a persistent team-role bot | MS-01, MS-03, MS-04, AD-06; `assistant-domain-model.md` (visible identity) | ADR 0012:13-15; ADR 0024:17-21 [ev:atm-salvage#F13][ev:atm-salvage#F21] |
+| K12 | Disposable `atm-test-<ulid>` profiles, foreground gateways, fail-closed guard rules, hash-only production canary (ADR 0014; `guard.ts`) | keep (PoC practice, not code) | PoC safety constraint for OpenClaw/Hermes state dirs; the only ATM code that ran | `minimal-poc-plan.md` (constraints); XC-04 | ADR 0014:11-14; `ATM/packages/adapter-openclaw/src/guard.ts:4-17` [ev:atm-salvage#F20] |
+| K13 | AT-13 "team yaml byte-identical after project add/archive"; AT-11 contradictory `PROJECT-FACTS.md` leakage test; "two distinct session IDs … explicitly insufficient evidence" (ADR 0017/0020) | keep (acceptance precedent) | Already the PoC A/B/C pass criteria ("definition file byte-identical"; "nothing of the inner run leaks") | `product-intent.md` §4; EV-04, TE-07 | ADR 0017:14; ADR 0020:19 [ev:atm-salvage#F19] |
+| K14 | Skill-first surface "defines the interaction model, not process lifetime"; no required daemon; optional watch mode later (ADR 0002/0008-F2) | keep | MS-01 "fully useful locally" and LO-01 "no continuously live LLM loop" | MS-01, LO-01; `team-execution-model.md` (LONG-RUNNING OPERATIONAL RUN) | `ATM/docs/design/2026-08-19-architecture.md` §5 [ev:atm-salvage#F18] |
+| K15 | Adopted insights: versioned `AuditEvent` attempted/applied/failed; evidence coverage `full|partial|none|unverified`; closed refusal envelope; deterministic approval render (review 2026-08-20) | keep (candidate ideas) | For the HarnessInvocation record and Proposal review; **not** requirements unless the owner accepts (§3.1) | HB-07, XC-04, EV-05; `harness-broker-model.md` (Invocation record) | `ATM/docs/design/review-2026-08-20-developing-insights-disposition.md:16-29` [ev:atm-salvage#F22] |
+| K16 | `project-definition.spec.overrides.roles` (per-project, per-role override) | keep (merge precedent only) | The only ATM override layer; project-scoped, so it informs *merge semantics*, never content (EV-04) | EV-02; `assistant-domain-model.md` (OVERLAY) | [ev:atm-salvage#F11]; fit-gap EV-02 ATM Xs~ |
+| D1 | `TeamDefinition` / `ProjectDefinition` / `TeamBundle` as runtime-managed resources (ADR 0020) | demote | Project is an execution-time input (TC-06, TE-01); only the lifecycle-separation lesson survives in TeamTemplate; TeamBundle has no counterpart | TC-06, TE-01; `team-execution-model.md` | ADR 0020:11-15 [ev:atm-salvage#F28] |
+| D2 | `ProjectRoleContext` — persistent per-`(team, project, role)` context surviving restart and rediscovery (ADR 0017) | demote | Contradicts TE-02 (fresh by default; resume opt-in); keep "prompt instructions are never an isolation boundary" and "verified, not assumed" for TC-03 | TE-02, TC-03 | ADR 0017:11-14 [ev:atm-salvage#F5] |
+| D3 | Workspace as core resource; operator-workspace layout; deployment namespace + collision/takeover model (ADR 0013/0018) | demote | Workspace is an execution-time input (register §2); namespaces exist only for converged deployments; the portable-directory idea lives in K9 | `team-execution-model.md` (TeamRun inputs) | ADR 0018:11-13 [ev:atm-salvage#F28] |
+| D4 | Desired-state reconciliation loop, live discovery, drift detection (ADR 0006) | demote | Never built; a TeamRun is a fresh instantiation, not a converged deployment (TE-01 ATM M~); approve-the-exact-artifact survives only for Proposals (K8) | EV-05 | ADR 0006:11-15 [ev:atm-salvage §3] |
+| D5 | Hard same-user cross-project communication isolation as a Core contract (ADR 0017 clause c; ADR 0026 `hard`; one-Gateway-per-Project option) | demote | No cross-project exists in our model: projects are run inputs, AssistantInstances fresh per run (TE-01/TE-02); what survives is within-run reviewer independence with a declared enforcement level (TC-03, K10); no hostile-tenant posture in the register | TC-03 | ADR 0026:39-43,63-65 [ev:atm-salvage#F5][ev:atm-salvage#F26] |
+| D6 | Persistent runtime Agent identity as the materialization of a role (`role_persistence: persistent`; OpenClaw "persistent configured agent") | demote | AD-05 forbids runtime identity in the definition; an AssistantInstance is fresh; persistent OpenClaw agents are at most an adapter composition (fit-gap OC AD-05/TE-02 `M!`/`C!`) | AD-05, TE-02; `harness-broker-model.md` (OpenClaw mapping) | `ATM/docs/design/runtime-portability-pressure-test.md:15-16` [ev:harness-cli-capabilities-b#F10] |
+| D7 | OpenClaw agent-ID/marker/agentDir-generation/adoption machinery; schema-first binding to `agents.list`; scoped differ (ADR 0009 §2-4; DECISIONS 0013; U1/U11) | demote (HarnessProfile facts) | Only probe facts remain: `agents.list` accepted / `agents.entries` rejected; id pattern `^[a-z0-9][a-z0-9_-]{0,63}$` | HB-01; `harness-broker-model.md` (OpenClaw HarnessProfile) | ADR 0009:12-14 [ev:atm-salvage#F2][ev:atm-salvage#F7] |
+| D8 | OpenClaw as first RuntimeAdapter, Telegram as first MessagingAdapter (M1/M2 staging) | demote | OpenClaw is one Harness/Surface among ClawTeam, Claude Code, Codex, Hermes, dsh; PoCs need neither it nor Telegram | TE-03, HB-08, MS-02; `product-intent.md` §4 constraints | `ATM/.project-steward/PROJECT.md` goals |
+| D9 | Deployment-oriented capability queries (`role_persistence`, `project_context_isolation`, `restart_persistence`, `surface_binding`) | demote (names), keep pattern (K6) | HarnessCapability names are harness-facing (headless, system-prompt injection, resume, MCP, output, permissions, cwd, platform) | HB-01 | [ev:atm-salvage#F17]; glossary HarnessCapability |
+| D10 | Team Steward role (Z3s) | demote | Not a role; the idea "an automatic actor may only propose" is EV-03 | EV-03 | ADR 0011:11-16 [ev:atm-salvage#F28] |
+| D11 | `ManagementProposal` intent vocabulary (`add_role`, `remove_role`, `create_project`, `archive_project`, `request_surface_change`, …) | demote (vocabulary) | Deployment intents; the principle "typed intents, patch/diff unrepresentable" survives for overlay Proposals | EV-03, EV-05 | ADR 0011:11 [ev:atm-salvage#F11] |
+| D12 | `MessagingAdapter` provisioning ops (`provision_role_identity`, `provision_team_surface`, `provision_project_surface`, …) | demote (surface-adapter detail) | Surfaces are C-priority adapters; keep only the tiering vocabulary (K6) and Telegram invariants (§3.3) | MS-02 | ADR 0019:11-14 [ev:atm-salvage#F21] |
+| X1 | A2A router `atm_project_send`, ADR 0023/0025, U16 test-only plugin (`tests/fixtures/openclaw/{mcp,plugins}`) | discard | Superseded by ADR 0026 itself ("over-owns messaging"); uncertified (`modelToolDeliveryObserved: false`); TE-06 inherits substrate messaging | — (TE-06 note) | ADR 0025:3; `ATM/.project-steward/HANDOFF.md:74-76` [ev:atm-salvage#F6] |
+| X2 | Telegram topic-per-Project topology, one bot per Role, as team semantics (ADR 0024 Telegram UX; M2 plan) | discard | MS-04 forbids deriving team semantics from surface topology; only V11–V13 facts survive (§3.3) | — (MS-04) | ADR 0024:28-49 [ev:atm-salvage#F13]; fit-gap MS-04 ATM M~ |
+| X3 | Deployment record, namespace encoding, lease lock `{ownerToken,pid,host,…}`, controller key bootstrap, controller daemon/watch mode | discard | Reconciliation-specific; a TeamRun archive (TE-07) is a different object | — | ADR 0021:34-35 [ev:atm-salvage#F11] |
+| X4 | TypeScript / Node ≥20 as the product's own dependency; pnpm monorepo layout (ADR 0003) | discard | Implementation language undecided until after architecture review (`.project-steward/QUESTIONS.md`) | — | ADR 0003 (Decision) |
+
+## 3. Salvage list
+
+### 3.1 Requirement candidates and their status
+
+The register is frozen; ATM-derived candidates were dispositioned by the owner on 2026-08-22 (`.project-steward/QUESTIONS.md`, answered item): artifact lock/fingerprint/local-modification safety → **new row AR-06**; isolation posture with fail-closed semantics → **folded into TC-03**; "applied == approved", automatic actors only propose, bounded proposal volume → **folded into EV-05**; credential-free export/import archive → **folded into AR-03**; host-platform vs harness availability as independent dimensions → **folded into XC-02**; trust zones → **not added** (later-phase security posture; risk note). Remaining candidates — **for the owner to accept, reject, or keep as notes; not requirements**:
+
+| Candidate (ATM source) | Nearest existing ID | Why it might matter |
+|---|---|---|
+| Per-host *migration report* (capability report diffed across targets) — `portability-dr.md` §4 | AR-05 | a *diff* between two harnesses' resolution reports is PoC A synthesis input |
+| `AuditEvent` attempted/applied/failed + evidence coverage `full|partial|none|unverified` [ev:atm-salvage#F22] | HB-07, XC-04 | separates "invoked" from "verified" — what the exit-137 run lacked |
+| Closed refusal envelope (stop / re-plan / seek approval / retry) [ev:atm-salvage#F22] | XC-04 | a Lead or deterministic backend needs a machine-readable "do not proceed" |
+| `BootstrapInstruction[]` / humanSteps [ev:atm-salvage#F17] | AR-05, MS-02 | BotFather steps are human-only (V12); a resolution report should say so |
+| "Record aborted automated actions" [ev:atm-salvage#F25] | XC-04 | a killed invocation must still leave a record with a terminal status |
+| Model reliability (tool-call compliance) as a HarnessProfile dimension [ev:atm-salvage#F24] | HB-01, HB-05 | mitigations (ensembles, deterministic delivery) need the failure mode recorded |
+
+### 3.2 Evidence fixtures (`ATM/tests/fixtures/openclaw/`, recorded 2026-08-20 against OpenClaw 2026.7.1-2)
+
+Reusable as historical probe evidence without re-running anything; the recorded schema is the one the CLI prints today [ev:openclaw-native-and-telegram-verification#F35]. Copy as *evidence*, never as code; redact credential-like keys as [ev:atm-salvage] did.
+
+| Fixture set | Proves | Serves |
+|---|---|---|
+| `s1-evidence.json`, `s1-agents-list.raw.json`, `s1-skills-list.raw.json`, `s1-config-schema.raw.json` | `agents.list` accepted / `agents.entries` rejected in dry-run; id normalization; `skills list --json` row shape with per-agent visibility flags; 2.4 MB draft-07 schema | HB-01 (OpenClaw HarnessProfile), AR-05 [ev:atm-salvage#F2][ev:atm-salvage#F7] |
+| `s2-evidence.json` + `s2-*-agents-list/message-send.raw.json`, `s2-state-*.json` | `agents add` hot-applies and persists across restart; provisions 41 paths incl. a git-initialised workspace and `agents/<id>/sessions`; `message send --agent` rejected | AD-05 (OC persistence), MS-03 [ev:atm-salvage#F3] |
+| `s3-evidence.json`, `s3-sessions-*.raw.json`, `s3-turns.raw.json` | `openclaw agent --agent <id> --session-key <key>` addressing: same key preserves state, distinct keys distinct, survives restart and state-map deletion; candidates A/B isolation verdicts (`a2aConfinement:false`) | TE-02, LO-04, TC-03 [ev:atm-salvage#F4][ev:atm-salvage#F5] |
+| `s3b-*` (router, MCP probe, tools-effective, invocations) | Public per-agent/session policies "remove bypasses but do not route"; the test-only router passed mechanical gates only | TC-03 (OC hard independence needs a plugin) — historical, X1 [ev:atm-salvage#F6] |
+| `s4-*` (V4-Flash) and `s4-deepseek-v4-pro-nonthinking-*` | Model-facing compliance failure patterns: duplicate hops, omitted tool calls, prose instead of tool call, missing target receipts | EV-01 failure-mode catalog, HB-05, §4 R1 [ev:atm-salvage#F24] |
+| `mcp/`, `plugins/` | Test-only router plugin source | **not imported** (X1) |
+
+### 3.3 ATM V1–V15 re-checked against today's evidence
+
+| V | ATM claim (condensed) | Today | Our evidence |
+|---|---|---|---|
+| V1 | Gateway WS v4 control surface; 3 writes / 60 s | ATM-observed (web); not re-probed | [ev:atm-salvage#F1] |
+| V2 | `openclaw config get|set|patch|unset|file|schema|validate`, `--dry-run`, `--json` | **confirmed** (`openclaw config --help` → `file | get | patch | schema | set | unset | validate`) | [ev:openclaw-native-and-telegram-verification §6] |
+| V3 | Per-agent `workspace`, `agentDir`, `model`, `identity`, `tools`, `skills`, `sandbox`, `subagents`; `bindings` | **confirmed** (35 `agents.list[]` schema keys) | [ev:openclaw-native-and-telegram-verification#F13][ev:harness-cli-capabilities-b#F9] |
+| V4 | Docs ≠ schema: `agents.entries` vs `agents.list`; `tools.` vs `session.agentToAgent` | **confirmed** for `agents.entries` (rejected); **refined** for agentToAgent — both keys exist with different functions (`tools.agentToAgent {enabled, allow[]}`; `session.agentToAgent.maxPingPongTurns`) | [ev:harness-cli-capabilities-b#F9][ev:openclaw-native-and-telegram-verification#F15] |
+| V5 | `sessions_spawn` depth 1 / max 5; ≤8 concurrent; agentToAgent off by default; no team construct | **confirmed** depth (1–5), off-by-default, no team object; **stale** concurrency (`maxChildrenPerAgent` 5, range 1–20; separate `maxConcurrent`) | [ev:openclaw-native-and-telegram-verification#F21][ev:openclaw-native-and-telegram-verification §3][ev:harness-cli-capabilities-b#F12] |
+| V6 | `--profile <name>` → `~/.openclaw-<name>`; gateways ≥20 ports apart | **confirmed** profile isolation; port spacing not re-verified | [ev:harness-cli-capabilities-b#F10] |
+| V7 | `${ENV}`; SecretRef `env|file|exec|store`; telegram `tokenFile` | **confirmed** (`tokenFile`, `auth-profiles.json`, `openclaw secrets`) | [ev:openclaw-native-and-telegram-verification#F19][ev:harness-cli-capabilities-b#F23] |
+| V8 | Safe config hot-apply; `gateway.*`/plugins need restart | ATM-observed (S2 hot-applied `agents add`); not re-probed | [ev:atm-salvage#F3] |
+| V9 | Skill precedence `<workspace>/skills` → `<workspace>/.agents/skills` → `~/.agents/skills` → `~/.openclaw/skills` → bundled; `metadata.openclaw.requires` | **confirmed** (six roots; `requires` gating) | [ev:harness-cli-capabilities-b#F11] |
+| V10 | Agent Skills spec: only `name` + `description` required; no `version` field; <500 lines | **confirmed** (web re-verified 2026-08-22) | [ev:atm-salvage#F8] |
+| V11 | Bot-to-Bot Communication Mode (opt-in; `/command@TargetBot` or reply; admin bot, privacy off) | **confirmed** (FAQ sentence still published; pages inconsistent) | [ev:openclaw-native-and-telegram-verification#F32] |
+| V12 | Bot API cannot create groups/bots/tokens or toggle privacy; `createForumTopic` after a human adds an admin bot | **confirmed** (Bot API 10.2; `topic-create` action in OpenClaw) | [ev:openclaw-native-and-telegram-verification#F33] |
+| V13 | `getUpdates` vs webhook mutually exclusive per token; never poll a gateway-owned token | **confirmed** (OpenClaw diagnoses 409 as an external poller) | [ev:openclaw-native-and-telegram-verification#F34] |
+| V14 | No plugin needed; "External apps should not import `openclaw/plugin-sdk/*`" | ATM-observed; plugin-SDK stability is a listed evidence gap (XC-03) | [ev:atm-salvage#F1]; fit-gap consolidated evidence gaps |
+| V15 | "not a hostile multi-tenant security boundary"; hardened baseline; `security audit --deep` | ATM-observed (web); installed: `tools.exec.mode`, sandbox, `subagents.allowAgents` | [ev:atm-salvage#F1][ev:harness-cli-capabilities-b#F14] |
+
+### 3.4 ADR ideas carried forward as ideas
+
+- **ADR 0016** — a portable definition "carries no runtime identity and no persistence assumption"; what materializes it is recorded per invocation, outside the definition (K1).
+- **ADR 0022** — semantic capability vs explicit artifact, never collapsed; adapters "never silently substitute"; lock + fingerprint; host-platform vs runtime compatibility as independent dimensions; migration preference "portable agent-skill → portable MCP/service → runtime-specific plugin" (K2).
+- **ADR 0012/0019/0024 messaging-optional stance** — the authoritative coordination path is never a messaging platform; surfaces are capabilities a run *may* present; provisioning tiers are adapter answers, not Core shape; a stable visible identity is separable from whatever executes (K11) — with the rebinding from "team-role bot" to "Member on a Surface".
+- **ADR 0026 postures** — isolation and communication enforcement are separate declarations; a posture that cannot be certified reports `unsupported` instead of falling back silently; every emulation carries an explicit `degraded[]` (K10).
+- **ADR 0010/0011/0021** — "self-approval is structurally impossible — by authentication, not by hashing"; proposals are hostile input; an interrupted apply needs a new approval (K8).
+- **ADR 0014** — disposable profiles + fail-closed guard + hash-only canary as test hygiene (K12).
+
+## 4. Failure evidence carried forward as risks (proposed rows for `.project-steward/RISKS.md`)
+
+Proposed, not applied; the owner merges. Existing rows 3 (docs/kit drift) and 5 (ATM sunk-cost leakage) already cover part.
+
+| Risk (proposed row) | ATM evidence | L / I | Proposed mitigation (our IDs) |
+|---|---|---|---|
+| R1 Model-facing tool-call non-compliance (duplicate hops, omitted calls, prose instead of a tool call, missing receipts) breaks autonomous choreography on some model/harness pairs | U2: 0/2 and 0/2; thinking/max "not certified" | medium / high | Reliability as a HarnessProfile dimension (HB-01); deterministic delivery and DAG state instead of LLM-emitted protocol steps (TE-06, LO-02); ensembles (HB-05); EV-01 failure catalog; re-test on other harnesses (open question 3) |
+| R2 Compliance and mechanical failures conflated in evidence | ATM had to assert "compliance failure, not a mechanical-isolation failure"; "do not restate as 0/2" | medium / medium | The invocation record separates mechanical outcome from semantic verification (HB-07, XC-04); PoC criteria name both |
+| R3 Confinement assumed from configuration shape | U10 realized; global `tools.agentToAgent.allow` | medium / high | No persistent runtime identity shared across TeamRuns (TE-02); declared vs achieved enforcement level recorded (TC-03); "two session IDs are not evidence" (K13) |
+| R4 An aborted run leaves no record and no postmortem | exit 137; "major problem" never described | medium / medium | Terminal status for every HarnessInvocation and TeamRun, written before the first side effect (XC-04, TE-07; K15) |
+| R5 Design outruns execution | 15,948 harness lines and 26 ADRs for 666 product lines [ev:atm-salvage#F27] | medium / high | PoCs A–C with pass criteria before any layer beyond the smallest (`product-intent.md` §4, §6); no code in M0 |
+| R6 Probes touch production state dirs (`~/.openclaw`, `~/.hermes`, `~/.claude`) | ATM RISKS rows 2–3 (critical) | low / critical | Disposable profiles/homes (`--profile`, `HERMES_HOME`, `CLAUDE_CONFIG_DIR`, `CODEX_HOME`) + fail-closed check before the first subprocess (K12; `minimal-poc-plan.md`) |
+| R7 Proposals as an injection vector into reusable definitions | ATM RISKS row 11 | medium / high | Hostile input; humans approve; applied == approved; bounded volume (EV-03, EV-05) |
+| R8 Core leaks one harness's specifics; second harness = rewrite | ATM RISKS row 14; HANDOFF warning | medium / high | HarnessProfile as data, adapters only (HB-01, HB-08); PoC A runs one definition on two harnesses first |
+| R9 Surface assumptions harden into team semantics | ATM RISKS row 15; discarded topic-per-Project | low / medium | MS-04; Surfaces bind to Members, never define them |
+| R10 Supply-chain tampering; local artifact edits silently destroyed | ATM RISKS rows 18–19 | low–medium / high | AR-06 lock + fingerprint; local modification blocks destructive replacement |
+| R11 LLM-dependent e2e evidence is flaky and costly | ATM RISKS row 10; 40-minute timeout | high / medium | Deterministic tier separated from a live tier in the PoC plan |
+
+## 5. "Tried and rejected" (verbatim from `ATM/.project-steward/HANDOFF.md:71-91`) with our interpretation
+
+1. *"Persistent role Agent + Project sessions: fails strict workspace isolation."* — Interpretation: a persistent runtime identity serving many projects cannot be the AssistantInstance; hence fresh instances per TeamRun (TE-02) and OpenClaw `agents.list` as an adapter detail, never an Assistant (D6).
+2. *"U16 ATM router as the default bus: superseded because it replaces native runtime collaboration and over-owns messaging."* — Interpretation: build no message bus; inherit DAG/messaging from the substrate (TE-06) and add only what it lacks (nested-run boundary, archive, result contract — `team-execution-model.md`).
+3. *"Route catalogs/global allowlists as hard confinement: rejected; they are trusted-runtime correctness inputs only."* — Interpretation: configuration shape is never evidence of isolation; the TeamTemplate declares the enforcement level and the run records the level actually achieved (TC-03).
+4. *"One Gateway per Project as the default: rejected; an explicit hard-boundary deployment option only."* — Interpretation: without projects in the Core the question dissolves; a per-run disposable profile/home is a *fresh-by-default* mechanism, not a security boundary (TE-02; G-TE-02).
+
+Warnings carried: *"Do not classify exit 137 as a model/path failure or partial certification"* (→ R2/R4); *"Keep Core free of OpenClaw Gateway, Agent/session, plugin, raw-tool, route layout, and participant-materialization mechanics"* (→ R8, AD-05); *"No Gateway outside disposable `atm-test-*` profiles"* (→ R6).
+
+## 6. Repository disposition
+
+- **Archive read-only.** `agent-team-manager-dev` stays untouched under `/home/wsh/Documents/00000/` (HEAD `12a727e`, clean [ev:atm-salvage §6]); no branch, commit or push from this project.
+- **Copy as evidence only:** the V1–V15 matrix (`ATM/docs/design/feasibility-report.md:22-38`), U1–U16 register, RISKS/HANDOFF text, the §3.2 fixtures — already quoted through [ev:atm-salvage] and [ev:openclaw-native-and-telegram-verification]; nothing more is needed for discovery.
+- **Nothing imported as code.** `guard.ts`/`seam.ts` inform a PoC *practice* (K12); the router plugin is discarded (X1); the 17 JSON Schemas and ADR text are **ideas** — textual reuse waits for an owner licence statement (no `LICENSE`, `"private": true`; XC-01; fit-gap ATM `?`).
+- Owner decision outside this repository: tag/mark ATM as superseded (open question 7).
+
+## Mapping to substrates
+
+Per salvaged concept: today's substrate primitive, or "no primitive — new" (consistent with the fit-gap cells cited).
+
+| Salvaged concept | ClawTeam | Claude Code | Codex | OpenClaw | Hermes | dsh |
+|---|---|---|---|---|---|---|
+| K1 definition ≠ runtime identity | none — template inlines `task` [ev:clawteam-model#F13] | subagent `.md` [ev:claude-agent-teams-hermes-openbot#F11] | `.codex/agents/*.toml` [ev:harness-cli-capabilities-a#F7] | conflated in `agents.list` [ev:harness-cli-capabilities-b#F10] | distribution-owned vs user-owned paths [ev:claude-agent-teams-hermes-openbot#F24] | `AgentRecord` (gui) [ev:dsh-agent-teams-and-gui#F18] |
+| K2 capability vs artifact; AR-06 lock | `skills-lock.json`, unread | plugin manifest [ev:claude-agent-teams-hermes-openbot#F14] | `skills.config` paths [ev:harness-cli-capabilities-a#F5] | `metadata.openclaw.requires`, eligibility report [ev:harness-cli-capabilities-b#F11] | `env_requires`; curator ledger [ev:claude-agent-teams-hermes-openbot#F24] | routes only [ev:dsh-agent-teams-and-gui#F19] — **no primitive, new** (G-AR-01/06) |
+| K8 Proposal; applied == approved | plan-approval round-trip [ev:clawteam-model#F17] | in-session approvals only | — | `skill-workshop/proposals/` (unverified) | curator, ungated [ev:claude-agent-teams-hermes-openbot#F28] | never-applied retrospective [ev:dsh-agent-teams-and-gui#F29] — **new object** |
+| K10 enforcement level | no inter-team boundary [ev:clawteam-probe-log#F19] | per-definition isolation | — | `sessions.visibility`, global `agentToAgent.allow` [ev:openclaw-native-and-telegram-verification#F15] | `--source tool`; profiles "do not sandbox" [ev:harness-cli-capabilities-b#F19] | `contextMode` [ev:dsh-agent-teams-and-gui#F25] — **declaration field new** |
+| K11 visible identity | none | none | none | `agents.list[].identity` [ev:openclaw-native-and-telegram-verification#F3] | gateway token per profile [ev:claude-agent-teams-hermes-openbot#F26] | none — **per-Member binding new** (G-MS-03) |
+| K9 credential-free export | none | plugins | — | `openclaw backup` unverified | `profile export/install` [ev:harness-cli-capabilities-b#F19] | recipes, strict schemas [ev:dsh-agent-teams-and-gui#F20] |
+| K12 disposable test homes | `CLAWTEAM_DATA_DIR` [ev:clawteam-probe-log#F3] | `CLAUDE_CONFIG_DIR`, `--bare` [ev:harness-cli-capabilities-a#F19] | `CODEX_HOME`, `--ephemeral` [ev:harness-cli-capabilities-a#F19] | `--profile` [ev:harness-cli-capabilities-b#F10] | `HERMES_HOME` / `-p` [ev:harness-cli-capabilities-b#F19] | n/a |
+| K6 capability classes | `profile test` | `system/init` capabilities [ev:claude-agent-teams-hermes-openbot#F15] | — | `eligible/missing/blockedBy…` [ev:harness-cli-capabilities-b#F11] | `skills list --source` | — **vocabulary new** (HarnessProfile) |
+| U9 headless run, opt-in resume | session capture [ev:clawteam-spawn-platform#F19] | `-p`, `--resume` [ev:claude-agent-teams-hermes-openbot#F15] | `exec`, `resume --last` [ev:harness-cli-capabilities-a#F8] | `agent --session-key` [ev:atm-salvage#F4] | `-q`/`-z`, `--resume` [ev:harness-cli-capabilities-b#F7] | in-session |
+| R4 terminal record of aborted actions | exit journal, `exit_code: null` [ev:clawteam-probe-log#F14] | JSON result; exit 143 | rollouts | `audit --status cancelled|timed_out` [ev:openclaw-native-and-telegram-verification#F22] | kanban `task_runs` [ev:claude-agent-teams-hermes-openbot#F25] | run records [ev:dsh-agent-teams-and-gui#F27] — **cross-system record new** (G-XC-04) |
+
+## What is new vs borrowed
+
+| Concept | Borrowed from (system + mechanism) | New? |
+|---|---|---|
+| Assistant definition free of runtime identity | ATM ADR 0016 (idea); Hermes distribution/user path split; dsh-gui `AgentRecord` | harness-neutral object new (G-AD-01/05) |
+| Capability vs Artifact requirement | ATM ADR 0022 (idea); OpenClaw `requires` gating (partial) | new — no substrate primitive |
+| Artifact lock / fingerprint | ATM ADR 0022 (idea); ClawTeam `skills-lock.json` shape; Hermes curator ledger | new (AR-06) |
+| Proposal + reviewed approval integrity | ATM ADR 0011/0021 (idea); ClawTeam plan-approval round-trip; dsh-gui never-applied retrospective | new object |
+| Enforcement-level declaration for independence | ATM ADR 0026 (idea); dsh-gui `contextMode` | new template field |
+| Visible identity separable from executor | OpenClaw `agents.list[].identity` (mechanism); ATM ADR 0024 (idea) | binding to a per-run Member is new |
+| Credential-free export/import | Hermes `profile export/install`; dsh-gui recipes; ATM export manifest (idea) | harness-neutral archive is new |
+| Disposable fail-closed test homes | OpenClaw `--profile`; Hermes profiles; Claude/Codex env dirs; ATM ADR 0014 | borrowed |
+| Capability classes native/emulated/unsupported | ATM ADR 0007 (idea); OpenClaw skills eligibility (partial) | HarnessProfile vocabulary new |
+| Messaging-optional stance | every runnable substrate; ATM ADR 0012 (idea) | borrowed |
+| Terminal record for aborted actions | OpenClaw `audit` statuses; ClawTeam exit journal; ATM lesson | cross-system record new |
+| Telegram facts V11–V13 | web (core.telegram.org), re-verified | borrowed knowledge |
+| "Definition byte-identical" acceptance criterion | ATM AT-13 (idea) | borrowed |
+
+## Open questions
+
+1. What "major problem" stopped ATM's native-U2 run (`HANDOFF.md:38`)? Only the owner knows; it may bear on OpenClaw native `sessions_send` as a TE-06 substrate.
+2. Will the owner state a licence (or permission) for `agent-team-manager-dev` so schema/ADR *text* may be reused at rung 4 (XC-01)? Until then: ideas only.
+3. Is the DeepSeek tool-call non-compliance (§3.2 s4) reproduced on Claude Code / Codex / Hermes? Decides how far TE-06 messaging may rely on LLM-emitted protocol steps (R1); seeds the EV-01 catalog.
+4. Which of the §3.1 remaining candidates become register notes (not rows)? Owner decision.
+5. Are ATM's unrun spikes U5 (`sessions_spawn` child semantics), U7 (session survival across restart), U12/U13 (per-agent skill materialization and propagation), U15 (role-scoped availability proof) still needed as PoC-time probes for OpenClaw *as a Harness* (HB-02, AR-05), or do they die with the persistent-runtime model? [ev:atm-salvage §5 Q5]
+6. Exact heading anchors in `assistant-domain-model.md`, `team-execution-model.md`, `harness-broker-model.md` for the "Lands in" column — to be fixed after those drafts land.
+7. Should the ATM repository receive a "superseded by Assistant Team System" note/tag? Outside this repository; owner.
+8. Should the guard/seam *pattern* (fail-closed check before the first subprocess; hash-only canary) become a hard constraint in `minimal-poc-plan.md`?
+
+## Inconsistencies noted
+
+1. **V4 (agentToAgent "drift") is partly a misreading.** ATM and [ev:atm-salvage#F1] describe `tools.agentToAgent` vs `session.agentToAgent` as docs↔schema drift; [ev:openclaw-native-and-telegram-verification#F15] shows both keys exist with distinct functions (`tools.agentToAgent {enabled, allow[]}`, `session.agentToAgent.maxPingPongTurns`). The `agents.entries` half of V4 stands.
+2. **V5 concurrency number.** ATM's "≤8 concurrent" is restated unverified in [ev:atm-salvage#F1]; installed docs give `maxChildrenPerAgent` default 5 (1–20) plus a separate `maxConcurrent` key [ev:openclaw-native-and-telegram-verification#F21][ev:harness-cli-capabilities-b#F12]. Treat the ATM number as stale.
+3. **`product-intent.md` §1.1** says the ATM model "fought every harness and every surface". The evidence supports "fought OpenClaw and the A2A posture"; other harnesses were stipulated, never exercised, and Telegram (M2) was never started [ev:atm-salvage#F27][ev:atm-salvage §3]. This is an inference, flagged as such in [ev:atm-salvage#F27].
+4. **"Hard same-user cross-project communication isolation".** ADR 0026 had already demoted it to an opt-in posture; our TC-03 keeps an enforcement-level declaration for *within-run pairwise* independence only (consistent with G-TC-03) — TC-03 is not a cross-project contract.
+5. **recon-appendix** counts (RISKS 20 rows / 4 realized) are superseded by [ev:atm-salvage §3] (21 / 3) — re-verified against `ATM/.project-steward/RISKS.md:7-27`.

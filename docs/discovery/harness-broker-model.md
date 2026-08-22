@@ -1,0 +1,236 @@
+---
+title: Harness broker model
+status: draft
+date: 2026-08-22
+owns: HarnessProfile / HarnessCapability; the consolidated definition-injection matrix (HB-02); HarnessSelectionPolicy + HarnessBroker (resolve, precedence, fallback); HarnessInvocation record; the ENSEMBLE + SYNTHESIS pressure test; deterministic backends as invocation targets; the harness-adapter seam (HB-08); mapping of these concepts to substrates
+depends_on: product-intent.md (register; PoC A), evidence/glossary.md, existing-systems-fit-gap.md (HB and LO rows), assistant-domain-model.md §7 (harness preferences as data — pending), team-execution-model.md (long-running pressure test — pending), evidence/*.md
+---
+
+# Harness broker model
+
+> Naming note: `HarnessProfile`, `HarnessCapability`, `HarnessSelectionPolicy`, `HarnessBroker`, `HarnessInvocation`, `Ensemble` and `Backend` are the glossary's provisional names, kept unchanged here; `architecture-options.md` may rename them. Every YAML/JSON sketch is **illustrative, not a schema**. This document models; it neither chooses an architecture (`architecture-options.md`) nor ranks reuse options (`reuse-vs-build-analysis.md`).
+
+## 1. Purpose & scope
+
+This document owns the brokerage layer: how one portable Assistant definition is executed on whichever installed harness a policy selects; how the definition reaches that harness without being edited (HB-02); how selection is made and falls back (HB-03, HB-04); how several harnesses run the same task independently and are synthesized (HB-05); how non-LLM tools join the same invocation model (HB-06); what is recorded (HB-07); and what adding a harness costs (HB-08). It consumes the Assistant's harness-preference *data shape* from `assistant-domain-model.md` §7 and run-level semantics (who triggers an invocation, nested runs, long-running loops) from `team-execution-model.md`. Surfaces (MS), evolution (EV) and artifact resolution (AR) are out of scope except where the injection bundle carries resolved Skills/MCP entries.
+
+## 2. Why brokerage is a layer of its own (HB-01..HB-08, AD-04, TE-03)
+
+The product object is a *definition*; the brief's own illustration is the same `code-reviewer` executed on Codex (Run A), on Claude Code (Run B) and on both with synthesis (Run C) — PoC A in `product-intent.md` §4 — with the definition byte-identical afterwards (AD-04, AD-08). Three facts force a broker rather than a per-harness config file:
+
+1. **Harnesses differ in capability, not only in flag spelling.** The two 15-row checklists [ev:harness-cli-capabilities-a#F16][ev:harness-cli-capabilities-b#F23] show a per-invocation system prompt is a flag in Claude Code and Grok, a config override in Codex, and absent in OpenClaw and Hermes (which want files in a per-run workspace or profile); USD cost is emitted by Claude Code, Grok and Hermes, not by Codex or OpenClaw [ev:harness-cli-capabilities-a#F2][ev:harness-cli-capabilities-a#F10][ev:harness-cli-capabilities-b#F8][ev:harness-cli-capabilities-b#F17].
+2. **No substrate carries that knowledge as data.** ClawTeam encodes it as an if/elif chain keyed on executable basename plus a resume table and session locators [ev:clawteam-spawn-platform#F1]; OpenClaw has an ACP alias registry without capability dimensions [ev:openclaw-native-and-telegram-verification#F16]; the fit-gap matrix has no `S`/`C` cell on HB-01 anywhere (`existing-systems-fit-gap.md` G-HB-01).
+3. **Members of one TeamRun must run on different harnesses (TE-03)**; every single-harness system is a mismatch there (fit-gap TE-03: CC/CX/HM/DT/DG `M`); only ClawTeam/fork (per-member `command` [ev:clawteam-probe-log#F16]), OpenClaw via the absent `acpx` plugin, and raw scripts reach it.
+
+The broker therefore turns *policy + profile + definition + task* into concrete invocations; per the glossary it is not a message router.
+
+## 3. HarnessProfile and HarnessCapability
+
+A **HarnessProfile** describes one *installed* harness on one host: identity and version, capability set, exact mechanism per capability, limits, platform facts, terms. A **HarnessCapability** is one named row with a value (`flag`, `config-key`, `file`, `env`, `positional`, `none`) and a verification level inherited from evidence (`!` verified, `~` observed, `?` unverified), so the broker can refuse an unverified channel when policy demands a guarantee.
+
+Illustrative profile for Claude Code, from [ev:harness-cli-capabilities-a#F1–F15,F19] (illustrative, not a schema):
+
+```yaml
+harness: claude-code
+version: 2.1.239
+platform: {os: [linux, macos, windows], sandbox_native_windows: false}        # F14
+terms: {automation: "API key for products; OAuth for ordinary use"}          # F15
+capabilities:
+  headless:          {value: flag, how: "-p/--print", level: "!"}                                   # F1
+  system_prompt:     {value: flag, how: "--append-system-prompt[-file] | --system-prompt[-file]", level: "!/~"}  # F2
+  prompt_prefix:     {value: positional, how: "positional | stdin | --input-format stream-json", level: "!"}  # F3
+  workspace_file:    {value: file, how: "CLAUDE.md hierarchy; no custom-path flag; --add-dir + env", level: "~"}  # F4
+  skills:            {value: flag, how: "--add-dir <dir/.claude/skills> | --plugin-dir", level: "~"}   # F5
+  mcp:               {value: flag, how: "--mcp-config <json|file> --strict-mcp-config", level: "!"}   # F6
+  agent_roster:      {value: flag, how: "--agents '<json>'; --agent <name>", level: "!"}           # F7
+  resume:            {value: flag, how: "--continue | --resume <id> | --session-id | --fork-session", level: "!"}  # F8
+  cwd:               {value: process-cwd, how: "process cwd; --add-dir; -w", level: "!"}            # F9
+  structured_output: {value: flag, how: "--output-format json|stream-json; --json-schema", level: "!"}  # F10
+  usage_cost:        {value: json-field, how: "total_cost_usd, modelUsage, session_id; --max-budget-usd", level: "!"}  # F10
+  permissions:       {value: flag, how: "--permission-mode | --allowedTools | --tools | --dangerously-skip-permissions (not as root)", level: "!"}  # F11
+  model:             {value: flag, how: "--model | --fallback-model a,b | --effort", level: "!"}    # F12
+  hooks:             {value: file, how: "settings.json / plugin; NOT via --settings", level: "~"}   # F13
+  isolation:         {value: flag, how: "--bare | --no-session-persistence | CLAUDE_CONFIG_DIR", level: "!"}  # F19
+limits: {headless_teams: false}   # teams need an interactive session [ev:claude-agent-teams-hermes-openbot#F8]
+```
+
+The same shape for the other four installed harnesses, condensed (values are the evidence's exact names):
+
+| Capability | Codex 0.148.0 | Grok 1.0.5 | OpenClaw 2026.7.1-2 | Hermes 0.20.4 |
+|---|---|---|---|---|
+| headless | `codex exec` ! | `-p/--single`, `--prompt-file`, `grok agent stdio` ! | `openclaw agent --local -m/--message-file` (one turn) ! | `hermes chat -q [-Q] [--yolo]`; `hermes -z` ! |
+| system prompt | no flag; `-c developer_instructions=…` / `-c model_instructions_file=…` ~ | `--rules` (append) / `--system-prompt-override` ! | none; per-run workspace `SOUL.md`/`AGENTS.md`; `agent:bootstrap` hook ~ | none; `SOUL.md` in HERMES_HOME; `HERMES_EPHEMERAL_SYSTEM_PROMPT` / `agent.system_prompt` ~ |
+| prompt prefix | positional / stdin `-` ! | positional / `--prompt-json` / `--verbatim` ! | `--message` / `--message-file` ! | `-q` / `-z` text ! |
+| workspace file | `AGENTS(.override).md` chain; `-C` !; `-c project_doc_fallback_filenames` ~ | `AGENTS.md`+`CLAUDE.md`+rules dirs; `--cwd` ! | fixed bootstrap basenames only (`bootstrapMaxChars` 20000/60000) ~ | `AGENTS(.override).md` chain, `CLAUDE.md`, `.hermes.md` ~ |
+| skills | `.agents/skills` chain; `[[skills.config]]` ~ (`-c` array form ?) | `.grok/skills`, `.agents/skills`, `.claude/skills`; `[skills] paths` ! | 6 roots incl. `~/.agents/skills`; `agents.list[].skills` allowlist ! | `<HERMES_HOME>/skills/<cat>/<name>`; `./.agents/skills` + `skills trust`; `-s` ! |
+| MCP | `codex mcp add` → config !; project config (trust) ~; `-c mcp_servers.x…` ? | `grok mcp add -s project`; `.mcp.json` compat !; not via `GROK_CONFIG` | `mcp.servers` / `openclaw mcp set` ! | `mcp_servers` / `hermes mcp add` ! |
+| resume | `resume [id] --last`, `exec resume`, `fork`, `--ephemeral` ! | `--continue`, `--resume`, `--session-id`, `--fork-session` ! | `--session-id`/`--session-key` ! | `--resume ID|latest`, `-c [name]` ! |
+| cwd | `-C/--cd`, `--add-dir` ! | `--cwd`, `-w` ! | workspace = default cwd; no `--cwd` ~ | `--in DIR`, `--worktree` ! |
+| structured output / usage | `--json` JSONL, `-o`, `--output-schema`; tokens only, **no USD** ! | `--output-format json`, `--json-schema`, `total_cost_usd(_ticks)` ! | `agent --json` (payloads, meta; no cost) !; `sessions --json` tokens ~ | `-z --usage-file` (cost, tokens, model, api_calls) !; `chat` has no `--json` |
+| permissions | `--sandbox`, `--ask-for-approval`, `--dangerously-bypass-approvals-and-sandbox` ! | `--permission-mode`, `--always-approve`, `--allow/--deny`, `--sandbox` ! | `tools.exec.mode`, `agents.list[].tools{allow,deny,profile}`, approvals allowlist ! | `--yolo`; `-q` blocks dangerous commands unless `approvals.single_query_mode: approve`; `command_allowlist` ! |
+| model | `-m`, `-p <profile>`, `--oss`, `-c model_provider` ! | `-m`, `--effort`, `[model.<id>]` ! | `--model provider/model`; `model{primary,fallbacks}`; `cliBackends` ! | `-m`, `--provider`, `--reasoning`; `hermes fallback`; `moa` ! |
+| hooks | `hooks.json`, command only, trust hash ! | `.grok/hooks/*.json` + Claude compat ~ | Gateway-side `hooks.internal.entries` ! | config `hooks:`, gateway hooks, plugin hooks ! |
+| platform / terms | all three OS, native Windows sandbox; Apache-2.0; API key for CI ~ | Windows best-effort; Apache-2.0 ~ | MIT; Node ≥22.22; Windows CLI + WSL2 ~ | MIT; Python 3.11; native Windows ~ |
+
+Sources: [ev:harness-cli-capabilities-a#F16], [ev:harness-cli-capabilities-b#F23]; sub-agent rosters are in §4. Two more profile facts: Grok natively reads Claude Code's skill, agent-file, `.mcp.json`, `CLAUDE.md` and `settings.json` locations [ev:harness-cli-capabilities-a#F20], so a Claude-shaped bundle is reusable on Grok unchanged; and an *isolation* row exists for every harness (`--bare`/`--no-session-persistence`; `--ignore-user-config`/`--ephemeral`; `GROK_HOME`; a fresh OpenClaw `--profile` or session key; a fresh Hermes profile or `--ignore-rules`) [ev:harness-cli-capabilities-a#F19][ev:harness-cli-capabilities-b#F10][ev:harness-cli-capabilities-b#F24] — the per-harness cost of "fresh by default" (TE-02).
+
+**Partial profile sources that already exist.** ClawTeam's adapter chain is an executable, incomplete profile for ten CLIs (prompt flag, skip-permission flag, system prompt for claude/pi only, resume argv, session file location) [ev:clawteam-spawn-platform#F1]; every claude/codex/openclaw flag it emits still exists [ev:clawteam-spawn-platform#F26][ev:harness-cli-capabilities-a#F18], but it has no Hermes or Grok branch and its generic fallback `<cmd> -p <prompt>` is invalid for Hermes [ev:clawteam-spawn-platform#F2]. The fork's `resolve_model()` is a pure seven-level *model* chain (CLI > per-agent > tier > template strategy > template > config > none; ClawTeam-OpenClaw/clawteam/model_resolution.py:29-70) [ev:clawteam-openclaw-fork-delta#F15] — a precedent for the policy's model dimension, not a profile. OpenClaw's `config schema` and `skills list --json` eligibility flags are introspection usable as profile input [ev:atm-salvage#F7]; Claude Code's `stream-json` `system/init` is per-run self-description [ev:harness-cli-capabilities-a#F10]. ATM's ADR 0007 `native | emulated(strategy) | unsupported(reason)` is the salvaged vocabulary for a capability value [ev:atm-salvage#F17].
+
+## 4. Definition-injection matrix (HB-02)
+
+For each part of an Assistant definition (content model owned by `assistant-domain-model.md`), where it lands in each harness **without editing the definition**. Consolidated from [ev:harness-cli-capabilities-a#F17] and [ev:harness-cli-capabilities-b#F24]; levels as above.
+
+| Definition part | Claude Code | Codex | Grok | OpenClaw | Hermes |
+|---|---|---|---|---|---|
+| Persona, principles | `--append-system-prompt[-file]` ! (alt. `--agents '{x:{prompt}}' --agent x` ?) | `-c developer_instructions=…` ~; fallback `AGENTS.md` in a prepared workspace ~ | `--rules` / `--system-prompt-override` ! | per-run workspace `SOUL.md` (+`AGENTS.md`) via `agents.list[].workspace` / `OPENCLAW_WORKSPACE_DIR` ~; `agent:bootstrap` hook ~ | `SOUL.md` in a per-run HERMES_HOME (`-p <profile>`) ~; `HERMES_EPHEMERAL_SYSTEM_PROMPT` ~ |
+| Stable preferences (Base + overlays) | same channel; or `CLAUDE.md` in a temp dir via `--add-dir` + env ~ | `$CODEX_HOME/AGENTS.md` with `CODEX_HOME=<tmp>` ~ | `~/.grok/AGENTS.md` via `GROK_HOME`; `.grok/rules/*.md` ~ | `USER.md` / `AGENTS.md` in the run workspace ~ | `AGENTS.md` chain in cwd ~ |
+| Skills | `--add-dir <dir/.claude/skills>` ~ / `--plugin-dir` ! | `<cwd>/.agents/skills` ~ / `[[skills.config]]` ? | `.grok/skills`/`.agents/skills`/`.claude/skills` ! | copy/symlink into `<workspace>/skills` + `agents.list[].skills` ! | `<HERMES_HOME>/skills/…` or repo `.agents/skills` + `skills trust`; `-s` ! |
+| MCP requirements | `--mcp-config … --strict-mcp-config` ! | `codex mcp add` into `$CODEX_HOME/config.toml` !; project config (trust) ~ | `grok mcp add -s project` !; `.mcp.json` ~ | `mcp.servers` config patch ! | `hermes mcp add` → profile `config.yaml` ! |
+| Permissions | `--permission-mode`, `--allowedTools`, `--tools`, `--settings` ! | `--sandbox`, `--ask-for-approval`, `--add-dir` ! | `--permission-mode`, `--allow/--deny`, `--sandbox` ! | `agents.list[].tools{allow,deny,profile}`, `tools.exec.mode` ! (config, not flag) | `--yolo`/`--toolsets`; `command_allowlist` in profile config ! |
+| Collaboration behavior (handoff/review/escalation rules) | system-prompt text | `developer_instructions` / AGENTS.md text | `--rules` text | `AGENTS.md` | `AGENTS.md` / `SOUL.md` |
+| Sub-agent roster (Ephemeral Assistants the Member may spawn) | `--agents '<json>'` ! | `.codex/agents/*.toml` ~ | `--agents '<json>'` (shape ?) / `.grok/agents/*.md` ! | `subagents.allowAgents` on a configured agent ~ | `delegate_task` config; no per-run roster file evidenced |
+| Visible identity | n/a | n/a | n/a | `agents.list[].identity{name,emoji,avatar}` / `IDENTITY.md` ! | none beyond SOUL.md ? |
+| Harness-selection policy | n/a — consumed by the broker, never injected | n/a | n/a | n/a | n/a |
+| **Cannot be injected per invocation** | hooks via `--settings`; custom `CLAUDE.md` path | a dedicated system-prompt flag; roster as flag; MCP as flag; USD cost out | MCP/skills/agents via `GROK_CONFIG`; no `--add-dir`, no `--mcp-config` | any system-prompt flag; only fixed bootstrap basenames; persona for native sub-agent sessions (`AGENTS.md`+`TOOLS.md` only) | any system-prompt flag; two processes on one profile discouraged |
+
+Consequences for the broker. (1) It must prepare a per-invocation **injection bundle** — the rendered set {system-prompt text, workspace files, skill dirs, MCP entries, permission flags, roster} — and for OpenClaw, Hermes and Codex that bundle is a *prepared directory* (run workspace, HERMES_HOME/profile, `CODEX_HOME`), not an argv; ClawTeam never does this (argv only; system prompt for claude/pi; `--skill` inlines one SKILL.md; no MCP/permissions) [ev:clawteam-spawn-platform#F6][ev:clawteam-model#F15]. (2) The bundle must be **hashable independently of its rendering**: PoC A's Run A and Run B must provably carry the same definition though Claude gets flags and Codex a config override plus a file. (3) The "cannot inject" row feeds a `degraded[]` field on the invocation record (ATM ADR 0026's honest-emulation rule [ev:atm-salvage#F14]).
+
+## 5. HarnessSelectionPolicy (HB-03, HB-04)
+
+The data shape of harness preferences *inside an Assistant* is owned by `assistant-domain-model.md` §7 and not redefined here; this section states how the broker consumes policy from several layers and resolves one invocation.
+
+**Layers and precedence.** HB-03 fixes user-level > "role-level" (the register's word; = Assistant-level) > default, applied per invocation. A team-level layer (TC-06 team preferences; TC-05 "with which harnesses" for dynamic members) slots between the Assistant level and the host default; user > Assistant > TeamTemplate > host default is a modelling choice consistent with both IDs, not a new requirement. Each layer may state preferences, exclusions, per-task-type rules, model hints and ensemble rules; a higher layer overrides a lower one field by field; exclusions are additive. Illustrative:
+
+```yaml
+# resolved view the broker sees for one Member + task
+layers:
+  user:      {prefer: [codex, claude-code], by_task_type: {security-review: [claude-code]}}
+  assistant: {prefer: [claude-code, codex], require_capabilities: [system_prompt, structured_output], model_hint: strong}
+  team:      {dynamic_members_allowed_harnesses: [claude-code, codex, hermes]}
+  default:   {installed: [claude-code, codex, grok, openclaw, hermes], fallback_chain: [claude-code, codex]}
+fallback:  {on: [binary-missing, auth-failure, capability-missing, timeout, cost-cap, nonzero-exit], max_attempts: 2, never_same_harness: true}
+ensemble:  {when: task_type in [code-review], legs: [claude-code, codex], min_legs: 2, synthesis_harness: policy}   # §8
+```
+
+**Per-invocation resolution.** `resolve(member, task) → ordered candidates`: intersect each layer's preferences with the host's HarnessProfiles (availability is a profile fact, checked like ClawTeam's `validate_spawn_command` → `shutil.which` [ev:clawteam-spawn-platform#F3]); drop harnesses lacking a required capability at the demanded verification level; order by the highest layer that expressed a preference; record which layer decided. Nothing existing does this: ClawTeam's effective order is template-member `command` > `launch --command`/`--profile` > `claude` — the *inverse* of "user overrides role" for templated members [ev:clawteam-probe-log#F17]; the fork's chain is model-only [ev:clawteam-openclaw-fork-delta#F15]; OpenClaw's `acp.defaultAgent` + per-agent `runtime.acp.agent` + per-call `sessions_spawn(agentId)` is the nearest shape but unverified (fit-gap HB-03 OC `C?~`) [ev:openclaw-native-and-telegram-verification#F16]; dsh-agent-team-gui has a per-agent route plus one fallback route and no precedence [ev:dsh-agent-teams-and-gui#F18].
+
+**Fallback triggers (HB-04).** Detectable signals: executable absent (PATH); auth failure and caps (Claude `--max-budget-usd`; Codex `--json` `error` events; Hermes `--usage-file` written "even when the run fails"; OpenClaw `meta.fallbackFrom`) [ev:harness-cli-capabilities-a#F10][ev:harness-cli-capabilities-b#F7][ev:harness-cli-capabilities-b#F1]; timeouts (OpenClaw `--timeout`; Hermes kanban `--max-runtime` [ev:claude-agent-teams-hermes-openbot#F30]); capability missing (profile row `none`/`?`). Native fallbacks are model-level only — Claude `--fallback-model`, OpenClaw `model.fallbacks`, Hermes `hermes fallback`, dsh-gui `retry-once` on `fallbackProvider/fallbackModel` [ev:harness-cli-capabilities-a#F12][ev:harness-cli-capabilities-b#F14][ev:harness-cli-capabilities-b#F21][ev:dsh-agent-teams-and-gui#F23]; harness-level fallback is caller-side composition everywhere (ClawTeam error string + `--replace`, probe-verified [ev:clawteam-probe-log#F21]; OpenClaw `acp.fallbacks` "backend ids on UNAVAILABLE" unverified). Rule: a fallback is a **new HarnessInvocation** with `fallback_from` set, the same bundle re-rendered for the next candidate, fresh session unless policy says resume.
+
+## 6. HarnessBroker responsibilities
+
+The broker applies policy and persists only invocation records. Per Member/task:
+
+1. **Resolve** (§5) → candidates + deciding layer.
+2. **Prepare** the injection bundle and workspace (§4): render per the candidate's profile (flags vs prepared directory), apply the profile's isolation knobs, resolve Skills/MCP entries from the artifact layer, compute `bundle_hash`.
+3. **Invoke** through the candidate's adapter (§10): subprocess (the only runnable ClawTeam backend on this tmux-less host [ev:clawteam-probe-log#F12]); a substrate backend (ClawTeam `SpawnBackend.spawn(...)` receives `prompt` and `system_prompt` [ev:clawteam-spawn-platform#F8]); OpenClaw `sessions_spawn(runtime:"acp")` / `openclaw agent --local`; Hermes `hermes -p <profile> -q` or `-z`; a vendor SDK.
+4. **Observe**: stdout/stderr/JSON (ClawTeam discards them — `DEVNULL`, no logging [ev:clawteam-spawn-platform#F21]), the harness session id, termination (SIGTERM→143 for Claude [ev:claude-agent-teams-hermes-openbot#F15]).
+5. **Record** a HarnessInvocation (§7) at start and end.
+6. **Fall back or fan out** per policy (§5, §8).
+
+Where the broker runs is an architecture decision; options, neutrally: (a) a library called by whatever executes the TeamRun; (b) a custom ClawTeam `SpawnBackend` registered via `register_backend` — it receives the full `spawn(...)` kwargs incl. `prompt`/`system_prompt`, but only in the Python process that registered it; the `clawteam spawn` CLI never loads plugins [ev:clawteam-spawn-platform#F17][ev:clawteam-spawn-platform#F16]; (c) a CLI or MCP tool the Lead calls — ClawTeam's MCP server has 26 coordination tools and no spawn tool [ev:clawteam-spawn-platform#F18]; (d) OpenClaw as broker via `agents.list[].runtime.acp` + `acp.allowedAgents` (configuration; Gateway-bound; capability-less; acpx absent) [ev:openclaw-native-and-telegram-verification#F16]; (e) Hermes' kanban dispatcher (profile-bound; Hermes-only [ev:claude-agent-teams-hermes-openbot#F25]). `architecture-options.md` decides.
+
+## 7. HarnessInvocation record (HB-07, XC-04)
+
+One record per execution of one Backend for one Member/task, opened at start and closed at end. Statuses borrow OpenClaw's audit vocabulary `started|succeeded|failed|cancelled|timed_out|blocked` [ev:harness-cli-capabilities-b#F13]. Illustrative:
+
+```json
+{
+  "invocation_id": "inv_01J…", "team_run_id": "run_…", "member": "reviewer", "ensemble_id": null,
+  "assistant_ref": {"id": "code-reviewer", "base_version": "1.3.0", "overlays": {"user": "u7", "evolution": "e2"}},
+  "backend": {"kind": "harness", "name": "claude-code", "version": "2.1.239", "profile_hash": "sha256:…"},
+  "selection": {"decided_by": "user", "candidates": ["claude-code", "codex"], "fallback_from": null},
+  "injection": {"bundle_id": "bnd_…", "bundle_hash": "sha256:…", "render": {"persona": "--append-system-prompt-file", "skills": "--add-dir", "mcp": "--mcp-config"}, "degraded": []},
+  "command": {"argv_redacted": ["claude", "-p", "--bare", "…"], "cwd": "/work/run_…/reviewer", "env_names": ["ANTHROPIC_API_KEY"], "launcher": "subprocess"},
+  "model": {"requested": "strong", "effective": "claude-…"},
+  "harness_session": {"id": "<session_id from JSON>", "resume_of": null, "transcript_hint": "~/.claude/projects/<cwd>/…"},
+  "timing": {"start": "2026-08-22T10:00:00Z", "end": "2026-08-22T10:04:12Z"},
+  "usage": {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.42, "cost_source": "harness-reported"},
+  "outcome": {"status": "succeeded", "exit_code": 0, "error": null},
+  "artifacts": [{"kind": "review", "path": "…/review.json", "sha256": "…"}], "output_ref": "…/stdout.jsonl"
+}
+```
+
+Field availability per harness: Claude Code `session_id`, `total_cost_usd`, `modelUsage`, model from `system/init` [ev:harness-cli-capabilities-a#F10]; Codex `thread.started`/`turn.completed`, token counts, `cli_version`/`model_provider` from the rollout `session_meta` line, **no cost** (`cost_source: derived|unavailable`) [ev:harness-cli-capabilities-a#F8][ev:harness-cli-capabilities-a#F10]; Grok `sessionId`, `total_cost_usd(_ticks)` [ev:harness-cli-capabilities-a#F10]; Hermes `--usage-file` (cost, tokens, model, api_calls) even on failure [ev:harness-cli-capabilities-b#F7]; OpenClaw `agent --json` `meta`, `openclaw audit` for in-gateway runs [ev:harness-cli-capabilities-b#F13]. No substrate writes such a record for an external CLI today: ClawTeam's `spawn_registry.json` holds `{backend, tmux_target, block_id, pid, command[], spawned_at}`, cost is self-reported by the ClawTeam worker, the exit journal writes `exit_code: null` [ev:clawteam-probe-log#F13][ev:clawteam-probe-log#F14][ev:clawteam-model#F28]; dsh-agent-team-gui's `SquadRunRecord` + usage meter is the closest ledger, DSH-only, "tokens are not money" [ev:dsh-agent-teams-and-gui#F27][ev:dsh-agent-teams-and-gui#F28]; ATM recorded a materialization per tuple, never run [ev:atm-salvage#F9]. Deterministic backends (§9) use the same record with `backend.kind: deterministic`, no `model`/`usage`.
+
+## 8. Pressure test — Ensemble + synthesis (HB-05; PoC A Run C)
+
+**Scenario.** `code-reviewer` reviews one diff on Codex and on Claude Code *independently*; a synthesis step lists agreements and disagreements with per-harness attribution; each HarnessInvocation is recorded; the definition is byte-identical afterwards (PoC A, `product-intent.md` §4).
+
+**Walkthrough on today's substrates.**
+
+1. *ClawTeam (upstream/fork).* A template with two ClawTeam agents, `command=["claude"]` and `command=["codex"]`, the same `task`, plus a third "synthesize" member; `launch … --backend subprocess` spawns both (per-member command probe-verified [ev:clawteam-probe-log#F16]). The Claude leg can receive the persona via `--skill` → `--append-system-prompt`; the Codex leg silently loses it (system prompt only for claude/pi) and gets only `## Identity / ## Task / ## Coordination Protocol` as a positional prompt — a TUI-with-initial-prompt, not `codex exec`, untested without a TTY [ev:clawteam-spawn-platform#F1][ev:clawteam-spawn-platform#F6][ev:clawteam-model#F15]. Both legs share one mailbox and, without `--repo`, one cwd; any member can read any inbox [ev:clawteam-probe-log#F19][ev:clawteam-probe-log#F22]. Results return as messages attributable by *member name* [ev:clawteam-model#F9]; synthesis is the third member's prose task; stdout is discarded [ev:clawteam-spawn-platform#F21]; the registry records argv+pid, no model/version/cost [ev:clawteam-probe-log#F13]. Fit-gap HB-05 CT `P!` holds: fan-out composes, nothing else does.
+2. *OpenClaw.* An orchestrating OpenClaw agent calls `sessions_spawn(runtime:"acp", agentId:"claude")` and `…"codex"`; children are isolated by default and announce completion [ev:openclaw-native-and-telegram-verification#F21]; but the `@openclaw/acpx` plugin is absent, a Gateway is required, ACP children receive prompt + cwd only, and synthesis happens inside the orchestrator's own turn on its own model — not a third recorded invocation [ev:harness-cli-capabilities-b#F12][ev:openclaw-native-and-telegram-verification#F16]; `openclaw audit` covers in-gateway runs only [ev:openclaw-native-and-telegram-verification#F22].
+3. *Claude Code / Hermes / dsh.* Claude's dynamic workflows cross-check several Claude *models*; a foreign harness is only an MCP tool called by the lead, not an independent run [ev:claude-agent-teams-hermes-openbot#F18][ev:claude-agent-teams-hermes-openbot#F6]. Hermes `moa` gathers reference models inside one loop; `kanban swarm --worker … --verifier … --synthesizer …` chains Hermes profiles [ev:claude-agent-teams-hermes-openbot#F27][ev:claude-agent-teams-hermes-openbot#F25]. dsh-gui's quality gate is reviewer + repair on model routes; dsh-teams has no external harness [ev:dsh-agent-teams-and-gui#F25][ev:dsh-agent-teams-and-gui#F16]. None crosses vendors.
+4. *Raw scripts.* `claude -p … --output-format json --json-schema` and `codex exec … --json --output-schema` on the same prompt, then one synthesis invocation fed both outputs [ev:harness-cli-capabilities-a#F1][ev:harness-cli-capabilities-a#F10] — works, but bundle equivalence, isolation, attribution and recording are unwritten script logic.
+
+**Breakpoints.**
+
+- B1 *Independence* — nothing prevents legs from sharing context: ClawTeam shares mailbox/cwd; OpenClaw isolates sub-agent sessions but cannot carry the persona to an ACP child; scripts must set `--bare`/`--no-session-persistence`, `--ephemeral`/`--ignore-user-config` and separate worktrees themselves.
+- B2 *Identical injection bundle* — the legs must receive the *same* definition through *different* channels (flags vs `-c developer_instructions`/AGENTS.md); ClawTeam provably gives them different content; nothing hashes the bundle.
+- B3 *Disagreement detection* — synthesis is prompt prose everywhere; findings are unstructured unless each leg is forced to a schema.
+- B4 *Synthesis as its own invocation* — in ClawTeam/OpenClaw it is the leader/orchestrator's turn; PoC A needs it recorded with its own harness, inputs and cost.
+- B5 *Attribution* — member names exist (ClawTeam); harness/version/model/cost do not (HB-07); Codex emits no cost.
+
+**Minimal addition.** An **Ensemble** record owned by the broker: `{ensemble_id, task_ref, bundle_id, legs: [{invocation_id, harness, isolation: fresh + own workspace}], synthesis: {invocation_id, harness (by policy), inputs: [leg ids]}, verdict_schema}`. Mechanism: fan out N HarnessInvocations sharing one `bundle_id` (each rendered per its harness, with its profile's isolation knobs and its own workspace); require a structured review output from each leg (every installed harness has `--json-schema`/`--output-schema`/`-o`; Hermes via prompt + `-z`); then create one more HarnessInvocation whose prompt prefix carries the N outputs labelled by `invocation_id` and whose required output lists `agreements[]`/`disagreements[]` with originating ids. Legs carry `ensemble_id`; the synthesis carries `inputs`. On ClawTeam this is composition (N members + one synthesizer + per-leg rendering); on scripts the same; new are the Ensemble record, bundle identity, structured verdict and per-leg attribution — nothing a substrate offers.
+
+## 9. Deterministic backends as invocation targets (HB-06, LO-02)
+
+A **Backend** is anything the broker can invoke; a **deterministic backend** is a non-LLM one (log parser, metric collector, checkpoint detector, scheduler tick, health check, trigger evaluator). It gets the same treatment minus model and cost: a **BackendProfile** with `kind: deterministic`, `inputs` (args/env/stdin contract), `outputs` (exit code, JSON on stdout, files) and `trigger_semantics` (`one-shot` | `polled` | `event-emitting`), and a HarnessInvocation record with `backend.kind: deterministic`. Its outputs are artifacts; a *trigger* it raises is what wakes an Assistant — which Member, which task, fresh or resumed belongs to `team-execution-model.md`'s long-running operational run pressure test, which this section only feeds.
+
+Substrates: OpenClaw `cron add --command <shell>` ("deterministic payload, no model call"), event `triggers`, `openclaw tasks --runtime cron|cli` — native but Gateway-bound [ev:openclaw-native-and-telegram-verification#F9]; ClawTeam can `spawn` any executable (probe: `noop.sh`) but registers it as a team *member*, passes `-p <prompt>` and discards output [ev:clawteam-probe-log#F11][ev:clawteam-probe-log#F12]; its `LeaderWatcher` and `inbox watch --exec` are deterministic pollers nudging a resident LLM [ev:clawteam-model#F18][ev:clawteam-model#F19]; Claude Code plugin `monitors`/hooks, Codex `hooks.json`, Hermes `hooks:`/cron are event-triggered inside a session [ev:claude-agent-teams-hermes-openbot#F14][ev:harness-cli-capabilities-a#F13][ev:harness-cli-capabilities-b#F21]; dsh plugins forbid non-LLM members [ev:dsh-agent-teams-and-gui#F16]. Job-level watchers exist nowhere (fit-gap G-LO-02); they are user payloads — the broker's contribution is that they are profiled and recorded like harnesses.
+
+## 10. Adding a harness without core change (HB-08)
+
+An adapter provides exactly: (a) a **HarnessProfile** (data, §3); (b) an **injection recipe** — definition part → channel, incl. "cannot inject" and `degraded` entries (§4); (c) **invoke** — build argv/env/cwd or prepared directory and launch (subprocess / ACP / SDK); (d) **parse output** — session id, usage, outcome, artifacts into the record (§7); optionally (e) a resume builder and (f) a session locator (ClawTeam has both for claude/codex/gemini/opencode/openclaw/nanobot [ev:clawteam-spawn-platform#F19]). The Assistant core sees harness names only inside policy preferences.
+
+Contrast: ClawTeam's per-CLI knowledge lives in `NativeCliAdapter.prepare_command`'s if/elif chain (ClawTeam/clawteam/spawn/adapters.py:49-140), `keepalive.py:11-35` and `session_locators/*`; adding Grok means editing three places, Hermes was never added upstream [ev:clawteam-spawn-platform#F1][ev:clawteam-spawn-platform#F2]; `register_backend(name, cls)` (ClawTeam/clawteam/spawn/__init__.py:10-13) registers a *process launcher* (tmux/subprocess/wsh), not a harness [ev:clawteam-spawn-platform#F8]. The fork added Hermes by re-inlining flag logic in adapters, tmux and subprocess backends (one `prepare_command` caller left) [ev:clawteam-openclaw-fork-delta#F14][ev:clawteam-openclaw-fork-delta#F27]. OpenClaw adds a harness by alias (`acpx` list of 18; custom alias via `agents.list[].runtime.acp.agent`) — configuration, but ids only and Hermes absent [ev:openclaw-native-and-telegram-verification#F31][ev:harness-cli-capabilities-b#F12]. ATM's "zero runtime-specific core fields" + `x-*` blocks is the salvaged discipline [ev:atm-salvage#F18]. The seam above — data + four functions, not a branch in a chain — is the smallest thing that makes HB-08 true on any substrate.
+
+## 11. Mapping to substrates
+
+| Concept | ClawTeam (CT/CTF) | Claude Code | Codex | OpenClaw | Hermes | dsh (teams/gui) |
+|---|---|---|---|---|---|---|
+| HarnessProfile | no data model; adapter chain + `AgentProfile{command, model, env, args}` [ev:clawteam-spawn-platform#F1][ev:clawteam-spawn-platform#F12] — partial source | `system/init` self-description [ev:harness-cli-capabilities-a#F10] — input only | rollout `session_meta` [ev:harness-cli-capabilities-a#F8] — input only | `acp` alias registry, `agents.list[].runtime`, `config schema` [ev:openclaw-native-and-telegram-verification#F16][ev:atm-salvage#F7] — ids + introspection | profile `config.yaml` — input only | no primitive — model routes [ev:dsh-agent-teams-and-gui#F18] |
+| Injection bundle | `--append-system-prompt` (claude/pi), `--skill` inline, `-p`/positional [ev:clawteam-spawn-platform#F6] | flags incl. `--agents`, `--mcp-config`, `--add-dir`, `--bare` [ev:harness-cli-capabilities-a#F17] | `-c developer_instructions`, `CODEX_HOME` AGENTS.md, `.agents/skills`, `codex mcp add` [ev:harness-cli-capabilities-a#F17] | per-run workspace bootstrap files, `agents.list[]` entry, `agent:bootstrap` hook [ev:harness-cli-capabilities-b#F24] | per-run profile (`profile create --clone`, distributions), `HERMES_EPHEMERAL_SYSTEM_PROMPT`, `-s` [ev:harness-cli-capabilities-b#F24][ev:claude-agent-teams-hermes-openbot#F24] | `AgentRecord.systemPrompt` to DSH children |
+| HarnessSelectionPolicy | static `AgentDef.command`/profile; fork `resolve_model()` (model) [ev:clawteam-probe-log#F17][ev:clawteam-openclaw-fork-delta#F15] | `--model`, `--fallback-model` (model) | `-m`, `-p <profile>` (model/provider) | `runtime.acp.agent`, `acp.defaultAgent/allowedAgents/fallbacks`, `model{primary,fallbacks}` [ev:openclaw-native-and-telegram-verification#F16] | kanban per-task `--model/--provider`, `hermes fallback`, `delegation.model` [ev:claude-agent-teams-hermes-openbot#F25] | per-agent route + `fallback*`; `memberModel` [ev:dsh-agent-teams-and-gui#F5] |
+| HarnessBroker loop | `spawn`/`launch` + `--replace` + error strings; custom `SpawnBackend` in-process [ev:clawteam-spawn-platform#F8][ev:clawteam-probe-log#F21] | `-p` / Agent SDK as target; `--bg` (Claude-only) [ev:claude-agent-teams-hermes-openbot#F17] | `codex exec` as target | `sessions_spawn(runtime:"acp")`, `openclaw agent --local` [ev:harness-cli-capabilities-b#F12] | kanban dispatcher (`hermes -p <profile> -q`), `delegate_task`, `hermes acp` [ev:harness-cli-capabilities-b#F19] | no primitive |
+| HarnessInvocation record | `spawn_registry.json`, self-reported `CostEvent`, exit journal (`exit_code: null`) [ev:clawteam-probe-log#F13][ev:clawteam-probe-log#F14] | JSON result (`session_id`, `total_cost_usd`, `modelUsage`) [ev:harness-cli-capabilities-a#F10] | `--json` JSONL + rollout `session_meta`, tokens only [ev:harness-cli-capabilities-a#F10] | `openclaw audit`, `tasks`, `sessions --json` [ev:harness-cli-capabilities-b#F13] | `-z --usage-file`, kanban `task_runs`/logs [ev:harness-cli-capabilities-b#F7][ev:claude-agent-teams-hermes-openbot#F25] | gui `SquadRunRecord` + usage meter [ev:dsh-agent-teams-and-gui#F27] |
+| Ensemble + synthesis | template with N commands + synthesizer member [ev:clawteam-probe-log#F16] | dynamic workflows (Claude models only) [ev:claude-agent-teams-hermes-openbot#F18] | no primitive | `sessions_spawn(acp)`×N + orchestrator turn (acpx absent) | `moa`, `kanban swarm` (Hermes-only) [ev:claude-agent-teams-hermes-openbot#F27] | quality gate, not ensemble |
+| Deterministic Backend | `spawn` any executable (as member, `-p`, DEVNULL); `inbox watch --exec` [ev:clawteam-probe-log#F12][ev:clawteam-model#F18] | hooks, plugin monitors [ev:claude-agent-teams-hermes-openbot#F14] | `hooks.json` [ev:harness-cli-capabilities-a#F13] | `cron add --command`, triggers [ev:openclaw-native-and-telegram-verification#F9] | `hooks:`, gateway hooks, cron [ev:harness-cli-capabilities-b#F21] | no primitive |
+| Adapter seam (HB-08) | if/elif chain + keepalive + locators; `register_backend` = launcher [ev:clawteam-spawn-platform#F1][ev:clawteam-spawn-platform#F8] | target | target | acpx alias / `cliBackends` [ev:openclaw-native-and-telegram-verification#F31] | target (not an acpx alias) | no primitive |
+
+Hermes is both a target harness (profile + `-z`/`-q` + usage file) and a substrate that already brokers *its own* invocations (kanban dispatcher with per-task model; profile distributions as a secret-free package) [ev:claude-agent-teams-hermes-openbot#F24][ev:claude-agent-teams-hermes-openbot#F25]; it cannot target other harnesses [ev:claude-agent-teams-hermes-openbot#F22].
+
+## 12. What is new vs borrowed
+
+| Concept | Borrowed from (system + mechanism) | New? |
+|---|---|---|
+| HarnessProfile as data (+ capability verification levels) | row set from the evidence checklists [ev:harness-cli-capabilities-a#F16][ev:harness-cli-capabilities-b#F23]; ClawTeam adapter/keepalive/locator knowledge as seed; OpenClaw `config schema`/`skills list` introspection; ATM ADR 0007 `native|emulated|unsupported` [ev:atm-salvage#F17] | **new** as a data model (G-HB-01: no `S`/`C` cell anywhere) |
+| Definition-injection matrix | [ev:harness-cli-capabilities-a#F17], [ev:harness-cli-capabilities-b#F24]: Claude flags, Codex `-c` overrides, OpenClaw bootstrap files, Hermes profiles/env | borrowed per cell; **new**: consolidated bundle + `bundle_hash` + `degraded[]` (ATM ADR 0026 idea [ev:atm-salvage#F14]) |
+| Injection bundle as prepared directory | OpenClaw per-agent workspace; Hermes `profile create --clone`; Codex `CODEX_HOME`; fork worker-workspace idea [ev:clawteam-openclaw-fork-delta#F7] | borrowed mechanism; new: produced per invocation |
+| HarnessSelectionPolicy layers + precedence | fork `resolve_model()` chain shape [ev:clawteam-openclaw-fork-delta#F15]; ATM `modelPolicy` intent [ev:atm-salvage#F11]; OpenClaw `acp.defaultAgent`/`allowedAgents` | **new** (user > Assistant > team > default over *harnesses*; G-HB-03) |
+| Fallback as new invocation | ClawTeam error string + `--replace` [ev:clawteam-probe-log#F21]; harness model fallbacks; OpenClaw `acp.fallbacks` (unverified) | borrowed signals; new: harness-level chain + record linkage |
+| HarnessBroker | ClawTeam `SpawnBackend` + `register_backend` [ev:clawteam-spawn-platform#F8]; OpenClaw `sessions_spawn(acp)`; Hermes kanban dispatcher | borrowed launchers; new: resolve/prepare/record loop over several harnesses |
+| HarnessInvocation record | per-harness JSON/usage outputs; OpenClaw audit statuses [ev:harness-cli-capabilities-b#F13]; dsh-gui `SquadRunRecord` [ev:dsh-agent-teams-and-gui#F27]; ATM materialization record [ev:atm-salvage#F9] | borrowed fields; **new** as a cross-harness record (G-HB-07) |
+| Ensemble record + structured verdict | ClawTeam template fan-out [ev:clawteam-probe-log#F16]; per-harness output schemas; Claude workflows / Hermes moa as same-vendor precedents | **new** (G-HB-05: composition everywhere) |
+| Deterministic Backend profile/record | OpenClaw cron `--command` [ev:openclaw-native-and-telegram-verification#F9]; ClawTeam any-executable spawn; harness hooks | borrowed executors; new: same profile/record model as harnesses |
+| Adapter seam (profile + recipe + invoke + parse) | ClawTeam adapter/keepalive/locator split; OpenClaw acpx alias; ATM core-neutrality [ev:atm-salvage#F18] | new as a seam; each adapter body borrows the harness's own flags |
+
+## 13. Open questions
+
+1. Is `codex exec -c developer_instructions="…"` honoured on 0.148.0, and does it reach `multi_agent` subagents? Until probed, PoC A Run A's persona channel rests on AGENTS.md in a prepared `CODEX_HOME` [ev:harness-cli-capabilities-a open question 2].
+2. Does `claude --agent <name>` accept an agent defined only by `--agents '<json>'` in the same invocation (roster + persona as one channel)? [ev:harness-cli-capabilities-a open question 1]
+3. What does OpenClaw `acp.fallbacks` fall back *to* (another harness alias or another ACP bridge), and can a custom acpx alias map Hermes? (fit-gap HB-04/HB-08 OC `C?~`)
+4. Bundle equivalence across channels: is "persona as system prompt" (Claude) the *same* bundle as "persona as AGENTS.md in a workspace" (Codex) for ensemble purposes, or must policy require one channel class per leg? For `minimal-poc-plan.md`.
+5. Codex cost: derive USD from tokens with which price table, and how is `cost_source: derived` shown in synthesis attribution?
+6. Synthesis harness choice (a third harness, one leg, or the Lead's harness) and how synthesizer bias is recorded; `synthesis_harness` is a placeholder.
+7. Where the broker runs (§6 a–e) — owned by `architecture-options.md`.
+8. Subscription-login automation terms for Codex and Grok are unverified (HTTP 403) [ev:harness-cli-capabilities-a#F15]; the profile's `terms` row may constrain credentials for unattended invocations.
+9. Whether ATM's ADR 0022 resolution/lock text is reusable verbatim (no LICENSE in that repo; XC-01) or only as ideas.
+
+## 14. Inconsistencies noted
+
+- `existing-systems-fit-gap.md` HB-05 calls ClawTeam results "attributable by member name"; breakpoint B5 says attribution by *harness/version/model/cost* is absent. Both hold (the fit-gap defers to HB-07), but the CT `P!` cell does not cover PoC A's per-harness attribution criterion.
+- [ev:harness-cli-capabilities-a#F17] lists "system prompt as a flag" under Codex's *cannot be injected per invocation* row while F2 of the same file establishes `-c developer_instructions` as a per-invocation path "without touching files". Read as "no dedicated flag"; the fit-gap `C?~` cell matches that reading. The recon appendix's "codex … no system prompt" is superseded by F2 [recon].
+- The register's HB-03 wording "role-level" conflicts with the glossary's ban on "role" for Assistant; treated here as Assistant-level — a terminology note for the register owner, not a factual conflict.
+- `existing-systems-fit-gap.md` HB-06 rates OpenClaw `S!` while noting "requires a running Gateway"; `product-intent.md` §1.6 names "no OpenClaw gateway" a non-prerequisite. Not contradictory (the cell classifies OpenClaw, not the product); §9 treats Gateway-bound deterministic backends as not satisfying MS-01 alone.
+- No fit-gap HB cell was found that this document contradicts.

@@ -1,6 +1,6 @@
 ---
 title: Product intent — Assistant Team System
-status: draft v3 — register FROZEN 2026-08-22 after evidence phase W1 (AR-06 added; notes folded into TC-03, EV-05, AR-03, XC-02 from ATM salvage)
+status: draft v3.1 — register FROZEN 2026-08-22 (wording-only touch to HB-03 and §1.1 on 2026-08-22 after W2a-2) after evidence phase W1 (AR-06 added; notes folded into TC-03, EV-05, AR-03, XC-02 from ATM salvage)
 date: 2026-08-21
 owns: requirement register (the only place requirements are authored), lifecycle principles, non-goals, PoC acceptance criteria
 ---
@@ -19,7 +19,7 @@ This project **supersedes** the ATM experiment but does not inherit its architec
 
 ### 1.1 The problem
 
-Today the owner runs specialized AI colleagues across several coding harnesses (Claude Code, Codex, Grok CLI, OpenClaw, Hermes) and several kinds of work (software, papers, training operations). The reusable knowledge — *how a good code reviewer reviews, what a methods reviewer checks, how a run-and-monitor colleague escalates* — lives in scattered prompts, per-harness config files, chat topics and one-off team scripts. Each new project re-creates it; each harness binds it to its own session model; each messaging setup turns bot topology into team semantics. The earlier ATM experiment tried to fix this by managing **runtime agents** (deployment reconciliation, persistent agent identity, per-project sessions/workspaces, A2A routing) and stalled: the persistent-runtime model fought every harness and every surface, and the reusable *colleague* was never the first-class object.
+Today the owner runs specialized AI colleagues across several coding harnesses (Claude Code, Codex, Grok CLI, OpenClaw, Hermes) and several kinds of work (software, papers, training operations). The reusable knowledge — *how a good code reviewer reviews, what a methods reviewer checks, how a run-and-monitor colleague escalates* — lives in scattered prompts, per-harness config files, chat topics and one-off team scripts. Each new project re-creates it; each harness binds it to its own session model; each messaging setup turns bot topology into team semantics. The earlier ATM experiment tried to fix this by managing **runtime agents** (deployment reconciliation, persistent agent identity, per-project sessions/workspaces, A2A routing) and stalled: on the one harness it was exercised against (OpenClaw) the persistent-runtime model failed its own confinement and autonomy spikes, other harnesses and surfaces were never reached, and the reusable *colleague* was never the first-class object (see `legacy-atm-disposition.md`).
 
 ### 1.2 The product object
 
@@ -150,7 +150,7 @@ Priority: **M** must · **S** should · **C** could. "Brief §" = section of the
 |---|---|---|---|
 | HB-01 | M | Each harness is described by a HarnessProfile / HarnessCapability set (headless, system-prompt injection, resume, MCP, output format, permissions, platform). | 3 |
 | HB-02 | M | The Assistant definition can be injected into each supported harness (system prompt, prompt prefix, workspace instruction files, skill dirs) without changing the definition. | 3, 17 |
-| HB-03 | M | Harness selection follows a policy with precedence user-level > role-level > default, applied per invocation. | 3 |
+| HB-03 | M | Harness selection follows a policy with precedence user-level > Assistant-level (the brief's "role-level") > default, applied per invocation. | 3 |
 | HB-04 | S | Fallback to another harness on failure/unavailability. | 3 |
 | HB-05 | M | Ensemble: several harnesses run the same task independently; a synthesis step compares disagreement and merges. | 3, 17 |
 | HB-06 | S | Deterministic tools/services are invokable Backends alongside harnesses. | 8 |
