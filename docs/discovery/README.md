@@ -1,6 +1,6 @@
 # Discovery phase (M0) — Assistant Team System
 
-Status: **in progress** (2026-08-21). Discovery only — no production code. Ends with a STOP for product/architecture review.
+Status: **in progress** (2026-08-22): evidence (10 files) and fit-gap matrix written; domain models, reuse-vs-build, architecture options, PoC plan and ATM disposition pending. Discovery only — no production code. Ends with a STOP for product/architecture review.
 
 ## The question this phase answers
 
@@ -13,11 +13,11 @@ Answer: *(filled when `architecture-options.md` is complete)*.
 | # | Document | Owns | Status |
 |---|---|---|---|
 | 0 | [`evidence/glossary.md`](evidence/glossary.md) | normative terminology | written |
-| 1 | [`product-intent.md`](product-intent.md) | requirement register, lifecycle principles, PoC acceptance criteria | register + criteria written; prose pending W1 |
+| 1 | [`product-intent.md`](product-intent.md) | requirement register (frozen 2026-08-22, 54 rows), lifecycle principles, PoC acceptance criteria | written (v3) |
 | 2 | [`assistant-domain-model.md`](assistant-domain-model.md) | Assistant ≠ Skill ≠ harness; definition content; ephemeral Assistants; evolution overlays | pending |
 | 3 | [`team-execution-model.md`](team-execution-model.md) | TeamTemplate vs TeamRun; hidden members; nested TeamRun; long-running ops | pending |
 | 4 | [`harness-broker-model.md`](harness-broker-model.md) | HarnessProfile/Capability/SelectionPolicy/Broker/Invocation; definition-injection matrix; ensemble | pending |
-| 5 | [`existing-systems-fit-gap.md`](existing-systems-fit-gap.md) | requirement × system matrix, 8 layers | pending |
+| 5 | [`existing-systems-fit-gap.md`](existing-systems-fit-gap.md) | requirement × system matrix, 8 layers + XC, per-layer roll-ups, 54 gaps | merged draft (owner-reviewed; awaiting W3 critics) |
 | 6 | [`reuse-vs-build-analysis.md`](reuse-vs-build-analysis.md) | per gap: reuse rung, source, license | pending |
 | 7 | [`architecture-options.md`](architecture-options.md) | options compared; **the smallest-layer answer** | pending |
 | 8 | [`minimal-poc-plan.md`](minimal-poc-plan.md) | PoC A/B/C definitions | pending |
@@ -25,7 +25,7 @@ Answer: *(filled when `architecture-options.md` is complete)*.
 
 ## Evidence files (`evidence/`)
 
-Uniform schema (frontmatter + numbered findings `F1…Fn` with verification level and requirement IDs + negative findings + platform/license notes). Evidence files state facts and never recommend.
+Uniform schema (frontmatter + numbered findings `F1…Fn` with verification level and requirement IDs + negative findings + platform/license notes). Evidence files state facts and never recommend. **All ten written (2026-08-21/22, ≈48k words, 288 findings).**
 
 | File | Covers |
 |---|---|

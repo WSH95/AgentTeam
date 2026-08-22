@@ -2,6 +2,12 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-22T16:05:00Z — W2a-1 fit-gap matrix complete; paused by user request
+Merged `docs/discovery/existing-systems-fit-gap.md` (54 req × 11 systems; 0 malformed cells; all register rows covered; 54 gaps, 55 evidence gaps). Two layer pairs were re-run after session/Fable limit cuts (W2a-1b/d). Next: W2a-2 drafters (scripts pre-written in scratchpad). Session closed for pause.
+
+### 2026-08-22T15:20:00Z — [auto-checkpoint] W1 committed; fit-gap 2.5/4 sections; re-running the rest
+W1 evidence committed (189ea87); register frozen (AR-06). W2a-1 fit-gap: TC+TE and MS+LO complete, HB+AR partial, AD+EV missing after session/Fable limit cuts; re-run on the session model in progress. Pause requested after W2a-1.
+
 ### 2026-08-22T02:40:00Z — [auto-checkpoint] W1 cut by session limit; W1b re-running 4 agents
 W1 produced 6/10 evidence files (all complete); 8 agents reported "session limit" — 4 of them after writing their file. W1b launched for the 4 missing files. W2a/W2b/W3 workflow scripts pre-written in the scratchpad.
 
