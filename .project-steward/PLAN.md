@@ -12,12 +12,12 @@ Detailed execution plan (approved 2026-08-21): `~/.claude/plans/i-am-starting-a-
 - [x] W1 "Understand" (189ea87) — 10 evidence agents → `docs/discovery/evidence/*.md` (clawteam-model, clawteam-spawn-platform, clawteam-probe-log, fork-delta, openclaw-native-and-telegram-verification, harness-cli-capabilities-a/-b, dsh-agent-teams-and-gui, claude-agent-teams-hermes-openbot, atm-salvage)
 - [x] `product-intent.md` prose completed; register frozen 2026-08-22 (AR-06 added)
 - [x] W2a-1 — fit-gap matrix (4 agents, 2 layers each) → merged `existing-systems-fit-gap.md`
-- [ ] W2a-2 — `reuse-vs-build-analysis.md`, `legacy-atm-disposition.md`, `assistant-domain-model.md`, `team-execution-model.md`, `harness-broker-model.md` (script ready: scratchpad/w2a2-drafters.js)
-- [ ] W2b — architecture panel (3 biased architects → 2 judges → synthesis) → `architecture-options.md`; then `minimal-poc-plan.md`
-- [ ] W3 — per-document adversarial critics + completeness critic; fix pass
-- [ ] Self-review: full read-through of all 9 docs; `README.md` answer paragraph
-- [ ] Steward bookkeeping (PROGRESS/DECISIONS/QUESTIONS/RISKS/HANDOFF); commit `docs(discovery): M0 discovery documents (9) + evidence`
-- [ ] **STOP for product/architecture review** (no writing-plans, no code)
+- [x] W2a-2 (700485a) — `reuse-vs-build-analysis.md`, `legacy-atm-disposition.md`, `assistant-domain-model.md`, `team-execution-model.md`, `harness-broker-model.md`
+- [x] W2b (e15b6f2) — architecture panel (3 biased architects → 2 judges → owner tiebreak → synthesis) → `architecture-options.md`; then `minimal-poc-plan.md`
+- [x] W3 — per-document adversarial critics + completeness critic (c01b910 findings); fix pass under owner decisions D1–D15; re-checks all PASS
+- [x] Self-review: full owner read-through of all 9 docs (2026-08-23); `README.md` answer paragraph
+- [x] Steward bookkeeping (PROGRESS/DECISIONS/QUESTIONS/RISKS/HANDOFF); final commit `docs(discovery): M0 discovery documents (9) + evidence`
+- [x] **STOP for product/architecture review** reached 2026-08-23 (no writing-plans, no code) — M0 complete; awaiting owner review and answers to QUESTIONS.md Q1–Q10
 
 ## M1 (placeholder — only after M0 review)
 

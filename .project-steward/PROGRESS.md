@@ -2,6 +2,12 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-23T04:30:00Z — M0 discovery complete; STOP for product/architecture review
+W3b fixers (8 docs) + re-checks all PASS; owner cross-document alignment (cells, carrier, stale notes), RISKS rows from ATM salvage merged, QUESTIONS numbered Q1–Q10, README answer + STOP, VERIFY updated. Final commit of the nine discovery documents + evidence. Session closed at the review gate.
+
+### 2026-08-23T00:40:00Z — [auto-checkpoint] owner fixes committed (c01b910); W3b fixers relaunched; AGENTS.md update proposed
+First fixer run hit a monthly spend limit with no edits; relaunched. Proposed a one-time AGENTS.md addition (discovery pointers + conventions) for user approval.
+
 ### 2026-08-22T22:10:00Z — [auto-checkpoint] W3 critics done; owner fixes applied; W3b fixers running
 Critic verdicts: 7 PASS-WITH-MAJORS, 2 FAIL (architecture-options, legacy-atm-disposition), completeness FAIL — all traced to two owner-side causes (truncated tiebreak copy; non-existent `task update --metadata` verb) plus per-doc majors. Owner decisions D1–D15 written for the fix pass; fixers + re-checks launched.
 

@@ -247,7 +247,7 @@ Conventions: `$P` = `/tmp/claude-1000/-home-wsh-Documents-assistant-team-system-
 
 1. Does `clawteam launch` ever surface per-agent spawn failures (e.g. via hooks/events), or is `board show`/registry inspection the only way to notice zero processes? (not found; F15)
 2. Is the `probe_w1` vs `w1` inbox-dir split intentional (multi-user namespace) and does `mailbox_receive(agent_name=…)` over MCP follow the same resolution?
-3. How would a Nested TeamRun's *result* be returned in ClawTeam terms — only via `inbox send <outer-team> <member>` from the inner run (F19), or via `task update --metadata`? Untested with real agents.
+3. How would a Nested TeamRun's *result* be returned in ClawTeam terms — only via `inbox send <outer-team> <member>` from the inner run (F19), or via `task update --metadata`? Untested with real agents. *[Owner note 2026-08-23: `clawteam task update` has no `--metadata` option (ClawTeam/clawteam/cli/commands.py:2184-2191); the carrier was decided in `architecture-options.md` §5 — `inbox send` + layer-owned `run.json`, task closed by `--status completed`.]*
 4. Does the tmux backend's keepalive/`pane-died` path behave differently from the subprocess wrapper on clean exits (the "exited unexpectedly" wording, F14)? Not testable here.
 5. `harness-default.toml`/`clawteam harness` subsystem (plan-then-execute) was not probed beyond the TOML parse failure.
 6. Windows: is the `os.getuid()` crash confirmed by upstream tests? (`tests/test_windows_compat.py` not executed.)
