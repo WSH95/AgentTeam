@@ -1,6 +1,6 @@
 ---
 title: Product intent — Assistant Team System
-status: draft v3.1 — register FROZEN 2026-08-22 (wording-only touch to HB-03 and §1.1 on 2026-08-22 after W2a-2) after evidence phase W1 (AR-06 added; notes folded into TC-03, EV-05, AR-03, XC-02 from ATM salvage)
+status: draft v3.2 — register FROZEN 2026-08-22; W3 critic findings applied (PI-01 citations; §7 brief coverage map) after evidence phase W1 (AR-06 added; notes folded into TC-03, EV-05, AR-03, XC-02 from ATM salvage)
 date: 2026-08-21
 owns: requirement register (the only place requirements are authored), lifecycle principles, non-goals, PoC acceptance criteria
 ---
@@ -19,7 +19,7 @@ This project **supersedes** the ATM experiment but does not inherit its architec
 
 ### 1.1 The problem
 
-Today the owner runs specialized AI colleagues across several coding harnesses (Claude Code, Codex, Grok CLI, OpenClaw, Hermes) and several kinds of work (software, papers, training operations). The reusable knowledge — *how a good code reviewer reviews, what a methods reviewer checks, how a run-and-monitor colleague escalates* — lives in scattered prompts, per-harness config files, chat topics and one-off team scripts. Each new project re-creates it; each harness binds it to its own session model; each messaging setup turns bot topology into team semantics. The earlier ATM experiment tried to fix this by managing **runtime agents** (deployment reconciliation, persistent agent identity, per-project sessions/workspaces, A2A routing) and stalled: on the one harness it was exercised against (OpenClaw) the persistent-runtime model failed its own confinement and autonomy spikes, other harnesses and surfaces were never reached, and the reusable *colleague* was never the first-class object (see `legacy-atm-disposition.md`).
+Today the owner runs specialized AI colleagues across several coding harnesses (Claude Code, Codex, Grok CLI, OpenClaw, Hermes) and several kinds of work (software, papers, training operations). The reusable knowledge — *how a good code reviewer reviews, what a methods reviewer checks, how a run-and-monitor colleague escalates* — lives in scattered prompts, per-harness config files, chat topics and one-off team scripts. Each new project re-creates it; each harness binds it to its own session model; each messaging setup turns bot topology into team semantics. The earlier ATM experiment tried to fix this by managing **runtime agents** (deployment reconciliation, persistent agent identity, per-project sessions/workspaces, A2A routing) and stalled: on the one harness it was exercised against (OpenClaw) its confinement spike U10 returned *unsupported* [ev:atm-salvage#F5], its autonomy spike U2 passed 0 of 2 runs as a model-compliance failure rather than a mechanical one [ev:atm-salvage#F24], no other harness was ever exercised and no surface was driven end-to-end (a Telegram binding was only materialised in spike S2) [ev:atm-salvage#F3][ev:atm-salvage#F27], and the reusable *colleague* was never the first-class object (see `legacy-atm-disposition.md`).
 
 ### 1.2 The product object
 
@@ -224,3 +224,28 @@ Constraints for all PoCs: no Telegram or OpenClaw required unless the analysis p
 ## 6. Success criteria for the discovery phase
 
 The nine documents exist, are internally consistent, cite evidence, and `architecture-options.md` answers **"What is the smallest new software layer that genuinely needs to be built?"** with a recommendation a reviewer can accept or reject — then the project STOPs for product/architecture review.
+
+## 7. Brief coverage map
+
+Where each item of the product brief is answered (this document owns items 1–11 as requirements; the others are owned by the documents named):
+
+| Brief § | Item | Owned by |
+|---|---|---|
+| 1 | product intent, Assistant definition contents, exclusion list, lifecycle | this document §1–§2; `assistant-domain-model.md` §3–§5 |
+| 2 | Assistant ≠ Skill | AD-09; `assistant-domain-model.md` §2 |
+| 3 | Assistant ≠ harness; HarnessProfile/Capability/SelectionPolicy/Broker/Invocation/Ensemble | HB-*; `harness-broker-model.md` |
+| 4–5 | TeamTemplate; TeamRun | TC-*, TE-*; `team-execution-model.md` §2–§3 |
+| 6 | persistent + temporary (hidden, auditable) members | AD-07, TE-04; `team-execution-model.md` §5 |
+| 7 | nested dynamic teams (pressure test) | TE-05; `team-execution-model.md` §6 |
+| 8 | long-running operational Assistants | LO-*; `team-execution-model.md` §7; `harness-broker-model.md` §9 |
+| 9 | reviewed evolution (overlays, proposals) | EV-*; `assistant-domain-model.md` §9 |
+| 10 | skill/plugin/artifact portability | AR-*; `assistant-domain-model.md` §6 |
+| 11 | messaging optional; visible identity = presentation | MS-*; `assistant-domain-model.md` §10; `team-execution-model.md` §9 |
+| 12 | study ClawTeam (as-is / configured / extended / wrapped), the fork (already-upstream / fork-only / worth-upstreaming / selective-reuse / irrelevant), the kit (verify against current OpenClaw/Telegram) | `evidence/clawteam-*.md`, `evidence/clawteam-openclaw-fork-delta.md`, `evidence/openclaw-native-and-telegram-verification.md`; verdicts in `existing-systems-fit-gap.md`, `reuse-vs-build-analysis.md` §3–§5, `architecture-options.md` §2 |
+| 13 | other systems as behavioural references (which layer each solves) | `evidence/dsh-agent-teams-and-gui.md`, `evidence/claude-agent-teams-hermes-openbot.md`; `existing-systems-fit-gap.md` layer summaries |
+| 14 | reuse ladder + licence verification | XC-01, XC-03; `reuse-vs-build-analysis.md` §1, §7 |
+| 15 | do not preserve ATM by sunk cost | `legacy-atm-disposition.md` |
+| 16 | fit-gap: six classes × eight layers per requirement per system | `existing-systems-fit-gap.md` |
+| 17 | minimal PoCs A/B/C | this document §4 (acceptance criteria); `minimal-poc-plan.md` |
+| 18 | cross-platform Ubuntu/Windows/macOS; tmux not the only path | TE-08, XC-02; `existing-systems-fit-gap.md` XC-02; `minimal-poc-plan.md` §6 |
+| 19 | nine deliverables; "smallest new software layer" comparing the eight options; STOP | `README.md`; `architecture-options.md` §2 (all eight options) and §5 (the answer); STOP in `minimal-poc-plan.md` and `README.md` |

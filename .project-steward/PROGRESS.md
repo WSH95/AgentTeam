@@ -2,6 +2,12 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-22T22:10:00Z — [auto-checkpoint] W3 critics done; owner fixes applied; W3b fixers running
+Critic verdicts: 7 PASS-WITH-MAJORS, 2 FAIL (architecture-options, legacy-atm-disposition), completeness FAIL — all traced to two owner-side causes (truncated tiebreak copy; non-existent `task update --metadata` verb) plus per-doc majors. Owner decisions D1–D15 written for the fix pass; fixers + re-checks launched.
+
+### 2026-08-22T20:20:00Z — [auto-checkpoint] all 9 documents drafted; W3 critics running
+W2b-1 panel (3 proposals, 2 judges; both endorsed "A's O2 scope with B's two seams"), owner tiebreak, W2b-2 synthesis → architecture-options.md + minimal-poc-plan.md committed (e15b6f2). Decision 0007, risks, owner questions recorded. W3 critics in progress.
+
 ### 2026-08-22T18:10:00Z — [auto-checkpoint] W2a-2 committed; architecture panel running
 Five documents drafted and committed (700485a); product-intent wording touch (HB-03 "Assistant-level", §1.1 ATM claim narrowed). W2b-1 panel (3 architects + 2 judges) in progress.
 
