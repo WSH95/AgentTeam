@@ -1,0 +1,9 @@
+---
+id: panel:owner-tiebreak
+date: 2026-08-22
+role: session owner tiebreak note passed to the synthesis agent (W2b-2)
+---
+
+# Owner tiebreak note (verbatim)
+
+**OWNER TIEBREAK (session owner, 2026-08-22).** Both judges endorse the same named composition; adopt it as THE answer: 'A's O2 scope with B's two seams' — a thin, format-independent Assistant/Team layer that (1) owns as substrate-neutral data: Assistant definitions (closed schema + exclusion validator), TeamTemplates by reference, Base/User/Reviewed-Evolution overlays + Proposal/review record, HarnessProfiles as data + HarnessSelectionPolicy (user > Assistant > team > default), HarnessInvocation ledger + Ensemble synthesis record with per-invocation attribution, artifact manifest + lock + per-host resolution report, TeamRun record/roster projections (visible vs archive) + nesting contract (parent link, result carrier, isolation level recorded, stop-before-cleanup) + archive; (2) declares exactly two seams — HarnessAdapter {profile data, injection recipe, invoke, parse} and CoordinationSubstrate {create_space, add_member, create/update/wait task, send/receive, snapshot, stop, cleanup} — with ONE implementation each today: five harness adapters (claude-code, codex, grok, hermes, openclaw) and a ClawTeam adapter over its CLI (pinned 0.3.0@0119833, mcp<2, subprocess backend, no tmux), plus a trivial 'direct' launcher (no DAG) for solo runs and ensemble legs (PoC A); (3) builds NO second team substrate (Claude Code teams / OpenClaw sessions / Hermes kanban cannot host a mixed-harness nested TeamRun today), NO ClawTeam fork, NO library-seam coupling (C's in-process SpawnBackend is the documented Windows fallback only if Python is chosen and the CLI path fails the Windows probe), NO surface adapters (OpenClaw/Telegram stay O4, C-priority, outside the layer), NO artifact installer (metadata/lock/report only), NO UI.

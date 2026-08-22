@@ -2,6 +2,9 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-22T18:10:00Z — [auto-checkpoint] W2a-2 committed; architecture panel running
+Five documents drafted and committed (700485a); product-intent wording touch (HB-03 "Assistant-level", §1.1 ATM claim narrowed). W2b-1 panel (3 architects + 2 judges) in progress.
+
 ### 2026-08-22T16:05:00Z — W2a-1 fit-gap matrix complete; paused by user request
 Merged `docs/discovery/existing-systems-fit-gap.md` (54 req × 11 systems; 0 malformed cells; all register rows covered; 54 gaps, 55 evidence gaps). Two layer pairs were re-run after session/Fable limit cuts (W2a-1b/d). Next: W2a-2 drafters (scripts pre-written in scratchpad). Session closed for pause.
 
