@@ -1,6 +1,6 @@
 ---
 title: Product intent — Assistant Team System
-status: draft (register + PoC acceptance criteria fixed; prose sections to be completed after evidence phase W1)
+status: draft v3 — register FROZEN 2026-08-22 after evidence phase W1 (AR-06 added; notes folded into TC-03, EV-05, AR-03, XC-02 from ATM salvage)
 date: 2026-08-21
 owns: requirement register (the only place requirements are authored), lifecycle principles, non-goals, PoC acceptance criteria
 ---
@@ -17,7 +17,77 @@ Assistants are composed into **TeamTemplates** (stable collaboration structure) 
 
 This project **supersedes** the ATM experiment but does not inherit its architecture (see `legacy-atm-disposition.md`).
 
-*(Section to be expanded after W1 with the problem statement, user scenarios and what "fully useful locally" means concretely.)*
+### 1.1 The problem
+
+Today the owner runs specialized AI colleagues across several coding harnesses (Claude Code, Codex, Grok CLI, OpenClaw, Hermes) and several kinds of work (software, papers, training operations). The reusable knowledge — *how a good code reviewer reviews, what a methods reviewer checks, how a run-and-monitor colleague escalates* — lives in scattered prompts, per-harness config files, chat topics and one-off team scripts. Each new project re-creates it; each harness binds it to its own session model; each messaging setup turns bot topology into team semantics. The earlier ATM experiment tried to fix this by managing **runtime agents** (deployment reconciliation, persistent agent identity, per-project sessions/workspaces, A2A routing) and stalled: the persistent-runtime model fought every harness and every surface, and the reusable *colleague* was never the first-class object.
+
+### 1.2 The product object
+
+The reusable object is the **Assistant definition** — a specialized colleague you prepare once and instantiate fresh whenever a project needs it. Examples: code reviewer; implementation planner; software architect; paper reviewer; scientific writer/editor; research analyst; run-and-monitor assistant; evaluator; coordinator; product critic.
+
+A durable Assistant definition may contain or reference: role/persona · purpose and responsibilities · judgment principles · stable user-independent or user-specific working preferences · Skills · plugins/tools/capability requirements · permissions · collaboration behavior · harness-selection policy · reviewed role evolution · optional user-visible identity. It contains none of the items in the exclusion list of §2.
+
+Illustration (an Assistant is a composition, not a prompt):
+
+```
+Code Reviewer Assistant
+├── review persona
+├── review principles
+├── code-review Skill
+├── security-review Skill
+├── test-analysis Skill
+├── tool permissions
+├── collaboration behavior
+└── harness-selection policy
+```
+
+Illustration (an Assistant is not a harness — same definition, different executions):
+
+```
+Run A: code-reviewer → Codex
+Run B: code-reviewer → Claude Code
+Run C: code-reviewer → Codex + Claude Code independently → compare disagreement → synthesize review
+```
+
+### 1.3 Teams
+
+A **TeamTemplate** composes Assistants into a stable collaboration structure. Examples from the brief:
+
+```
+Paper Team                          Training Operations Team
+├── Paper Lead                      ├── Run & Monitor
+├── Writer                          ├── Evaluator
+├── Methods Reviewer                └── Code Modification Assistant
+├── Adversarial Reviewer
+└── Editor
+```
+
+A TeamTemplate may define normal members, a lead/coordinator, collaboration relationships, reviewer independence, visibility, handoff conventions, a dynamic-member policy and stable team-level user preferences. It owns no project, session or workspace state. Using it creates a **TeamRun**: fresh AssistantInstances, fresh context, the current task/project/workspace, selected harnesses, temporary state.
+
+Two run-time behaviors are first-class: a Lead may create **ephemeral Assistants** (hidden from the UI if desired, still auditable, never forced to become permanent packages), and a Member may decide a delegated task deserves its own temporary **nested TeamRun**:
+
+```
+Training Operations Team
+    └── Code Modification Assistant
+            └── temporary Development Team (Planner, Implementer, Reviewer, Tester)
+                    → completes, returns result, archives; the outer run continues
+```
+
+### 1.4 Long-running operational colleagues
+
+A Run & Monitor Assistant supervising a multi-day training job does **not** mean a continuously live LLM loop. Deterministic components (process monitoring, metric collection, checkpoint detection, schedulers, health checks, log parsing, trigger conditions) do the watching; the Assistant is invoked for interpretation, decisions, escalation, planning, coordination and reporting. Execution backends therefore include both agent harnesses and deterministic tools/services.
+
+### 1.5 Evolution, portability, surfaces
+
+Assistants and TeamTemplates improve over time through **reviewed, project-independent** learning (stable preferences, review standards, collaboration habits, role-level failure modes, harness preferences, workflow improvements) layered as overlays; automatic evolution produces *proposals*, never silent mutation. Definitions are **portable**: Skill/plugin/MCP/script/binary dependencies are declared with enough metadata to re-establish them on another host, distinguishing semantic capability requirements from explicit artifact requirements, supporting vendored and Git/registry sources, and never embedding secrets. **Messaging is optional**: a visible Bot on Telegram/Discord/OpenClaw/Hermes is presentation state; the Core is never built around groups/topics.
+
+### 1.6 "Fully useful locally" means
+
+With nothing but this machine, a local coding-agent conversation (or local UI) and the installed harnesses, the owner can: pick an Assistant or TeamTemplate; point it at a repo/paper/job; get a fresh TeamRun with the right harnesses (possibly several in ensemble); see a run archive; and accept or reject evolution proposals afterwards. No Telegram bot, no OpenClaw gateway, no tmux are prerequisites.
+
+### 1.7 Success for the owner
+
+Fewer re-created prompts; the same reviewer colleague giving consistent judgment across harnesses and projects; teams that can be re-instantiated on a new project in minutes; hidden and nested delegation that is auditable; and learning that survives projects without dragging project facts along.
 
 ## 2. Lifecycle principles (normative)
 
@@ -56,7 +126,7 @@ Priority: **M** must · **S** should · **C** could. "Brief §" = section of the
 |---|---|---|---|
 | TC-01 | M | A TeamTemplate composes reusable Assistants by reference. | 4 |
 | TC-02 | M | A TeamTemplate defines a lead/coordinator, collaboration relationships and handoff conventions. | 4 |
-| TC-03 | S | Reviewer independence (e.g. adversarial reviewer must not share context with the writer) is expressible and enforceable at run time. | 4 |
+| TC-03 | S | Reviewer independence (e.g. adversarial reviewer must not share context with the writer) is expressible and enforceable at run time; the template declares the enforcement level (advisory vs mechanical isolation). | 4 |
 | TC-04 | S | Per-member visibility (visible/hidden to the user) is expressible. | 4, 6 |
 | TC-05 | M | A dynamic-member policy states who may add temporary members, how many, and with which harnesses. | 4, 6 |
 | TC-06 | M | Team-level stable user preferences exist; the template owns no project/session/workspace state. | 4 |
@@ -93,9 +163,10 @@ Priority: **M** must · **S** should · **C** could. "Brief §" = section of the
 |---|---|---|---|
 | AR-01 | M | Semantic capability requirements and explicit concrete artifact requirements are distinct concepts. | 10 |
 | AR-02 | M | Artifact kinds covered: Agent Skills, plugins, MCP servers, local scripts, binaries, capability packages. | 10 |
-| AR-03 | M | Sources: local/vendored artifacts and Git/registry sources; enough metadata to re-establish capabilities on another host. | 10 |
+| AR-03 | M | Sources: local/vendored artifacts and Git/registry sources; enough metadata to re-establish capabilities on another host (credential-free export/import of definitions + dependency metadata). | 10 |
 | AR-04 | M | No secrets in portable configuration (references only). | 10 |
 | AR-05 | S | Resolution report per host: native / artifact-installed / degraded / unsupported. | 10 |
+| AR-06 | S | Artifact lock/fingerprint (source + version + hash) so a definition's dependencies can be re-established reproducibly on another host; local modifications to vendored artifacts are detectable. *(Added 2026-08-22 from ATM ADR 0022 salvage; owner decision.)* | 10 |
 
 ### EV — Evolution
 
@@ -105,7 +176,7 @@ Priority: **M** must · **S** should · **C** could. "Brief §" = section of the
 | EV-02 | M | Overlay model: Base Definition + User Overlay + Reviewed Evolution Overlay, with defined merge order and conflict rules. | 9 |
 | EV-03 | M | Automatic evolution produces Proposals; it never silently mutates the reusable Assistant/TeamTemplate. | 9 |
 | EV-04 | M | Never persisted: current branch, checkpoint path, paper-specific claims, temporary project arguments, raw session transcripts, one project's implementation details. | 9 |
-| EV-05 | S | Review workflow with provenance (which runs produced which proposal; who approved). | 9 |
+| EV-05 | S | Review workflow with provenance (which runs produced which proposal; who approved); what is applied is exactly what was approved; automatic actors only propose, humans approve; proposal volume is bounded. | 9 |
 
 ### MS — Messaging / surface
 
@@ -130,7 +201,7 @@ Priority: **M** must · **S** should · **C** could. "Brief §" = section of the
 | ID | P | Requirement | Brief § |
 |---|---|---|---|
 | XC-01 | M | Licenses verified before any source reuse is proposed. | 14 |
-| XC-02 | M | Platform limitations of every candidate substrate documented (Ubuntu/Windows/macOS). | 18 |
+| XC-02 | M | Platform limitations of every candidate substrate documented (Ubuntu/Windows/macOS); host-platform support and harness availability are tracked as independent dimensions. | 18 |
 | XC-03 | M | Reuse ladder honored with evidence: configuration/composition → thin adapter → upstream-friendly extension → selective licensed reuse → fork only if necessary → new implementation only if nothing else satisfies. | 14 |
 | XC-04 | S | All automated actions (spawns, invocations, proposals) are auditable. | 6, 9 |
 

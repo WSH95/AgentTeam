@@ -9,3 +9,5 @@ guess. Check off with the answer inline once resolved.
 - [ ] API budget / accounts for PoCs A–C (Codex, Claude Code, optionally OpenClaw/Hermes/Grok).
 - [ ] Must Grok / Hermes / OpenClaw be first-class in PoC A, or is Codex + Claude Code sufficient for the first pass?
 - [ ] Should discovery docs be bilingual (EN/中文) or English only? (Assumed English only for M0.)
+
+- [x] Should ATM register-gap candidates (lock layer, local-modification safety, approval-hash integrity, isolation posture, export/import archive, trust zones) become new rows? — **Answered 2026-08-22 (owner/session decision):** one new row AR-06 (artifact lock/fingerprint, S); isolation posture folded into TC-03; approval integrity/bounded proposals into EV-05; export/import into AR-03; platform-vs-harness dimensions into XC-02; trust zones not added (security posture is a later-phase concern; noted in RISKS).
