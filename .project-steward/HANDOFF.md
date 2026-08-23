@@ -1,13 +1,21 @@
 ---
-updated_at: 2026-08-23T14:18:06Z
+updated_at: 2026-08-23T14:54:54Z
 updated_by: cli
 session_status: closed
 branch: main
-last_commit: 7ea1c0e
+last_commit: 762ad67
 ---
 # Handoff
 
 ## Now
+
+**G0 is done: M1a r3 is approved.** The owner approved revision r3 on
+2026-08-23 ("I approve the r3"); DECISIONS 0021 names
+`docs/plans/m1a-direct-harness-poc.md` and the approved text's commit
+`0f3e478`, and the plan's status line now reads *approved for product
+implementation*. Implementation starts with **G1 in a fresh, sole session in
+the new directory** (see Next steps); this session deliberately did not move
+the directory, add root files, scaffold, create a repository, or push.
 
 **M1a r3 is ready for re-review.** The multi-agent review of r2 returned "do
 not approve yet" (five blocking findings + corrections; architecture confirmed).
@@ -60,7 +68,7 @@ optional provider, exact-pinned and confined to one owned compatibility module;
 it never launches harnesses and initially claims namespace separation only.
 
 This handoff is included in the local commit
-`docs(plan): M1a r3 — resolve review findings (Claude recipe, Grok/Codex channels, CI growth, execution binding, launcher policy, hash contract, selection algorithm)`;
+`docs(plan): mark M1a r3 approved; hand off to G1 in a fresh session`;
 `last_commit` above is its pre-change baseline because a commit cannot record its
 own final SHA.
 The M1a direct harness plan remains **proposed for multi-agent review and is not
@@ -68,48 +76,45 @@ approved for product implementation**. No product code exists.
 
 ## In flight
 
-Nothing is in flight. The expected documentation-only dirty set for this
-session consists of `docs/plans/m1a-direct-harness-poc.md` (r3), one amended
-sentence in `docs/discovery/team-execution-model.md` §4 (v2.3), and appended
-Project Steward decision (ADR 0020), question, plan, risk, verification,
-progress and handoff records. No source scaffold, dependency install,
-repository move, credential operation, model invocation, CI workflow change,
-remote creation, or push occurred. Verification commands used for the review
-claims were credential-free `--help` reads and one `grok inspect` in a removed
-scratch directory.
+Nothing is in flight. This session's dirty set is the plan status flip and
+Project Steward records (DECISIONS 0021 was committed separately as
+`762ad67`). No source scaffold, dependency install, repository move, credential
+operation, model invocation, CI workflow change, remote creation, or push
+occurred.
 
 ## Next steps
 
-1. Have the other agents re-review `docs/plans/m1a-direct-harness-poc.md`
-   **r3** against its section 21 checklist and section 22 (merge record and r3
-   resolutions), the original requirements, and ADRs 0014–0020; confirm the
-   five r2 blockers are closed. Do not start G1 during review.
-2. Apply only agreed plan/document corrections, rerun the checks in
-   `.project-steward/VERIFY.md`, and commit the review resolution.
-3. After the owner explicitly approves the final reviewed plan, record a
-   DECISIONS entry naming the plan file and the commit SHA of the approved
-   text, flip the status line to `approved` in the following commit, and only
-   then begin product work.
-4. Execute G1 only under that approval and in a fresh, sole session (the move
-   changes the path that Claude Code project settings/memory and the steward
-   runtime are keyed on): confirm a clean tree and absent target, move the same
-   repository to `/home/wsh/Documents/AgentTeam`, add root product files
-   (`README.md`, `LICENSE`, `.gitattributes`, `.gitignore`), land the
-   documentation-hygiene docs-only commit (M1a §4 item 6), and preserve
-   historical evidence. The managed AGENTS command-table update requires its
-   own shown diff/approval after the scaffold exists.
-5. G2: Python/`uv` foundation, then the pre-first-push checklist (history
-   secret scan, licence/notices, provenance, name checks), then create the
-   public `WSH95/AgentTeam` repository (MIT) and push the scaffold after
-   explicit approval; scaffold smoke matrix green on three OSes; CI grows at
-   G3/G4 and is final at G7.
-6. Follow G3–G8 in order. Native login, live subscription calls, and every
-   further push remain separate visible gates.
+1. **Owner, in a terminal (G1 steps 1–2 of the plan — move, never copy):**
+
+   ```
+   test ! -e /home/wsh/Documents/AgentTeam && git -C /home/wsh/Documents/assistant-team-system-dev status --porcelain | wc -l   # must print 0
+   mv /home/wsh/Documents/assistant-team-system-dev /home/wsh/Documents/AgentTeam
+   git -C /home/wsh/Documents/AgentTeam log --oneline -n 1 && git -C /home/wsh/Documents/AgentTeam status --short   # same HEAD, clean
+   ```
+
+   Then `cd /home/wsh/Documents/AgentTeam && claude` and say "resume". Do not
+   keep another session open on the old path.
+2. **Fresh session — rest of G1:** root `README.md` (alpha status), `LICENSE`
+   (MIT, `Copyright (c) 2026 ShuhanWang`), `.gitattributes`
+   (`* text=auto eol=lf`), implementation `.gitignore`; identity updates in
+   PROJECT.md / discovery landing page / new product docs with amendment notes
+   (no blanket `ats`/`ATM` replacement); commit
+   `chore(project): rename project to AgentTeam`; then the documentation-hygiene
+   docs-only commit (plan §4 item 6). The managed AGENTS command-table update
+   waits for the scaffold and needs its own shown diff/approval.
+3. **G2:** Python/`uv` foundation (pyproject, Hatchling, `uv.lock`, `src/agentteam/`,
+   checked-in schemas, `atm --help/--version`); pre-first-push checklist
+   (history secret scan, licence/notices, `docs/provenance.md`, name checks);
+   create the public `WSH95/AgentTeam` repository (MIT) and push the scaffold
+   **only after explicit approval at that moment**; scaffold smoke matrix green
+   on three OSes.
+4. G3–G8 in order per the approved plan; live reruns each separately confirmed
+   (ceiling 30 calls); every further push is its own visible gate.
 
 ## Blockers
 
-- Product implementation is blocked on multi-agent re-review of M1a r3 and the
-  explicit owner approval entry; r3 does not satisfy G0 by itself.
+- None for G1. The directory move must happen between sessions (a running
+  session's paths go stale); the first push waits for its G2 approval moment.
 - (Resolved 2026-08-23) GitHub CLI authentication is in place (account
   `WSH95`, `repo` scope, SSH protocol); repository creation at G2 still needs
   its own explicit approval.
@@ -122,8 +127,8 @@ scratch directory.
 
 ## Key files
 
-- `docs/plans/m1a-direct-harness-poc.md` — **r3**, the single candidate M1a
-  plan (section 22 = merge record + r3 resolutions); proposed, not approved.
+- `docs/plans/m1a-direct-harness-poc.md` — **r3, approved** (DECISIONS 0021;
+  approved text `0f3e478`); section 22 = merge record + r3 resolutions.
 - `docs/discovery/team-execution-model.md` — v2.3; §4 execution-binding
   amendment (one invocation or one ensemble per Member at a time).
 - `docs/plans/m1-agentteam-direct-slice.md` — superseded independent proposal
@@ -137,10 +142,10 @@ scratch directory.
 - `docs/discovery/minimal-poc-plan.md` — historical M0 proposal with the current
   provider-neutral constraint applied.
 - `.project-steward/PLAN.md` — M1a gates and the committed M1b–M4 roadmap.
-- `.project-steward/DECISIONS.md` — ADR 0020 records the r3 review
-  resolutions and the budget ceiling; ADR 0019 the plan merge; ADR 0018 the
-  independent review; ADR 0017 the neutrality policy; ADRs 0014–0016 the
-  Python/optional-provider architecture and roadmap.
+- `.project-steward/DECISIONS.md` — ADR 0021 is the G0 approval artefact;
+  ADR 0020 the r3 review resolutions and budget ceiling; ADR 0019 the plan
+  merge; ADR 0018 the independent review; ADR 0017 the neutrality policy;
+  ADRs 0014–0016 the Python/optional-provider architecture and roadmap.
 - `.project-steward/QUESTIONS.md` — records the undecided API-test timing and
   target without selecting a route.
 - `.project-steward/VERIFY.md` — current neutrality and documentation checks.

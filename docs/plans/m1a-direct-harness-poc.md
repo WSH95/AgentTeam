@@ -1,6 +1,9 @@
 # AgentTeam M1a direct-harness PoC implementation plan
 
-- Status: **proposed for review — not approved for product implementation**
+- Status: **approved for product implementation** — owner approval recorded as
+  DECISIONS 0021 (2026-08-23); approved text is revision r3 at commit
+  `0f3e478`; this status line is the following-commit flip that r3 section 2
+  prescribes
 - Plan revision: **r3**, 2026-08-23 (r2 review findings resolved; r2 merged the
   independent proposal; see section 22)
 - Revision baseline: `7ea1c0e` (r2 was `972aa95`; r1 was `9aff78f`,
@@ -12,8 +15,8 @@
   G1 rename)
 - CLI: `atm`
 
-This is the implementation plan to execute only after a separate explicit
-product-implementation approval. The 2026-08-23 documentation rebaseline
+This is the implementation plan; its explicit product-implementation
+approval is DECISIONS 0021 (G0). The 2026-08-23 documentation rebaseline
 changed the proposed core from TypeScript/Node to Python/uv and made ClawTeam
 an optional provider; revision r2 merged the independent review
 (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`), the independent proposal,

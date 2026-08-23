@@ -5,6 +5,18 @@ phase; there is no build, product code, or automated product test suite yet.
 
 
 
+
+## G0 approval record — 2026-08-23
+
+| Check | Result |
+| --- | --- |
+| Approval artefact | PASS — DECISIONS 0021 names `docs/plans/m1a-direct-harness-poc.md` r3 and commit `0f3e478`; the status line was flipped in the following commit |
+| Steward consistency | PASS — PLAN M1a marked approved; QUESTIONS current gate = G1; HANDOFF carries the exact G1 move commands and the fresh-session instruction |
+| Scope | PASS — documentation/steward only; no move, code, dependency, repository, or push |
+| Patch hygiene | PASS — `git diff --check` exits 0 |
+
+Last verified: 2026-08-23 by Claude (Fable 5) session.
+
 ## Current M1a r3 review-resolution verification — 2026-08-23
 
 | Check | Result |

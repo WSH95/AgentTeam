@@ -11,14 +11,14 @@ must not guess. Answered items remain here for traceability.
   endpoint, or model is selected; no key is needed unless a canary is
   separately approved.
 
-## Current review gate
+## Current gate
 
-This is not an unanswered architecture choice: the concrete M1a proposal is
-now `docs/plans/m1a-direct-harness-poc.md` revision r3 (merged in r2, ADR 0019;
-review findings resolved in r3, ADR 0020).
-Implementation remains blocked until multi-agent review comments are resolved
-and the owner explicitly approves that plan with a DECISIONS entry naming the
-file and commit SHA.
+M1a r3 is **approved** (DECISIONS 0021; approved text `0f3e478`). The next
+gate is G1 — the directory move to `/home/wsh/Documents/AgentTeam`, done by the
+owner between sessions, then root files, identity updates, and the
+documentation-hygiene commit in a fresh session — followed by G2. Each later
+gate keeps its own approvals (first push at G2; AGENTS.md managed block; live
+reruns).
 
 ## Answered in the 2026-08-22 product/architecture review
 

@@ -27,11 +27,10 @@ Detailed execution plan (approved 2026-08-21): `~/.claude/plans/i-am-starting-a-
 - [x] Mark the detailed M0 PoC proposal provisional and re-baselining-required; do not schedule a specific draft source or implementation
 - [x] Run documentation regression checks and close M0.1 handoff
 
-## M1a AgentTeam direct-harness PoC (plan review gate)
+## M1a AgentTeam direct-harness PoC (approved — G0 done 2026-08-23)
 
-Proposed implementation plan:
+Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS 0021):
 [`docs/plans/m1a-direct-harness-poc.md`](../docs/plans/m1a-direct-harness-poc.md).
-The document is review-only until the owner explicitly approves it.
 
 - [x] Commit the completed M0.1 documentation review (`3407ec9`)
 - [x] Record the owner-confirmed product identity, stack, auth, first-pass harness, model-policy, evidence, and live-test boundaries
@@ -42,8 +41,8 @@ The document is review-only until the owner explicitly approves it.
 - [x] Independent review of the `3407ec9` baseline recorded (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`) with an independent M1 proposal for comparison (`docs/plans/m1-agentteam-direct-slice.md`); owner decisions in ADR 0018 — owner merges/selects before the approval step
 - [x] Merge the independent proposal into M1a revision r2 (ADR 0019): selection precedence/`decided_by`, three Skills per harness, cross-OS hash identity, run record, probe levels, falsification routing, evidence bundle, docs-hygiene list, overlay deferred to M3, public repo at G2
 - [x] Resolve the multi-agent review findings on r2 → revision r3 (ADR 0020): Claude recipe without `--safe-mode`, Grok `.grok/skills/`, pre-first-push checklist + gate-by-gate CI growth, Member execution binding (TEM §4 amended), Windows launcher policy + `.cmd` fake, computed hash only, required-Skill rule, promotion-only fixtures, waiver semantics, selection algorithm, V1 archive contract, budget ceiling 30
-- [ ] Incorporate multi-agent review findings without starting implementation
-- [ ] Obtain explicit owner implementation approval, mark the reviewed plan `approved`, and commit any review resolutions
+- [x] Incorporate multi-agent review findings without starting implementation (r3, ADR 0020)
+- [x] Obtain explicit owner implementation approval, mark the reviewed plan `approved`, and commit any review resolutions (G0: DECISIONS 0021; status flipped)
 - [ ] G1 — rename/re-baseline the local project as AgentTeam; documentation-hygiene docs-only commit (M1a §4 item 6)
 - [ ] G2 — implement the Python 3.11+/`uv` foundation, Hatchling package, and checked-in V1 JSON Schemas; pass the pre-first-push checklist; create the public `WSH95/AgentTeam` repository (MIT) and push the scaffold after explicit approval; scaffold smoke matrix green on 3 OSes
 - [ ] G3 — implement isolated Claude/Codex/Grok direct adapters (Skill channels, `decided_by`, Windows `.cmd` fake); adapter tests added to CI

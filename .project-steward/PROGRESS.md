@@ -2,6 +2,9 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-23T14:54:54Z — cli
+G0 done: owner approved M1a r3 (DECISIONS 0021 names the plan file and 0f3e478); plan status flipped to approved; PLAN/QUESTIONS/VERIFY/HANDOFF hand off to G1 in a fresh session in /home/wsh/Documents/AgentTeam (owner runs the move between sessions). No code, no move, no repo, no push.
+
 ### 2026-08-23T14:18:06Z — cli
 M1a r3: resolved the multi-agent review findings on r2 (Claude recipe without --safe-mode, Grok .grok/skills primary, Codex --ignore-rules clarified, pre-first-push checklist + gate-by-gate CI growth, Member execution binding with TEM §4 amended, Windows launcher policy + .cmd fake, computed-only effective hash, required-Skill rule, promotion-only fixtures, waiver semantics, selection algorithm, V1 archive contract, Q5 in M4); owner approved the 30-call ceiling (1 cycle + ≤2 confirmed reruns); ADR 0020 + steward records. No code.
 
