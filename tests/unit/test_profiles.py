@@ -79,8 +79,10 @@ def test_relative_paths_resolve_against_the_profile_file(tmp_path: Path) -> None
     assert resolve_profile_path(path, profile.config_home) == (
         profile_dir / ".local" / "vendors" / "codex"
     )
-    # absolute stays absolute; ~ expands
-    assert resolve_profile_path(path, "/abs/x").as_posix() == "/abs/x"
+    # absolute stays absolute (use a real absolute path: "/abs/x" has no
+    # drive on Windows and is only drive-relative there); ~ expands
+    absolute = tmp_path / "somewhere" / "else"
+    assert resolve_profile_path(path, str(absolute)) == absolute
     assert resolve_profile_path(path, "~/x") == Path.home() / "x"
 
 
