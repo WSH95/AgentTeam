@@ -286,3 +286,23 @@ DECISIONS entry naming the file and commit SHA (ADR 0018/0019). The only
 discovery-document change is the one-sentence execution-binding amendment in
 `team-execution-model.md` §4 (v2.3). Review R4 (Grok as HB-08 test) remains a
 recorded dissent.
+
+## 0021 — 2026-08-23 — M1a revision r3 approved for product implementation (G0)
+
+**Context**: The multi-agent review findings on r2 were resolved in r3
+(ADR 0020). On 2026-08-23 the owner stated "I approve the r3" and asked for
+implementation to begin.
+**Decision**: `docs/plans/m1a-direct-harness-poc.md` revision **r3**, as
+committed in `0f3e478` (`docs(plan): M1a r3 — resolve review findings …`), is
+the approved M1a implementation plan. This entry is the G0 approval artefact
+required by that plan (section 2/3: a DECISIONS entry naming the plan file and
+the commit SHA holding the approved text); the plan's status line flips to
+`approved` in the following commit. The approval covers gates G1–G8 as written
+in r3 and nothing beyond M1a; it does not pre-approve the first push (G2, its
+own explicit approval moment), the AGENTS.md managed-block edit (own shown
+diff), live acceptance reruns (each separately confirmed, ceiling 30 calls), or
+any later milestone plan.
+**Consequences**: G1 (directory move to `/home/wsh/Documents/AgentTeam`, root
+files, identity updates, documentation-hygiene commit) starts in a fresh, sole
+session; this session only records the approval and hands off. `PLAN.md`,
+`QUESTIONS.md`, and `HANDOFF.md` are updated in the following commit.
