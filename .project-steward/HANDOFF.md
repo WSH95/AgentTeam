@@ -1,21 +1,34 @@
 ---
-updated_at: 2026-08-23T14:54:54Z
+updated_at: 2026-08-23T15:18:28Z
 updated_by: cli
-session_status: closed
+session_status: active
 branch: main
-last_commit: 762ad67
+last_commit: 025d02a
 ---
 # Handoff
 
 ## Now
 
+**G1 is in progress in the fresh session (2026-08-23).** The owner completed
+G1 steps 1–2 between sessions: the repository was *moved* (not copied) to
+`/home/wsh/Documents/AgentTeam`; the old path no longer exists; the same
+history (`main @ 025d02a`) and a clean tree were verified at session start; no
+`atm` executable is on `PATH`. This session then added the root files
+(`README.md` with alpha status, `LICENSE` MIT `Copyright (c) 2026 ShuhanWang`,
+`.gitattributes` `* text=auto eol=lf` — all 56 tracked files were already LF so
+nothing renormalises — and the implementation `.gitignore` outside the managed
+block) and the identity amendments (discovery landing page status/current
+gate/naming note, `product-intent.md` title/status note, one
+`legacy-atm-disposition.md` question note); dated M0 records were not
+rewritten. This is commit 1 of G1, `chore(project): rename project to
+AgentTeam`; commit 2 (documentation hygiene, plan §4 item 6) follows in the
+same session.
+
 **G0 is done: M1a r3 is approved.** The owner approved revision r3 on
 2026-08-23 ("I approve the r3"); DECISIONS 0021 names
 `docs/plans/m1a-direct-harness-poc.md` and the approved text's commit
-`0f3e478`, and the plan's status line now reads *approved for product
-implementation*. Implementation starts with **G1 in a fresh, sole session in
-the new directory** (see Next steps); this session deliberately did not move
-the directory, add root files, scaffold, create a repository, or push.
+`0f3e478`, and the plan's status line reads *approved for product
+implementation*.
 
 **M1a r3 is ready for re-review.** The multi-agent review of r2 returned "do
 not approve yet" (five blocking findings + corrections; architecture confirmed).
@@ -67,41 +80,29 @@ harness runner, and optional coordination providers. ClawTeam is the first
 optional provider, exact-pinned and confined to one owned compatibility module;
 it never launches harnesses and initially claims namespace separation only.
 
-This handoff is included in the local commit
-`docs(plan): mark M1a r3 approved; hand off to G1 in a fresh session`;
-`last_commit` above is its pre-change baseline because a commit cannot record its
-own final SHA.
-The M1a direct harness plan remains **proposed for multi-agent review and is not
-approved for product implementation**. No product code exists.
+This handoff state is included in G1 commit 1 (`chore(project): rename project
+to AgentTeam`); `last_commit` above is the pre-change baseline because a commit
+cannot record its own final SHA. No product code exists yet (G2).
 
 ## In flight
 
-Nothing is in flight. This session's dirty set is the plan status flip and
-Project Steward records (DECISIONS 0021 was committed separately as
-`762ad67`). No source scaffold, dependency install, repository move, credential
-operation, model invocation, CI workflow change, remote creation, or push
-occurred.
+G1 commit 2 (documentation hygiene, plan §4 item 6) is the next action in this
+session; nothing else is in flight. No source scaffold, dependency install,
+credential operation, model invocation, CI workflow change, remote creation, or
+push occurred.
 
 ## Next steps
 
-1. **Owner, in a terminal (G1 steps 1–2 of the plan — move, never copy):**
-
-   ```
-   test ! -e /home/wsh/Documents/AgentTeam && git -C /home/wsh/Documents/assistant-team-system-dev status --porcelain | wc -l   # must print 0
-   mv /home/wsh/Documents/assistant-team-system-dev /home/wsh/Documents/AgentTeam
-   git -C /home/wsh/Documents/AgentTeam log --oneline -n 1 && git -C /home/wsh/Documents/AgentTeam status --short   # same HEAD, clean
-   ```
-
-   Then `cd /home/wsh/Documents/AgentTeam && claude` and say "resume". Do not
-   keep another session open on the old path.
-2. **Fresh session — rest of G1:** root `README.md` (alpha status), `LICENSE`
-   (MIT, `Copyright (c) 2026 ShuhanWang`), `.gitattributes`
-   (`* text=auto eol=lf`), implementation `.gitignore`; identity updates in
-   PROJECT.md / discovery landing page / new product docs with amendment notes
-   (no blanket `ats`/`ATM` replacement); commit
-   `chore(project): rename project to AgentTeam`; then the documentation-hygiene
-   docs-only commit (plan §4 item 6). The managed AGENTS command-table update
-   waits for the scaffold and needs its own shown diff/approval.
+1. (Done 2026-08-23) Owner moved the repository to
+   `/home/wsh/Documents/AgentTeam`; root files and identity amendments landed
+   in G1 commit 1.
+2. **Rest of G1 (this session):** the documentation-hygiene docs-only commit
+   (plan §4 item 6): PROJECT.md success criteria / no volatile pins; glossary
+   terms; DECISIONS amendment markers for 0007/0009/0012; VERIFY counts; RISKS
+   ID/owner/status columns; critic closure notes; `minimal-poc-plan.md` banner;
+   READMEs link QUESTIONS; `config.toml` pointer. The HB-03 register amendment
+   waits for the owner's QUESTIONS answer. The managed AGENTS command-table
+   update waits for the scaffold and needs its own shown diff/approval.
 3. **G2:** Python/`uv` foundation (pyproject, Hatchling, `uv.lock`, `src/agentteam/`,
    checked-in schemas, `atm --help/--version`); pre-first-push checklist
    (history secret scan, licence/notices, `docs/provenance.md`, name checks);
@@ -113,8 +114,7 @@ occurred.
 
 ## Blockers
 
-- None for G1. The directory move must happen between sessions (a running
-  session's paths go stale); the first push waits for its G2 approval moment.
+- None for G1. The first push waits for its G2 approval moment.
 - (Resolved 2026-08-23) GitHub CLI authentication is in place (account
   `WSH95`, `repo` scope, SSH protocol); repository creation at G2 still needs
   its own explicit approval.
@@ -176,9 +176,9 @@ occurred.
 - Earlier candidate-context wording remains in Git history. It contained no
   credential value; rewriting history would be a separate destructive action
   and was not requested.
-- The repository is still named `assistant-team-system-dev` at
-  `/home/wsh/Documents/assistant-team-system-dev`; the AgentTeam move is G1,
-  not completed work.
+- The repository now lives at `/home/wsh/Documents/AgentTeam` (moved by the
+  owner on 2026-08-23; the old path is gone). Historical evidence files cite
+  scratchpad paths under the old name; those are dated records, not live paths.
 - A future API-test route needs a fresh evidence check and explicit selection;
   do not infer one from factual provider inventories or old commits.
 - Historical panel, critic, and M0 PoC records retain dated CLI-first/TypeScript

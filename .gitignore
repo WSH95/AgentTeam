@@ -3,3 +3,24 @@
 .project-steward/tmp/
 .project-steward/migration-backup-projectforge/
 # PROJECT-STEWARD:END runtime-state
+
+# Implementation (Python >=3.11 with uv; M1a plan sections 5-6)
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local AgentTeam state, raw evidence, and secrets are never committed
+# (M1a plan sections 6.1 and 13); only reviewed sanitized bundles under
+# docs/evidence/ are tracked.
+.agentteam/
+.env
+.env.*

@@ -1,6 +1,6 @@
 ---
-title: Product intent — Assistant Team System
-status: draft v3.3 — register FROZEN 2026-08-22; current review constraints applied; M0 PoC sketches retained as provisional coverage examples
+title: Product intent — AgentTeam (M0 working name: Assistant Team System)
+status: draft v3.3 — register FROZEN 2026-08-22; current review constraints applied; M0 PoC sketches retained as provisional coverage examples; identity amendment 2026-08-23 (product name AgentTeam, CLI `atm`, ADR 0012 — body text not rewritten)
 date: 2026-08-22
 owns: requirement register (the only place requirements are authored), lifecycle principles, non-goals, current PoC constraints and historical acceptance sketches
 ---

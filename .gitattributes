@@ -1,0 +1,4 @@
+# Normalise line endings so content hashes and checked-in JSON Schemas
+# reproduce identically on Windows, macOS, and Linux checkouts
+# (M1a plan section 4 item 4).
+* text=auto eol=lf

@@ -194,7 +194,7 @@ Per salvaged concept: today's substrate primitive, or "no primitive — new" (co
 4. Which of the §3.1 remaining candidates become register notes (not rows)? Owner decision.
 5. Are ATM's unrun spikes U5 (`sessions_spawn` child semantics), U7 (session survival across restart), U12/U13 (per-agent skill materialization and propagation), U15 (role-scoped availability proof) still needed as PoC-time probes for OpenClaw *as a Harness* (HB-02, AR-05), or do they die with the persistent-runtime model? [ev:atm-salvage §5 Q5]
 6. ~~Exact heading anchors for the "Lands in" column~~ — **closed 2026-08-22**: every §2 cell now names `document §n` against the landed drafts.
-7. Should the ATM repository receive a "superseded by Assistant Team System" note/tag? Outside this repository; owner.
+7. Should the ATM repository receive a "superseded by Assistant Team System" note/tag? Outside this repository; owner. *(Amendment 2026-08-23: the product name is now AgentTeam, ADR 0012; the question itself is unchanged.)*
 8. ~~Should the guard/seam *pattern* become a hard constraint in `minimal-poc-plan.md`?~~ — **answered**: `minimal-poc-plan.md` §2 ("Never touched" — a fail-closed guard runs before the first subprocess of each PoC; post-PoC newer-than-start scan of production dirs).
 
 ## Inconsistencies noted

@@ -2,6 +2,9 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-23T15:18:28Z — cli
+G1 commit 1: directory move verified (owner moved the repo to /home/wsh/Documents/AgentTeam between sessions; same HEAD 025d02a, clean, old path gone, no `atm` on PATH); root README (alpha), LICENSE (MIT, ShuhanWang), .gitattributes (`* text=auto eol=lf`, no renormalisation needed), implementation .gitignore added; identity amendments on the discovery landing page, product-intent title/status, and one legacy-atm-disposition note; dated M0 records untouched. No code, no repository, no push.
+
 ### 2026-08-23T14:54:54Z — cli
 G0 done: owner approved M1a r3 (DECISIONS 0021 names the plan file and 0f3e478); plan status flipped to approved; PLAN/QUESTIONS/VERIFY/HANDOFF hand off to G1 in a fresh session in /home/wsh/Documents/AgentTeam (owner runs the move between sessions). No code, no move, no repo, no push.
 
