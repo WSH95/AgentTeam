@@ -1,29 +1,31 @@
 ---
 title: Minimal PoC plan — PoC A/B/C definitions that prove or falsify the smallest layer
-status: historical M0 PoC proposal with current constraints; detailed plan is provisional and not approved
+status: historical M0 PoC proposal; superseded by the re-baselined M1a plan
 date: 2026-08-22
-owns: the historical M0 PoC A/B/C proposal plus confirmed constraints that any replacement plan must honor; no code and no approved implementation plan
+owns: the historical M0 PoC A/B/C proposal and its evidence context; no current implementation sequencing
 depends_on: product-intent.md §4 (historical acceptance sketches plus current constraints); architecture-options.md §5 (the layer under test, restated verbatim in §1), §3, §6, §8; harness-broker-model.md §4, §7, §8; team-execution-model.md §2, §5, §6, §13; assistant-domain-model.md §3, §4, §8; existing-systems-fit-gap.md; reuse-vs-build-analysis.md; legacy-atm-disposition.md (K12, R4, R6, R11); evidence/*.md; evidence/panel/judge-{1,2}.md; .project-steward/QUESTIONS.md
 ---
 
 # Minimal PoC plan
 
-> **Provisional artifact.** Sections 2–8 preserve the detailed M0 PoC proposal for reference; they are not the approved next implementation plan. Run counts, harness allocation, synthesis, schemas, sequencing, gates, and LOC must be re-baselined. The confirmed constraints in §1.1 are authoritative over conflicting detail below.
+> **Historical artifact.** Sections 2–8 preserve the detailed M0 PoC proposal for reference. The current, re-baselined proposal is `../plans/m1a-direct-harness-poc.md`; it is authoritative over conflicting detail here. That plan defines M1a (direct runner), commits PoC B to M1c and PoC C to M2, and still requires the planned multi-agent/owner review before product implementation.
 
 ## 1. Purpose and the layer under test
 
-Discovery proposed the smallest layer in `architecture-options.md` §5. The current direction is restated below; the detailed M0 test design that follows remains a candidate, not an implementation authorization.
+Discovery proposed the smallest layer in `architecture-options.md` §5. The current direction is summarized below; the detailed M0 test design that follows is retained only as evidence and acceptance-test source material.
 
-**The smallest new software layer is** a thin, format-independent Assistant/Team layer — working name `ats` — that owns only the data no existing system has and reaches everything else through two declared seams. It owns, as substrate-neutral data: Assistant definitions (closed schema + exclusion validator), TeamTemplates composing Assistants by reference, Base/User/Reviewed-Evolution overlays with a deterministic resolver and a Proposal/review record, HarnessProfiles plus a HarnessSelectionPolicy resolved per invocation (user > Assistant > team > default), a HarnessInvocation ledger and an Ensemble record with per-invocation attribution, an artifact manifest + lock + per-host resolution report, and a TeamRun record with user-visible and archive rosters, a dynamic-member gate, a nesting contract, and an archive. It declares **HarnessAdapter** {profile data, injection recipe, invoke, parse} and **CoordinationSubstrate** {create_space, add_member, create/update/wait task, send/receive, snapshot, stop, cleanup}. Five harness targets remain planned; Claude Code, Codex, and Grok Build are required in the first pass, while Hermes and OpenClaw are deferred. The single planned CoordinationSubstrate implementation is a ClawTeam CLI adapter (pinned 0.3.0@0119833, `mcp<2`, subprocess backend, no tmux, never `launch`, never `--task` through `spawn`, `skip_permissions=false`), plus a small `direct` launcher for solo runs and independent harness invocations. The HarnessBroker lives inside this layer, not as a ClawTeam backend or plugin. The layer builds no second team substrate, ClawTeam fork, library-seam coupling, Surface adapter, artifact installer, UI, message bus, task store, or liveness registry. ClawTeam supplies the task DAG, inboxes, pid registry, worktrees, and snapshot; harnesses supply execution. **M (≈4–6k LOC including profile data) remains a discovery estimate; the first-pass slice, detailed PoC runs, synthesis design, implementation language, sequencing, and slice LOC must be re-baselined before implementation.**
+**The smallest new software layer is** AgentTeam: a Python 3.11+ core, managed with `uv`, with JSON Schema records and language-neutral CLI/MCP edges. It owns the portable definitions, policies, invocation/archive records, direct shell-free process runner, and the HarnessAdapter and CoordinationSubstrate protocols. Claude Code, Codex, and Grok Build are the M1a harnesses; a fresh Claude invocation synthesizes their normalized reports. ClawTeam is the first optional in-process CoordinationSubstrate, pinned by full commit, isolated behind one compatibility module, and qualified early without becoming a core dependency. It does not launch harnesses. M1b adds the TeamRun foundation; M1c proves dynamic-member enforcement; M2 proves nested TeamRuns and adds MCP. Hermes, OpenClaw, DSH integration, surfaces, operations, and evolution/artifact work remain later milestones.
 
 ### 1.1 Confirmed constraints for the next PoC plan
 
 - First-pass harnesses: Claude Code 2.1.241, Codex 0.149.0, and Grok Build 1.0.5. Hermes/OpenClaw are deferred.
 - Native/unattended live runs: subscription OAuth on the owner's persistent host. Claude uses `--safe-mode --no-session-persistence`; `--bare` disables OAuth. Hosted CI receives no live credentials.
 - API-test mode: separate, replaceable provider profile; current `stealth/ox-alpha` is temporary and unverified. Store only the credential environment-variable name, never a key value. Do not fall back from native auth to this mode.
-- Cross-platform: GitHub-hosted Windows/macOS CI verifies deterministic direct-path plumbing at its milestone and ClawTeam subprocess plumbing at its milestone. It cannot prove live auth/model behavior.
+- Cross-platform: GitHub-hosted Windows/macOS CI verifies deterministic direct-path plumbing at M1a and the optional ClawTeam import/coordination seam separately. It cannot prove live auth/model behavior.
 - Enforcement: bypass-visible/audited advisory controls are acceptable for PoC evidence; production claims require mechanical enforcement. UI hiding is a projection.
 - ATM: internal copy/adaptation is authorized; preserve provenance and third-party notices.
+- Core/edge: Python `>=3.11` + `uv`; JSON Schema external records; `atm` CLI; MCP begins in M2.
+- Coordination: direct runner is built in; ClawTeam is an optional extra pinned to full commit `01198332ef9270c32c5460b8a178f964fc0df451` with `mcp>=1,<2`; all imports live in one owned module; its subprocess backend is excluded.
 
 [ev:m0-product-architecture-review-2026-08-22#F1][ev:m0-product-architecture-review-2026-08-22#F2][ev:m0-product-architecture-review-2026-08-22#F3][ev:m0-product-architecture-review-2026-08-22#F4][ev:m0-product-architecture-review-2026-08-22#F5][ev:m0-product-architecture-review-2026-08-22#F7]
 
@@ -160,8 +162,8 @@ Not covered by hosted CI: live subscription login, provider availability, or mod
 
 ## 8. Historical prerequisites and current question source
 
-**Current prerequisites.** Implementation language, budget/deterministic-tier policy, synthesis, coordination protocol, Hermes scope, and ClawTeam PR timing remain open. Resolved: subscription OAuth for owner-operated native/unattended runs; credential-free hosted CI for Windows/macOS plumbing; bypass-visible/audited advisory PoC controls; ATM reuse authorization; and Claude Code + Codex + Grok Build in the first pass. See `.project-steward/QUESTIONS.md` for the authoritative open list.
+**Current disposition.** Language, packaging, first-pass harnesses, fresh-Claude synthesis, the direct runner, the optional ClawTeam seam, hosted-CI scope, subscription OAuth, API-test separation, and ATM reuse are resolved in the M1a proposal. Budget caps and the remaining implementation gates are tracked in `.project-steward/QUESTIONS.md`. No ClawTeam PR is a prerequisite.
 
 **Open questions raised here.** (1) Does `spawn -n lead` into a team created by `spawn-team … --agent-name lead` reuse the member record? (Tier 0.) (2) May the Lead be re-invoked fresh per DAG event instead of one long headless invocation (TE-02 spirit; cost and compliance)? (3) Do the `inbox send` signal and the `task update --status completed` close of the owner's carrier work with live Members on the first PoC C run (including the task-lock question: close with CodeMod's identity env or `--force`)? — the only carrier question left; `task update --metadata` does not exist (§5). (4) Codex `--ephemeral` removes the rollout file — are thread id plus `codex --version` enough for HB-07?
 
-STOP — this is a provisional M0 PoC proposal, not implementation authorization. Review and approve a re-baselined detailed plan before building.
+STOP — this is historical, not implementation authorization. Review the re-baselined M1a plan before building product code.

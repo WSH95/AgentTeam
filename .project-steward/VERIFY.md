@@ -3,7 +3,29 @@
 How to check the project is healthy. This is a documentation-only discovery
 phase; there is no build, product code, or automated product test suite yet.
 
-## Current M1a planning verification — 2026-08-23
+## Current Python/optional-provider rebaseline verification — 2026-08-23
+
+| Check | Result |
+| --- | --- |
+| Documentation-only scope | PASS — only architecture/plan/Project Steward records changed (`state.json` metadata included); no product source, dependency install, rename, credential operation, model call, remote change, push, or generated product artifact |
+| Architecture-decision coverage | PASS — Python `>=3.11`/`uv`/Hatchling; checked-in JSON Schema edge; `atm` then M2 MCP; built-in shell-free direct runner; optional exact-pinned in-process ClawTeam boundary; one data root/namespace-only claim; M1b–M4 obligations |
+| ClawTeam boundary consistency | PASS — full revision `01198332ef9270c32c5460b8a178f964fc0df451` and `mcp>=1,<2` appear in the proposed plan/decision records; M1a excludes ClawTeam process backends and confines imports to one compatibility module |
+| Guarded instruction change | PASS — the owner-approved `AGENTS.md` diff changes only the title, product description, and primary stack above managed blocks; command/task/session managed blocks are byte-unchanged |
+| Historical/current-state separation | PASS — living landing/model/steward documents point to the re-baselined M1a proposal; former TypeScript/CLI-first mechanics remain only as explicitly superseded decisions or labelled M0 evidence |
+| Frozen requirement matrix | PASS without re-judgment — `existing-systems-fit-gap.md` is untouched and the `product-intent.md` diff is below the frozen register; the prior 54×11 structural regression remains applicable |
+| Local Markdown targets | PASS — 50 Markdown files scanned, 12 local links checked, 0 broken |
+| Markdown fences | PASS — 60 fence markers across 50 Markdown files, 0 unbalanced files |
+| Secret-pattern scan | PASS — 0 API-key-shaped values and 0 private-key headers in the documentation/steward scope |
+| Patch hygiene | PASS — `git diff --check` exits 0 |
+
+Validation establishes a coherent documentation and plan rebaseline. It does
+not approve product implementation, install/test ClawTeam, execute a vendor
+harness, or provide Windows/macOS/live-runtime evidence.
+
+Last verified: 2026-08-23 by Codex (documentation-only; no credential values or
+model prompts used).
+
+## Previous M1a planning verification — 2026-08-23 (superseded stack baseline)
 
 | Check | Result |
 | --- | --- |

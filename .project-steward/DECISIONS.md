@@ -104,3 +104,55 @@ bound, and acceptance criteria live in
 explicitly approved before implementation. ClawTeam, API-test mode, Hermes,
 OpenClaw, Telegram, TeamTemplates, dynamic Members, and nesting are outside
 M1a.
+
+## 0014 — 2026-08-23 — Use a Python core with language-neutral edges
+
+**Context**: ClawTeam 0.3.0 is Python-first and exposes useful in-process
+coordination seams. Keeping a TypeScript core would force AgentTeam through a
+less capable CLI boundary or duplicate those mechanisms, while every target
+harness can already integrate through CLI, JSON, or MCP.
+**Decision**: Implement the AgentTeam core in Python `>=3.11`, manage it with
+`uv`, and package it with Hatchling. Define external records with checked-in
+JSON Schema; expose the `atm` CLI first and an `atm` MCP server in M2. Keep
+harness and coordination boundaries as typed async Python protocols internally
+and language-neutral contracts externally. DG/DT TypeScript is evidence and
+schema/mechanism inspiration, not code vendored into the core; a small native
+TypeScript edge adapter may be considered later if DSH becomes primary.
+**Consequences**: This supersedes only the TypeScript/Node portion of ADR 0012
+and the "no library-seam coupling"/CLI-only portions of ADR 0007. AgentTeam's
+name, `atm` CLI, MIT intent, direct-first M1a ensemble, license/provenance
+constraints, and publication gates remain unchanged. The owner explicitly
+approved the corresponding one-time `AGENTS.md` identity/stack wording change;
+the managed command block remains `n/a` until the scaffold exists.
+
+## 0015 — 2026-08-23 — Keep ClawTeam optional and qualify its in-process seam early
+
+**Context**: In-process ClawTeam can make later dynamic-member and nested-run
+enforcement mechanical at the product-owned boundary, but its public package is
+alpha, its event bus and data directory are process-global, and its built-in
+subprocess backend uses `shell=True`.
+**Decision**: The direct runner is built into the core and remains fully usable
+without ClawTeam. Offer ClawTeam only through the optional extra
+`agentteam[clawteam]`, pinned to full Git commit
+`01198332ef9270c32c5460b8a178f964fc0df451` plus `mcp>=1,<2`. Confine every
+ClawTeam import to one AgentTeam-owned compatibility/provider module, translate
+events into AgentTeam-owned records, reset/contain global hooks during use, and
+never call its subprocess/tmux/wsh launch backends. Qualify this seam in M1a;
+use one process-scoped data root with opaque AgentTeam team namespaces and claim
+namespace separation, not mechanical filesystem isolation.
+**Consequences**: A compatibility failure blocks ClawTeam provider
+qualification and M1b provider work, but never the direct core. ClawTeam does
+not become a required install, execution engine, public schema, or harness
+adapter. No fork or upstream PR is required for M1a.
+
+## 0016 — 2026-08-23 — Commit the team-execution proof sequence to the roadmap
+
+**Context**: Selecting a direct-first M1a must not silently drop the original
+dynamic-member, nested-team, evolution, artifact, or operational requirements.
+**Decision**: Follow M1a with M1b TeamRun foundations, M1c dynamic-member PoC B,
+M2 nested TeamRun PoC C plus MCP, M3 reviewed evolution/artifacts, and M4
+long-running operations. Hermes, OpenClaw, DSH, messaging surfaces, and API-test
+providers remain optional later integrations.
+**Consequences**: M1a may stop before TeamRun implementation without treating
+the broader requirements as optional. Each later milestone still needs its own
+reviewed implementation plan and explicit owner approval.

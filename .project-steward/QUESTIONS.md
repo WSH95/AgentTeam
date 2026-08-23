@@ -18,10 +18,10 @@ approves that plan.
 
 ## Answered in the 2026-08-22 product/architecture review
 
-- [x] Q2. Windows/macOS verification uses GitHub-hosted CI. Test deterministic direct-path plumbing at its milestone and ClawTeam subprocess plumbing at its milestone. Do not put live credentials in CI or claim live auth/model behavior from it.
+- [x] Q2. Windows/macOS verification uses GitHub-hosted CI. Test deterministic direct-runner plumbing at M1a and the optional ClawTeam import/coordination seam separately. Do not put live credentials in CI or claim live auth/model behavior from it.
 - [x] Q3. Advisory controls may pass a PoC only when bypassability is visible and audited; production claims require mechanical enforcement. Hidden is a UI projection, not an access-control boundary.
-- [x] Q5. Native and unattended live runs use each vendor CLI's subscription OAuth on the owner's persistent host. ATS does not broker third-party login or copy credential stores. API-test mode is separate and never a native-auth fallback.
-- [x] Q7. ATM is owner-authored and internally reusable by ATS without a separate licence grant. Record copy/adaptation provenance and retain third-party notices/terms; public licensing is still separate.
+- [x] Q5. Native and unattended live runs use each vendor CLI's subscription OAuth on the owner's persistent host. AgentTeam does not broker third-party login or copy credential stores. API-test mode is separate and never a native-auth fallback.
+- [x] Q7. ATM is owner-authored and internally reusable by AgentTeam without a separate licence grant. Record copy/adaptation provenance and retain third-party notices/terms; public licensing is still separate.
 - [x] Q11. Solo/direct execution remains in scope.
 - [x] First-pass harnesses are Claude Code + Codex + Grok Build. Hermes/OpenClaw are deferred.
 - [x] The current API model is test-only and replaceable; no availability, price, behavior, or compatibility claim exists until a canary is run.
@@ -29,7 +29,7 @@ approves that plan.
 
 ## Answered in the 2026-08-23 M1a planning pass
 
-- [x] Q1. Implement M1+ in TypeScript on Node.js.
+- [x] Q1 (superseded on 2026-08-23). The earlier TypeScript/Node choice was replaced after the in-process ClawTeam architecture review; see the current answer below and ADR 0014.
 - [x] Q8. Deterministic fake-harness acceptance is a mandatory precondition;
   Ubuntu live acceptance is a separate required gate. One acceptance cycle is
   bounded to eight model calls and never repeats automatically.
@@ -42,5 +42,24 @@ approves that plan.
   `atm`, and eventual local directory `/home/wsh/Documents/AgentTeam`.
 - [x] English is the canonical product-documentation language.
 - [x] M1a is the direct-first three-harness PoC in
-  `docs/plans/m1a-direct-harness-poc.md`; ClawTeam is a separately planned
-  later milestone.
+  `docs/plans/m1a-direct-harness-poc.md`; its direct core remains independent
+  while an optional ClawTeam seam is qualified early.
+
+## Answered in the 2026-08-23 Python/optional-provider rebaseline
+
+- [x] Q1 revision. Use Python `>=3.11`, `uv`, and Hatchling for the core;
+  define external records with JSON Schema; keep `atm` as the CLI; add MCP in
+  M2. DG/DT TypeScript is reference material, not vendored core code.
+- [x] ClawTeam is an optional extra, exactly pinned to
+  `01198332ef9270c32c5460b8a178f964fc0df451` plus `mcp>=1,<2`; all imports
+  live in one owned compatibility/provider module, and its subprocess backend
+  is never used. M1a qualifies the seam without making it a core dependency.
+- [x] ClawTeam uses one process-scoped data root with opaque AgentTeam team
+  namespaces. The initial claim is namespace separation only, not mechanical
+  per-run filesystem isolation.
+- [x] The roadmap commits M1b TeamRun foundations, M1c dynamic-member PoC B,
+  M2 nested TeamRun PoC C plus MCP, M3 evolution/artifacts, and M4 operations;
+  each still needs a reviewed implementation plan and owner approval.
+- [x] The owner approved the exact one-time `AGENTS.md` identity/stack wording
+  shown during planning; the managed command block remains unchanged until
+  product scaffolding exists.

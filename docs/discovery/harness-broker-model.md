@@ -1,6 +1,6 @@
 ---
 title: Harness broker model
-status: draft v2.1 — current CLI/auth/provider constraints applied; sketches remain illustrative
+status: draft v2.2 — Python runner and optional-provider decision applied; sketches remain illustrative
 date: 2026-08-22
 owns: HarnessProfile / HarnessCapability; the consolidated definition-injection matrix (HB-02); HarnessSelectionPolicy + HarnessBroker (resolve, precedence, fallback); HarnessInvocation record; the ENSEMBLE + SYNTHESIS pressure test; deterministic backends as invocation targets; the harness-adapter seam (HB-08); mapping of these concepts to substrates
 depends_on: product-intent.md (register; PoC A), evidence/glossary.md, existing-systems-fit-gap.md (HB and LO rows), assistant-domain-model.md §7 (harness preferences as data), team-execution-model.md (long-running pressure test), architecture-options.md §5/§8 (broker location, scheduler — decided there), evidence/*.md
@@ -8,7 +8,9 @@ depends_on: product-intent.md (register; PoC A), evidence/glossary.md, existing-
 
 # Harness broker model
 
-> Naming note: all names and YAML/JSON below are **illustrative, not final schemas**. The 2026-08-22 review fixes operational boundaries (first-pass harnesses, native subscription mode, separate API-test mode) but does not approve detailed PoC structure, synthesis, language, or field names.
+> Naming note: all names and YAML/JSON below are **illustrative, not final schemas**. The 2026-08-23 rebaseline selects Python 3.11+ with `uv`, the `atm` CLI, JSON Schema at every external edge, and the M1a three-leg/fresh-Claude synthesis flow. Exact schema fields are specified by the proposed M1a implementation plan and remain subject to its review gate.
+
+> Implementation boundary: the broker is an async Python `Protocol` implemented by harness adapters and a product-owned `asyncio.create_subprocess_exec` process runner with `shell=False`. Coordination providers are separate. ClawTeam is optional, in-process, confined to one compatibility module, and is never used to launch harnesses.
 
 ## 1. Purpose & scope
 
@@ -133,12 +135,12 @@ The broker applies policy and persists only invocation records. Per Member/task:
 
 1. **Resolve** (§5) → candidates + deciding layer.
 2. **Prepare** the injection bundle and workspace (§4): render per the candidate's profile (flags vs prepared directory), apply the profile's isolation knobs, resolve Skills/MCP entries from the artifact layer, compute `bundle_hash`.
-3. **Invoke** through the candidate's adapter (§10), as an argv list with `shell=False` and multi-line parts file-delivered (§4 rule 4): subprocess (the only runnable ClawTeam backend on this tmux-less host [ev:clawteam-probe-log#F12]); a substrate backend (ClawTeam `SpawnBackend.spawn(...)` receives `prompt` and `system_prompt` [ev:clawteam-spawn-platform#F8]); OpenClaw `sessions_spawn(runtime:"acp")` / `openclaw agent --local`; Hermes `hermes -p <profile> -q` or `-z`; a vendor SDK.
+3. **Invoke** through the candidate's adapter (§10), as an argv list with `shell=False` and multi-line parts file-delivered (§4 rule 4), using the product-owned Python process runner (`asyncio.create_subprocess_exec`). Future OpenClaw, Hermes, or SDK adapters may use their native invocation seams, but a coordination provider does not launch a harness on behalf of the broker.
 4. **Observe**: stdout/stderr/JSON (ClawTeam discards them — `DEVNULL`, no logging [ev:clawteam-spawn-platform#F21]), the harness session id, termination (SIGTERM→143 for Claude [ev:claude-agent-teams-hermes-openbot#F15]).
 5. **Record** a HarnessInvocation (§7) at start and end.
 6. **Fall back or fan out** per policy (§5, §8).
 
-Where the broker runs is an architecture decision; options, neutrally: (a) a library called by whatever executes the TeamRun; (b) a custom ClawTeam `SpawnBackend` registered via `register_backend` — it receives the full `spawn(...)` kwargs incl. `prompt`/`system_prompt`, but only in the Python process that registered it; the `clawteam spawn` CLI never loads plugins [ev:clawteam-spawn-platform#F17][ev:clawteam-spawn-platform#F16]; (c) a CLI or MCP tool the Lead calls — ClawTeam's MCP server has 26 coordination tools and no spawn tool [ev:clawteam-spawn-platform#F18]; (d) OpenClaw as broker via `agents.list[].runtime.acp` + `acp.allowedAgents` (configuration; Gateway-bound; capability-less; acpx absent) [ev:openclaw-native-and-telegram-verification#F16]; (e) Hermes' kanban dispatcher (profile-bound; Hermes-only [ev:claude-agent-teams-hermes-openbot#F25]). Decided in architecture-options §5/§8: the HarnessBroker runs inside the layer as library/CLI (never as a ClawTeam backend; the in-process backend is the Windows fallback only); the operational-mode scheduler is an OS timer by default with OpenClaw/Hermes cron pluggable — i.e. options (a)+(c), (b) as Windows fallback, (d)/(e) not adopted.
+The location is resolved: the HarnessBroker runs inside the Python core and is called by the `atm` CLI; M2 adds an `atm` MCP server over the same language-neutral contracts. It never runs as a ClawTeam backend, including on Windows. ClawTeam's in-process seams are used only by the separate optional CoordinationSubstrate provider. OpenClaw/Hermes native invocations and schedulers remain later adapters rather than core dependencies [ev:clawteam-spawn-platform#F17][ev:clawteam-spawn-platform#F16][ev:openclaw-native-and-telegram-verification#F16].
 
 ## 7. HarnessInvocation record (HB-07, XC-04)
 
@@ -239,10 +241,10 @@ Hermes is both a target harness (profile + `-z`/`-q` + usage file) and a substra
 2. Does `claude --agent <name>` accept an agent defined only by `--agents '<json>'` in the same invocation (roster + persona as one channel)? [ev:harness-cli-capabilities-a open question 1]
 3. What does OpenClaw `acp.fallbacks` fall back *to* (another harness alias or another ACP bridge), and can a custom acpx alias map Hermes? (fit-gap HB-04/HB-08 OC `C?~`)
 4. Bundle equivalence across channels — the *semantic* question only (bundle *identity* is settled: one `bundle_hash` regardless of channel, §4(2) and PoC A criterion 4): does "persona as system prompt" (Claude) steer the model as "persona as AGENTS.md in a workspace" (Codex) does, for ensemble purposes, or must policy require one channel class per leg? For `minimal-poc-plan.md`.
-5. Codex cost: derive USD from tokens with which price table, and how is `cost_source: derived` shown in synthesis attribution?
-6. Synthesis harness choice (a third harness, one leg, or the Lead's harness) and how synthesizer bias is recorded; `synthesis_harness` is a placeholder.
-7. Where the broker runs (§6 a–e) — *resolved by reference*. Decided in architecture-options §5/§8: the HarnessBroker runs inside the layer as library/CLI (never as a ClawTeam backend; the in-process backend is the Windows fallback only); the operational-mode scheduler is an OS timer by default with OpenClaw/Hermes cron pluggable.
-8. Exact provider-profile fields/protocol mappings across Claude, Codex, and Grok remain a PoC-design question. The fixed boundary is native subscription mode vs separate API-test mode, with environment-name-only credentials and no cross-mode fallback [ev:m0-product-architecture-review-2026-08-22#F4].
+5. Codex USD cost is resolved for M1a: do not derive it from a mutable price table; record token usage and `cost_source: unavailable`.
+6. Synthesis is resolved for M1a: use a separate fresh Claude Code invocation, record its identity and input leg ids, and preserve per-leg attribution. Later policy may make the synthesizer replaceable.
+7. Broker location is resolved: it is an async Python core service called by `atm` and later by the M2 MCP server. It is never a ClawTeam backend; the optional ClawTeam provider handles coordination only.
+8. M1a owns the exact versioned provider-profile and invocation fields for Claude Code, Codex, and Grok. The stable boundary remains native subscription mode versus a separate, replaceable API-test route, with environment-name-only credentials and no cross-mode fallback [ev:m0-product-architecture-review-2026-08-22#F4].
 9. ATM text/code is internally reusable by owner authorization. Any copy must record source/provenance and preserve third-party obligations; public licensing remains a separate decision [ev:m0-product-architecture-review-2026-08-22#F7].
 
 ## 14. Inconsistencies noted

@@ -219,12 +219,16 @@ Priority: **M** must · **S** should · **C** could. "Brief §" = section of the
 
 **PoC C — nested TeamRun.** One visible Assistant receives a complex task, creates a temporary inner TeamRun, collects the result, reports back, and the inner run is ended/archived while the outer run continues. Pass if: the inner run's tasks/messages are isolated from the outer run; the result is returned to the creating Member; the inner run is archived; nothing of the inner run leaks into any persistent definition. Covers TE-05, TE-07, EV-04.
 
-Current constraints for any re-baselined PoC plan: no Telegram or OpenClaw is
+Current constraints for the re-baselined PoC plan: no Telegram or OpenClaw is
 required; native/live execution uses subscription OAuth on the owner's
 persistent host; hosted Windows/macOS CI carries no live credentials and
 verifies deterministic plumbing rather than model behavior; advisory controls
 must be bypass-visible and audited, while production claims require mechanical
-enforcement. The detailed run plan is not yet approved
+enforcement. Python `>=3.11` with `uv`, JSON Schema edges, the `atm` CLI, the
+built-in direct runner, and an optional in-process ClawTeam provider are the
+selected architecture. The detailed M1a plan exists at
+`../plans/m1a-direct-harness-poc.md` but is not yet approved for product
+implementation
 [ev:m0-product-architecture-review-2026-08-22#F2]
 [ev:m0-product-architecture-review-2026-08-22#F5]
 [ev:m0-product-architecture-review-2026-08-22#F10].
@@ -233,7 +237,7 @@ enforcement. The detailed run plan is not yet approved
 
 - No production code; no PoC implementation. The M0 sketches in `minimal-poc-plan.md` are provisional and require re-baselining before implementation.
 - No ATM architecture inheritance by default (demotions enumerated in `legacy-atm-disposition.md`).
-- No commitment yet to project name, implementation language, or upstream engagement (tracked in `.project-steward/QUESTIONS.md`).
+- No upstream engagement or product implementation is authorized by M0. The later owner review selected AgentTeam and Python; those amendments are tracked in `.project-steward/DECISIONS.md` and `.project-steward/QUESTIONS.md`.
 
 ## 6. Success criteria for the discovery phase
 

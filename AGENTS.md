@@ -1,8 +1,8 @@
-# Assistant Team System
+# AgentTeam
 
-Portable, harness-independent Assistant definitions and reusable Team templates, executed as fresh TeamRuns over existing agent harnesses (ClawTeam, Claude Code, Codex, OpenClaw, Hermes, ...). Supersedes the ATM experiment.
+Portable, harness-independent Assistant definitions and reusable Team templates, executed as fresh TeamRuns over existing agent harnesses (ClawTeam, Claude Code, Codex, OpenClaw, Hermes, ...). Supersedes the legacy ATM experiment; the product CLI remains `atm`.
 
-Primary language/stack: Markdown (discovery phase; implementation language TBD after architecture review).
+Primary language/stack: Python `>=3.11` with `uv` (implementation planned); Markdown documentation.
 
 ## Source of truth
 

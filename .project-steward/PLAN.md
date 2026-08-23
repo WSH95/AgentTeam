@@ -37,24 +37,44 @@ The document is review-only until the owner explicitly approves it.
 - [x] Record the owner-confirmed product identity, stack, auth, first-pass harness, model-policy, evidence, and live-test boundaries
 - [x] Draft the exact direct-first implementation sequence, contracts, CLI, test matrix, live acceptance bar, publication gate, and stop rules
 - [x] Commit the proposed plan and steward records as the multi-agent review baseline
+- [x] Re-baseline the plan and current architecture documents for Python 3.11+/`uv`, a language-neutral edge, a built-in direct runner, and optional in-process coordination providers
 - [ ] Incorporate multi-agent review findings without starting implementation
 - [ ] Obtain explicit owner implementation approval, mark the reviewed plan `approved`, and commit any review resolutions
 - [ ] G1 — rename/re-baseline the local project as AgentTeam
-- [ ] G2 — implement the strict TypeScript foundation and V1 schemas
+- [ ] G2 — implement the Python 3.11+/`uv` foundation, Hatchling package, and checked-in V1 JSON Schemas
 - [ ] G3 — implement isolated Claude/Codex/Grok direct adapters
-- [ ] G4 — pass the full deterministic fake-harness PoC locally
+- [ ] G4 — pass the deterministic direct-runner PoC locally and qualify the optional, exactly pinned ClawTeam import/coordination seam without using its subprocess backend
 - [ ] G5 — complete owner-driven dedicated native-auth profile setup
 - [ ] G6 — pass the Ubuntu subscription-backed live PoC
-- [ ] G7 — after separate public-repository/push approval, pass credential-free Ubuntu/Windows/macOS CI
-- [ ] G8 — close M1a and stop before ClawTeam work
+- [ ] G7 — after separate public-repository/push approval, pass the credential-free core OS×Python matrix and optional ClawTeam compatibility matrix
+- [ ] G8 — close M1a and stop before TeamRun implementation
 
-## M1b (placeholder — outside the M1a approval scope)
+## M1b Team foundation (committed roadmap; outside the M1a approval scope)
 
-- [ ] Prepare a separate reviewed plan for the ClawTeam-backed
-  `CoordinationSubstrate` milestone; do not begin it during M1a
+- [ ] Prepare and approve a separate plan for TeamTemplate/TeamRun foundations, task/message/archive contracts, and the CoordinationSubstrate protocol
+- [ ] Implement TeamRun orchestration and the optional ClawTeam provider behind the qualified compatibility boundary; keep harness launching on the built-in direct runner
+- [ ] Preserve one AgentTeam-owned process data root with opaque team namespaces; claim namespace separation only
 
-## Later
+## M1c Dynamic-member PoC B (committed roadmap)
 
-- [ ] Decide whether/when Hermes, OpenClaw, Telegram, API-test providers,
-  dynamic Members, nested TeamRuns, surfaces, and upstream ClawTeam changes
-  enter subsequent milestones
+- [ ] Implement the product-owned dynamic-member policy gate and hidden/archive roster projections
+- [ ] Prove the PoC B workflow with mechanical enforcement for every AgentTeam-mediated creation; record provider-bypass limits explicitly
+
+## M2 Nested TeamRun PoC C + MCP (committed roadmap)
+
+- [ ] Implement parent/child TeamRun lineage, result carrier, stop/cleanup, and isolation evidence
+- [ ] Prove the PoC C nested-run acceptance contract
+- [ ] Add an `atm` MCP server over the same versioned JSON contracts and core services
+
+## M3 Evolution and artifacts (committed roadmap)
+
+- [ ] Implement reviewed evolution overlays/proposals and portable artifact manifest/lock/resolution reporting
+
+## M4 Long-running operations (committed roadmap)
+
+- [ ] Implement deterministic watchers, RunStateSummary, decision log, and restart policy without requiring a resident LLM or gateway
+
+## Optional later integrations and surfaces
+
+- [ ] Reassess a small native TypeScript DSH adapter only if DSH becomes a primary daily harness; do not move the Python core for edge convenience
+- [ ] Plan Hermes, OpenClaw, Telegram/surfaces, replaceable API-test providers, and any upstream ClawTeam changes independently when evidence and priority justify them
