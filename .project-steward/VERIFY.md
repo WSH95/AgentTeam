@@ -4,6 +4,23 @@ How to check the project is healthy. There is no build, product code, or
 automated product test suite yet; the M1a G2 scaffold introduces them (and the
 AGENTS.md command table changes only then, with its own shown diff).
 
+## G3 local verification — 2026-08-23 (pre-push)
+
+Execution followed the owner-approved G3 execution plan (fact sheet verified
+against installed CLIs; design agent + my pass; strict red-first TDD).
+Commits: `4d6e082` feat(harness), `f5e7cbb` feat(cli) — local only.
+
+| Check | Result |
+| --- | --- |
+| Local block (3.11 + fresh 3.13 env) | PASS — `uv lock --check`, frozen sync, `ruff check`/`format --check`, `mypy` strict, `pytest` 212 passed + 3 Windows-only skips, `uv build`, `python -m agentteam.schema check`, `atm --help/--version`, and the two CI smoke lines run locally (validate --strict-content; three-harness render-only against `ci-fake.yaml`) |
+| G3 gate items (plan §3) | adapters pass argv/env/parser tests against deterministic fakes (golden argv per harness; fakes observe argv/env/stdin; round trips valid); Skill-channel rendering per harness (config-home / .agents / .grok channels, `.agentteam-managed` marker, required-skill failure before launch); selection with `decided_by` incl. hard exit-2 failures; the Windows-only `.cmd` suite is in the tree and runs on the windows CI legs; all tests ride the CI pytest step; **no model call anywhere** |
+| Safety asserts (tests) | render-only writes only under the output dir (package/workspace digests unchanged); `invocation.render.json` has no `env_values` (excluded at the model level); doctor output is names-only (value-leak test); conflict env vars fail closed |
+| Deviations (recorded per the G3 plan) | `python-script` launcher-policy enum (additive schema regen); `parse() -> ParsedLegV1`; extra `feat(cli)` commit; Codex `-c approval_policy="never"` (no `-a` on `exec` 0.149.0); Codex pre-probe instruction channel = workspace `AGENTS.md`; Grok prompt-file preamble (`--rules` is inline-only); minified inline schema for Claude/Grok, file schema for Codex; conflict env lists as seeded profile data; Claude inline `--append-system-prompt` fallback until the G5 probe |
+| Probe items left for G5 (by design) | Claude skill-channel #1 + `--append-system-prompt-file`; Codex final-event shape (adapter uses `-o`); Grok structured-output location (parser tolerates both) + auth |
+
+Last verified: 2026-08-23 by Claude (Fable 5) session (fakes only; no vendor
+binary executed by tests).
+
 ## G2 evidence — 2026-08-23 (gate closed)
 
 | Check | Result |

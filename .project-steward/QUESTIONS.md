@@ -15,11 +15,12 @@ must not guess. Answered items remain here for traceability.
 
 M1a r3 is **approved** (DECISIONS 0021). G1 done (ADR 0022); **G2 done and
 closed 2026-08-23** (ADR 0023/0024; VERIFY "G2 evidence": public
-https://github.com/WSH95/AgentTeam, six CI legs green at `d9440f8`). The next
-gate is **G3** — isolated Claude/Codex/Grok direct adapters, process runner,
-Skill channels, `decided_by`, the Windows `.cmd` fake — and per the owner's
-working agreement it starts with its own per-gate execution plan for approval.
-Every push and every live rerun stays its own gate.
+https://github.com/WSH95/AgentTeam, six CI legs green at `d9440f8`). **G3 local
+work is done** under the owner-approved G3 execution plan (commits `4d6e082`,
+`f5e7cbb`; 212 tests). Open right now: the owner's approval to push, then six
+green CI legs (incl. the Windows `.cmd` suite) close G3. Next gate G4
+(deterministic PoC + optional ClawTeam seam) starts with its own per-gate
+plan. Every push and every live rerun stays its own gate.
 
 ## Answered in the 2026-08-22 product/architecture review
 

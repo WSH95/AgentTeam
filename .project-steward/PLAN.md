@@ -52,7 +52,12 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
   - [x] AGENTS.md managed command table (owner-approved diff; DECISIONS 0023)
   - [x] Public https://github.com/WSH95/AgentTeam (MIT) created and pushed on explicit approvals (DECISIONS 0024; first push `8660e6a`)
   - [x] Scaffold smoke matrix green on Ubuntu/Windows/macOS x 3.11/3.13 (run 32667607711 at `d9440f8`; VERIFY "G2 evidence")
-- [ ] G3 — implement isolated Claude/Codex/Grok direct adapters (Skill channels, `decided_by`, Windows `.cmd` fake); adapter tests added to CI
+- [ ] G3 — direct harness core (execution per the owner-approved 2026-08-23 G3 plan; commits `4d6e082` feat(harness) + `f5e7cbb` feat(cli), the second a recorded §17 deviation)
+  - [x] V1 archive hasher, package loader + content heuristics, §11 selection with `decided_by`, model/effort precedence, env builder (conflicts fail closed, data-driven), launcher policy (npm `.cmd` shim parser + allowlist + refused), async process runner (tree kill, cancel, 130)
+  - [x] Claude/Codex/Grok adapters: verified argv recipes, Skill channels, injection records, undeliverable-required-parts before launch, argv guard, redaction by construction; parser fixtures (promotion-only after G5) + fakes + `ci-fake.yaml`; example `code-reviewer` package (3 Skills)
+  - [x] Full deterministic CLI: exit codes, `assistant validate`, `profile init/validate/doctor` (no `--probe`), `run --render-only`; CI smoke step
+  - [x] 121 new tests (212 total) green on 3.11 + fresh 3.13; Windows-only `.cmd` suite runs on the windows CI legs
+  - [ ] Push on explicit approval; six CI legs green incl. the Windows `.cmd` tests (evidence into VERIFY)
 - [ ] G4 — pass the deterministic direct-runner PoC locally (incl. solo mode, selection precedence, three Skills per harness, example-package hash identity) and qualify the optional, exactly pinned ClawTeam import/coordination seam without using its subprocess backend; write its qualification report
 - [ ] G5 — complete owner-driven dedicated native-auth profile setup and the bounded day-one probes (verification levels recorded)
 - [ ] G6 — pass the Ubuntu subscription-backed live PoC

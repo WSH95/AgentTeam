@@ -1,15 +1,15 @@
 ---
-updated_at: 2026-08-23T21:34:14Z
+updated_at: 2026-08-23T22:39:52Z
 updated_by: cli
 session_status: closed
 branch: main
-last_commit: 46823a2
+last_commit: f5e7cbb
 ---
 # Handoff
 
 ## Now
 
-**M1a G2 is COMPLETE and closed (2026-08-23).** The approved plan is
+**M1a G3 local work is COMPLETE; stopped at the push gate (2026-08-23).** G2 closed earlier the same day. The approved plan is
 `docs/plans/m1a-direct-harness-poc.md` r3 (DECISIONS 0021). G2 ran under an
 owner-approved per-gate execution plan (the owner's standing working
 agreement: every coding gate gets its own reviewed plan first).
@@ -34,10 +34,11 @@ live (ADR 0023).
 
 ## In flight
 
-Nothing. The closure commit `46823a2` was pushed on the owner's explicit
-approval and its docs-only CI run is green (32667838910). This final
-checkpoint edit is committed locally on top and travels with the next
-approved push.
+**Waiting on the owner's push approval for G3** (commits `4d6e082`
+feat(harness) and `f5e7cbb` feat(cli) + the steward close commit). After the
+push: watch the six CI legs — the Windows legs run the `.cmd` shim suite for
+the first time (needs `node` on the runner, preinstalled on windows-latest).
+On green: VERIFY "G3 evidence", PLAN tick, HANDOFF for G4, wrap.
 
 ## Next steps
 
