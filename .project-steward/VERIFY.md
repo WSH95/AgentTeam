@@ -4,6 +4,28 @@ How to check the project is healthy. There is no build, product code, or
 automated product test suite yet; the M1a G2 scaffold introduces them (and the
 AGENTS.md command table changes only then, with its own shown diff).
 
+## G2 local verification — 2026-08-23 (pre-push)
+
+Execution followed the owner-approved G2 plan (drafted, independently reviewed
+twice, critiqued, then approved 2026-08-23 in-session). Commits: `cc0cc5f`
+chore(core) scaffold, `be5ce15` feat(domain) records+schemas; both local only.
+
+| Check | Result |
+| --- | --- |
+| Local verification block (3.11) | PASS — `uv lock --check`; `uv sync --frozen --all-groups`; `ruff check .`; `ruff format --check .`; `mypy` (strict + pydantic plugin) clean; `pytest` 91 passed; `uv build`; `python -m agentteam.schema check` current; `export` round-trip leaves `git diff -- schemas` empty; `atm --help`/`--version` |
+| Fresh 3.13 environment | PASS — same block (pytest 91, mypy, ruff, schema check, `atm --version`) on CPython 3.13.14 in a scratch `UV_PROJECT_ENVIRONMENT` |
+| Commit 3 standalone | PASS — scratch `git worktree` at `cc0cc5f`: sync, pytest (6), ruff, mypy, `atm --version` |
+| Package contents | PASS — wheel: `agentteam/py.typed` present, no `tests/`; sdist: `/src/agentteam`, `/schemas` (+README), `/README.md`, `/LICENSE`, `/pyproject.toml` only (anchored includes); wheel smoke `uv run --isolated --no-project --with <wheel> atm --version` prints `atm 0.1.0a0` |
+| Schema parity | PASS — nine files reproduce byte-for-byte and are LF on disk (`git ls-files --eol`: all new tracked files `i/lf`); Draft 2020-12 metaschema valid; minimal instances of all nine records validate via `jsonschema` and unknown fields fail both sides; no pattern uses look-around; vendor-facing files have `$defs` inlined, enum-not-const, all properties required |
+| Contract fixes vs approved plan | PASS — severity `critical..info` + finding `category` (§14); `default_harness` + tier/reasoning mappings (§11); target hashes (§12/§14); `undeliverable_required_parts`, observed harness, `refused` launcher branch (§9/§11); overrides keyed by harness id (§2/§8); archive-contract manifest validator (§7); terminal ⇒ `finished_at`; execution `ref`↔`kind`; AwareDatetime everywhere |
+| Deviations recorded | `api-test` spelling; `clawteam` extra with direct git ref (owner choice; not PyPI-uploadable, nothing published); AGENTS.md table: `Live PoC` deferred to G4, `Schemas` row added (ADR 0023); finding `category` extends §7's field list; invocation attempt identity = `invocation_id` + `retry.attempt`; §7 "bundle hash" = `effective_definition_hash` (+ Member `package_hash`); vendor-envelope fallback decided by G5 probes |
+| Pre-first-push checklist (§16) | LICENSE (MIT) + `docs/provenance.md` (no ATM code copied; dependency + ClawTeam MIT notices) PASS; name checks 2026-08-23: GitHub `WSH95/AgentTeam` 404, PyPI `agentteam` 404, local `atm` absent — re-run immediately before creation; history secret scan: see the line below |
+| History secret scan | recorded at the STOP question: `git log -p --all` at the final local HEAD through the key-shaped regex set + private-key headers; result and scanned SHA quoted in the push approval; pushed HEAD must equal that SHA |
+| Public-visibility facts (not secrets) | commit author e-mail; `Claude-Session:` trailers; 43 `/home/wsh/...` paths in dated docs; tracked `.project-steward/{state.json,config.toml,backend.json}`; candidate-context wording in history — accepted with ADR 0019 (public at G2) |
+
+Last verified: 2026-08-23 by Claude (Fable 5) session (no model call, no
+credential read, no ClawTeam install, no push).
+
 ## G1 rename and documentation-hygiene verification — 2026-08-23
 
 | Check | Result |

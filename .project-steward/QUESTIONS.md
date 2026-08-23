@@ -13,14 +13,13 @@ must not guess. Answered items remain here for traceability.
 
 ## Current gate
 
-M1a r3 is **approved** (DECISIONS 0021; approved text `0f3e478`). **G1 is
-done** (2026-08-23): the owner moved the repository to
-`/home/wsh/Documents/AgentTeam`; root files, identity amendments, and the
-documentation-hygiene commit landed (ADR 0022). The next gate is **G2** — the
-Python/`uv` scaffold, the pre-first-push checklist, and the public
-`WSH95/AgentTeam` repository whose creation and first push need an explicit
-approval at that moment. Each later gate keeps its own approvals (AGENTS.md
-managed command table once the scaffold exists; live reruns; every push).
+M1a r3 is **approved** (DECISIONS 0021). G1 is done (ADR 0022). **G2 local
+work is done** under the owner-approved 2026-08-23 G2 execution plan (commits
+`cc0cc5f`, `be5ce15`; AGENTS.md table per ADR 0023): scaffold, nine V1
+schemas, CI workflow, pre-first-push checklist. **Open right now: the owner's
+explicit approval to create public `WSH95/AgentTeam` and make the first
+push.** After that: scaffold smoke matrix green on three OSes closes G2; each
+later gate keeps its own approvals (live reruns; every further push).
 
 ## Answered in the 2026-08-22 product/architecture review
 
