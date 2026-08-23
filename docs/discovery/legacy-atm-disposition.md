@@ -1,6 +1,6 @@
 ---
 title: Legacy ATM disposition — keep / demote / discard per ATM concept
-status: draft v2 (W3 critic findings applied 2026-08-22)
+status: draft v2.1 — owner-authorized internal reuse recorded
 date: 2026-08-22
 owns: keep/demote/discard verdict per ATM concept and ADR; salvage list (requirements, fixtures, V1–V15 re-check, ADR ideas); ATM failure evidence carried forward as proposed RISKS rows; "tried and rejected" list; ATM repository disposition
 depends_on: product-intent.md (register, frozen 2026-08-22); existing-systems-fit-gap.md (ATM column = ideas only); assistant-domain-model.md, team-execution-model.md, harness-broker-model.md, minimal-poc-plan.md ("Lands in" §n anchors); evidence/atm-salvage.md; evidence/openclaw-native-and-telegram-verification.md; evidence/harness-cli-capabilities-a.md; evidence/harness-cli-capabilities-b.md; evidence/claude-agent-teams-hermes-openbot.md; evidence/clawteam-model.md; evidence/clawteam-probe-log.md; evidence/clawteam-spawn-platform.md; evidence/dsh-agent-teams-and-gui.md; evidence/glossary.md
@@ -8,7 +8,7 @@ depends_on: product-intent.md (register, frozen 2026-08-22); existing-systems-fi
 
 # Legacy ATM disposition
 
-> Reading guide. "ATM" = `agent-team-manager-dev@12a727e` (35 commits, 2026-08-19..21), read-only under `/home/wsh/Documents/00000/`. `ATM/<path>:<line>` abbreviates `agent-team-manager-dev/<path>:<line>`; `ADR NNNN` = `ATM/docs/adr/NNNN-*.md`. ATM's nouns (TeamDefinition, ProjectDefinition, RoleDefinition, ProjectRoleContext, Workspace, "runtime Agent", Team Steward) appear *as ATM's terms*, permitted by the glossary only here and in evidence. Requirement IDs are the frozen register (`product-intent.md` §3); nothing here authors a requirement. The authoritative ATM noun list is `ATM/.project-steward/PROJECT.md` and `ATM/docs/design/2026-08-19-architecture.md` §3, cross-checked against [ev:atm-salvage#F28].
+> Reading guide. "ATM" = the owner's local `agent-team-manager-dev@12a727e`. Its architecture remains superseded, but the owner explicitly authorizes ATS to copy or adapt its code and documentation. Any reuse must record source/provenance and preserve third-party licences/notices; this permission does not choose a public ATS licence [ev:m0-product-architecture-review-2026-08-22#F7].
 
 ## 1. Why ATM is superseded (facts)
 
@@ -22,7 +22,7 @@ What ATM got right survives as requirements and ideas (ADR 0016, 0022, 0010/0011
 
 ## 2. Disposition table
 
-Verdicts: **keep** = the idea is already a requirement or a precedent for one (never ATM code or schema text, §6); **demote** = at most an adapter/HarnessProfile detail or a lesson; **discard** = no counterpart. "Lands in" names the register ID and the owning document section (`document §n`), anchored 2026-08-22 against the landed drafts (open question 6 closed).
+Verdicts: **keep** = the concept is already a requirement or useful precedent; implementation may reuse ATM code/schema text when that is cheaper, with provenance and third-party obligations retained. **Demote** = at most an adapter/HarnessProfile detail or lesson; **discard** = no counterpart. Reuse authorization does not reverse any architectural disposition.
 
 | # | ATM concept (source) | Verdict | Reason | Lands in | Evidence |
 |---|---|---|---|---|---|
@@ -148,7 +148,7 @@ Warnings carried: *"Do not classify exit 137 as a model/path failure or partial 
 
 - **Archive read-only.** `agent-team-manager-dev` stays untouched under `/home/wsh/Documents/00000/` (HEAD `12a727e`, clean [ev:atm-salvage §6]); no branch, commit or push from this project.
 - **Copy as evidence only:** the V1–V15 matrix (`ATM/docs/design/feasibility-report.md:22-38`), U1–U16 register, RISKS/HANDOFF text, the §3.2 fixtures — already quoted through [ev:atm-salvage] and [ev:openclaw-native-and-telegram-verification]; nothing more is needed for discovery.
-- **Nothing imported as code.** `guard.ts`/`seam.ts` inform a PoC *practice* (K12); the router plugin is discarded (X1); the 17 JSON Schemas and ADR text are **ideas** — textual reuse waits for an owner licence statement (no `LICENSE`, `"private": true`; XC-01; fit-gap ATM `?`).
+- **Nothing imported as code during M0.** `guard.ts`/`seam.ts` inform a PoC *practice* (K12); the router plugin remains discarded (X1). The owner authorizes ATS to copy or adapt ATM code, the 17 JSON Schemas, and ADR text when technically useful. Any later reuse must record provenance and preserve third-party notices; this permission does not select a public ATS licence.
 - Owner decision outside this repository: tag/mark ATM as superseded (open question 7).
 
 ## Mapping to substrates
@@ -163,7 +163,7 @@ Per salvaged concept: today's substrate primitive, or "no primitive — new" (co
 | K10 enforcement level | no inter-team boundary [ev:clawteam-probe-log#F19] | per-definition `isolation: worktree` [ev:claude-agent-teams-hermes-openbot#F11] | none — per-invocation `--sandbox` only, no pairwise declaration [ev:harness-cli-capabilities-a#F11] | `sessions.visibility`, global `agentToAgent.allow` [ev:openclaw-native-and-telegram-verification#F15] | `--source tool` [ev:harness-cli-capabilities-b#F6]; profiles "do not sandbox" [ev:harness-cli-capabilities-b#F19] | `contextMode` [ev:dsh-agent-teams-and-gui#F18]; reviewer with zero tools [ev:dsh-agent-teams-and-gui#F25] — **declaration field new** |
 | K11 visible identity | none — identity is 7 env fields, no display/avatar field [ev:clawteam-probe-log#F24][ev:clawteam-model#F3] | none beyond subagent `name`/`color` in the terminal [ev:claude-agent-teams-hermes-openbot#F11] | none — agent TOML `name`/`description` only [ev:harness-cli-capabilities-a#F7] | `agents.list[].identity` [ev:openclaw-native-and-telegram-verification#F3] | one gateway per profile; surface→profile routing by platform/guild/channel/thread [ev:claude-agent-teams-hermes-openbot#F23][ev:claude-agent-teams-hermes-openbot#F26] | none — `AgentRecord` has no presentation field [ev:dsh-agent-teams-and-gui#F18] — **per-Member binding new** (G-MS-03) |
 | K9 credential-free export | none — no export verb among the 23 command groups [ev:clawteam-probe-log#F2]; profiles hold env *names* [ev:clawteam-model#F25][ev:clawteam-probe-log#F5] | plugin bundle (`--plugin-dir <path\|.zip>`), no export verb [ev:harness-cli-capabilities-a#F5][ev:claude-agent-teams-hermes-openbot#F14] | none — skills dirs only, no export verb [ev:harness-cli-capabilities-a#F5] | `openclaw backup` listed in `openclaw --help`, not probed [ev:openclaw-native-and-telegram-verification §6] | `profile export/install` [ev:harness-cli-capabilities-b#F19] | recipes, strict schemas [ev:dsh-agent-teams-and-gui#F20] |
-| K12 disposable test homes | `CLAWTEAM_DATA_DIR` [ev:clawteam-probe-log#F3] | `CLAUDE_CONFIG_DIR`, `--bare` [ev:harness-cli-capabilities-a#F19] | `CODEX_HOME`, `--ephemeral` [ev:harness-cli-capabilities-a#F19] | `--profile` [ev:harness-cli-capabilities-b#F10] | `HERMES_HOME` / `-p` [ev:harness-cli-capabilities-b#F19] | n/a — in-DSH only, no process spawning [ev:dsh-agent-teams-and-gui#F16] |
+| K12 disposable test homes | `CLAWTEAM_DATA_DIR` [ev:clawteam-probe-log#F3] | disposable `CLAUDE_CONFIG_DIR` plus `--safe-mode --no-session-persistence` for subscription OAuth (`--bare` disables OAuth/keychain access) [ev:harness-cli-capabilities-a#F19][ev:m0-product-architecture-review-2026-08-22#F3] | `CODEX_HOME`, `--ephemeral` [ev:harness-cli-capabilities-a#F19] | `--profile` [ev:harness-cli-capabilities-b#F10] | `HERMES_HOME` / `-p` [ev:harness-cli-capabilities-b#F19] | n/a — in-DSH only, no process spawning [ev:dsh-agent-teams-and-gui#F16] |
 | K6 capability classes | `profile test` smoke run only, no capability report (`ClawTeam/clawteam/cli/commands.py:728-734`) | `system/init` capabilities [ev:claude-agent-teams-hermes-openbot#F15] | `codex features list` (stable/experimental flags) [ev:harness-cli-capabilities-a#F7] | `eligible/missing/blockedBy…` [ev:harness-cli-capabilities-b#F11] | `skills list --source all\|hub\|builtin\|local` (a source filter, not a class) [ev:harness-cli-capabilities-b#F20] | fail-closed provider capability check [ev:dsh-agent-teams-and-gui#F26] — **vocabulary new** (HarnessProfile) |
 | U9 headless run, opt-in resume | session capture [ev:clawteam-spawn-platform#F19] | `-p`, `--resume` [ev:claude-agent-teams-hermes-openbot#F15] | `exec`, `resume --last` [ev:harness-cli-capabilities-a#F8] | `agent --session-key` [ev:atm-salvage#F4] | `-q`/`-z` [ev:harness-cli-capabilities-b#F7]; `--resume` [ev:harness-cli-capabilities-b#F20] | in-session continuable members, cold resume [ev:dsh-agent-teams-and-gui#F4][ev:dsh-agent-teams-and-gui#F5] |
 | R4 terminal record of aborted actions | exit journal, `exit_code: null` [ev:clawteam-probe-log#F14] | JSON result; SIGTERM → exit 143 [ev:claude-agent-teams-hermes-openbot#F15] | rollout `.jsonl` (`session_meta` first line; none with `--ephemeral`) [ev:harness-cli-capabilities-a#F8] | `audit --status cancelled\|timed_out` [ev:openclaw-native-and-telegram-verification#F22] | kanban `task_runs` [ev:claude-agent-teams-hermes-openbot#F25] | run records [ev:dsh-agent-teams-and-gui#F27] — **cross-system record new** (G-XC-04) |
@@ -189,7 +189,7 @@ Per salvaged concept: today's substrate primitive, or "no primitive — new" (co
 ## Open questions
 
 1. What "major problem" stopped ATM's native-U2 run (`HANDOFF.md:38`)? Only the owner knows; it may bear on OpenClaw native `sessions_send` as a TE-06 substrate.
-2. Will the owner state a licence (or permission) for `agent-team-manager-dev` so schema/ADR *text* may be reused at rung 4 (XC-01)? Until then: ideas only.
+2. ~~ATM reuse permission~~ — **resolved 2026-08-22**: the owner authorizes internal ATS copy/adaptation. Preserve provenance and third-party notices; public licensing remains separate [ev:m0-product-architecture-review-2026-08-22#F7].
 3. Is the DeepSeek tool-call non-compliance (§3.2 s4) reproduced on Claude Code / Codex / Hermes? Decides how far TE-06 messaging may rely on LLM-emitted protocol steps (R1); seeds the EV-01 catalog.
 4. Which of the §3.1 remaining candidates become register notes (not rows)? Owner decision.
 5. Are ATM's unrun spikes U5 (`sessions_spawn` child semantics), U7 (session survival across restart), U12/U13 (per-agent skill materialization and propagation), U15 (role-scoped availability proof) still needed as PoC-time probes for OpenClaw *as a Harness* (HB-02, AR-05), or do they die with the persistent-runtime model? [ev:atm-salvage §5 Q5]

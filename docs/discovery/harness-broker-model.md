@@ -1,6 +1,6 @@
 ---
 title: Harness broker model
-status: draft v2 (W3 critic findings applied 2026-08-22)
+status: draft v2.1 — current CLI/auth/provider constraints applied; sketches remain illustrative
 date: 2026-08-22
 owns: HarnessProfile / HarnessCapability; the consolidated definition-injection matrix (HB-02); HarnessSelectionPolicy + HarnessBroker (resolve, precedence, fallback); HarnessInvocation record; the ENSEMBLE + SYNTHESIS pressure test; deterministic backends as invocation targets; the harness-adapter seam (HB-08); mapping of these concepts to substrates
 depends_on: product-intent.md (register; PoC A), evidence/glossary.md, existing-systems-fit-gap.md (HB and LO rows), assistant-domain-model.md §7 (harness preferences as data), team-execution-model.md (long-running pressure test), architecture-options.md §5/§8 (broker location, scheduler — decided there), evidence/*.md
@@ -8,7 +8,7 @@ depends_on: product-intent.md (register; PoC A), evidence/glossary.md, existing-
 
 # Harness broker model
 
-> Naming note: `HarnessProfile`, `HarnessCapability`, `HarnessSelectionPolicy`, `HarnessBroker`, `HarnessInvocation`, `Ensemble` and `Backend` are the glossary's provisional names, kept unchanged here; `architecture-options.md` may rename them. Every YAML/JSON sketch is **illustrative, not a schema**. This document models; it neither chooses an architecture (`architecture-options.md`) nor ranks reuse options (`reuse-vs-build-analysis.md`).
+> Naming note: all names and YAML/JSON below are **illustrative, not final schemas**. The 2026-08-22 review fixes operational boundaries (first-pass harnesses, native subscription mode, separate API-test mode) but does not approve detailed PoC structure, synthesis, language, or field names.
 
 ## 1. Purpose & scope
 
@@ -26,15 +26,24 @@ The broker therefore turns *policy + profile + definition + task* into concrete 
 
 ## 3. HarnessProfile and HarnessCapability
 
-A **HarnessProfile** describes one *installed* harness on one host: identity and version, capability set, exact mechanism per capability, limits, platform facts, terms. A **HarnessCapability** is one named row with a value (`flag`, `config-key`, `file`, `env`, `positional`, `none`) and a verification level inherited from evidence (`!` verified, `~` observed, `?` unverified), so the broker can refuse an unverified channel when policy demands a guarantee.
+A **HarnessProfile** describes one *installed* harness on one host: identity/version, capability set, exact mechanism per capability, limits, platform facts, terms, and an execution-mode reference. A **HarnessCapability** is one named row with a value (`flag`, `config-key`, `file`, `env`, `positional`, `none`) and a verification level inherited from evidence (`!` verified, `~` observed, `?` unverified), so the broker can refuse an unverified channel when policy demands a guarantee.
+
+Execution modes are deliberately separate:
+
+- `native-subscription`: invoke the vendor CLI with its existing OAuth login on the owner's persistent host; no credential value is copied, exported, or placed in hosted CI.
+- `api-test`: invoke a replaceable provider/model route whose conceptual data is provider id, base URL, wire protocol, model id, and credential **environment-variable name**. The value is runtime-only. This mode never silently replaces a failed native invocation.
+
+The current OpenRouter `stealth/ox-alpha` route is test-only and unverified; its URL/model may change. These are conceptual fields, not a final provider schema [ev:m0-product-architecture-review-2026-08-22#F4].
 
 Illustrative profile for Claude Code, from [ev:harness-cli-capabilities-a#F1–F15,F19] (illustrative, not a schema):
 
 ```yaml
 harness: claude-code
-version: 2.1.239
+version: 2.1.241
 platform: {os: [linux, macos, windows], sandbox_native_windows: false}        # F14
-terms: {license: "proprietary (Commercial/Consumer Terms); binary must not be modified when embedded", automation: "API key for products; OAuth for ordinary use"}   # F15, §4 table
+execution_mode: native-subscription
+auth: {source: vendor-cli-oauth, owner_operated_host_only: true, export_credentials: false}
+terms: {license: "proprietary; invoke only; binary must not be modified when embedded"}
 capabilities:
   headless:          {value: flag, how: "-p/--print", level: "!"}                                   # F1
   system_prompt:     {value: flag, how: "--append-system-prompt[-file] | --system-prompt[-file]", level: "!/~"}  # F2
@@ -50,13 +59,13 @@ capabilities:
   permissions:       {value: flag, how: "--permission-mode | --allowedTools | --tools | --dangerously-skip-permissions (not as root)", level: "!"}  # F11
   model:             {value: flag, how: "--model | --fallback-model a,b | --effort", level: "!"}    # F12
   hooks:             {value: file, how: "settings.json / plugin; NOT via --settings", level: "~"}   # F13
-  isolation:         {value: flag, how: "--bare | --no-session-persistence | CLAUDE_CONFIG_DIR", level: "!"}  # F19
+  isolation:         {value: flag, how: "--safe-mode --no-session-persistence | CLAUDE_CONFIG_DIR", level: "!"}  # F19/F21
 limits: {headless_teams: false}   # teams need an interactive session [ev:claude-agent-teams-hermes-openbot#F8]
 ```
 
 The same shape for the other four installed harnesses, condensed (values are the evidence's exact names):
 
-| Capability | Codex 0.148.0 | Grok 1.0.5 | OpenClaw 2026.7.1-2 | Hermes 0.20.4 |
+| Capability | Codex 0.149.0 | Grok 1.0.5 | OpenClaw 2026.7.1-2 | Hermes 0.20.4 |
 |---|---|---|---|---|
 | headless | `codex exec` ! | `-p/--single`, `--prompt-file`, `grok agent stdio` ! | `openclaw agent --local -m/--message-file` (one turn) ! | `hermes chat -q [-Q] [--yolo]`; `hermes -z` ! |
 | system prompt | no flag; `-c developer_instructions=…` / `-c model_instructions_file=…` ~ | `--rules` (append) / `--system-prompt-override` ! | none; per-run workspace `SOUL.md`/`AGENTS.md`; `agent:bootstrap` hook ~ | none; `SOUL.md` in HERMES_HOME; `HERMES_EPHEMERAL_SYSTEM_PROMPT` / `agent.system_prompt` ~ |
@@ -70,9 +79,9 @@ The same shape for the other four installed harnesses, condensed (values are the
 | permissions | `--sandbox`, `--ask-for-approval`, `--dangerously-bypass-approvals-and-sandbox` ! | `--permission-mode`, `--always-approve`, `--allow/--deny`, `--sandbox` ! | `tools.exec.mode`, `agents.list[].tools{allow,deny,profile}`, approvals allowlist ! | `--yolo`; `-q` blocks dangerous commands unless `approvals.single_query_mode: approve`; `command_allowlist` ! |
 | model | `-m`, `-p <profile>`, `--oss`, `-c model_provider` ! | `-m`, `--effort`, `[model.<id>]` ! | `--model provider/model`; `model{primary,fallbacks}`; `cliBackends` ! | `-m`, `--provider`, `--reasoning`; `hermes fallback`; `moa` ! |
 | hooks | `hooks.json`, command only, trust hash ! | `.grok/hooks/*.json` + Claude compat ~ | Gateway-side `hooks.internal.entries` ! | config `hooks:`, gateway hooks, plugin hooks ! |
-| platform / terms | all three OS, native Windows sandbox; Apache-2.0; API key for CI ~ | Windows best-effort; Apache-2.0 ~ | MIT; Node ≥22.22; Windows CLI + WSL2 ~ | MIT; Python 3.11; native Windows ~ |
+| platform / terms | all three OS, native Windows sandbox; Apache-2.0; owner-host ChatGPT login | Windows best-effort; Apache-2.0; OAuth capability, active auth unverified | MIT; Node ≥22.22; Windows CLI + WSL2 ~ | MIT; Python 3.11; native Windows ~ |
 
-Sources: [ev:harness-cli-capabilities-a#F16], [ev:harness-cli-capabilities-b#F23] (two levels are deliberately conservative against that checklist: OpenClaw workspace files `~` where it says `S!`, Hermes system prompt `~` where it says `C!` — both rest on docs/source, not execution [ev:harness-cli-capabilities-b#F8][ev:harness-cli-capabilities-b#F17]); harness-native subagent rosters are in §4. Two more profile facts: Grok natively reads Claude Code's skill, agent-file, `.mcp.json`, `CLAUDE.md` and `settings.json` locations [ev:harness-cli-capabilities-a#F20], so a Claude-shaped bundle is reusable on Grok unchanged; and an *isolation* row exists for every harness (`--bare`/`--no-session-persistence`; `--ignore-user-config`/`--ephemeral`; `GROK_HOME`; a fresh OpenClaw `--profile` or session key; a fresh Hermes profile or `--ignore-rules`) [ev:harness-cli-capabilities-a#F19][ev:harness-cli-capabilities-b#F10][ev:harness-cli-capabilities-b#F24] — the per-harness cost of "fresh by default" (TE-02).
+Sources: [ev:harness-cli-capabilities-a#F16], [ev:harness-cli-capabilities-a#F21], [ev:harness-cli-capabilities-b#F23]. Grok natively reads several Claude Code configuration locations, but the first pass still needs a dedicated Grok profile/adapter record rather than assuming behavioral equivalence. Isolation is per harness: Claude `--safe-mode --no-session-persistence`; Codex `--ignore-user-config --ephemeral`; Grok isolated home/memory controls; fresh OpenClaw/Hermes state when those deferred harnesses enter scope [ev:m0-product-architecture-review-2026-08-22#F3].
 
 **Partial profile sources that already exist.** ClawTeam's adapter chain is an executable, incomplete profile for ten CLIs (prompt flag, skip-permission flag, resume argv, session file location; the system prompt is inserted by the backends, for claude/pi only) [ev:clawteam-spawn-platform#F1]; every claude/codex/openclaw flag it emits still exists [ev:clawteam-spawn-platform#F26][ev:harness-cli-capabilities-a#F18], but it has no Hermes or Grok branch and its generic fallback `<cmd> -p <prompt>` is invalid for Hermes [ev:clawteam-spawn-platform#F2]. The fork's `resolve_model()` is a pure seven-level *model* chain (CLI > per-agent > tier > template strategy > template > config > none; ClawTeam-OpenClaw/clawteam/model_resolution.py:29-70) [ev:clawteam-openclaw-fork-delta#F15] — a precedent for the policy's model dimension, not a profile. OpenClaw's `config schema` and `skills list --json` eligibility flags are introspection usable as profile input [ev:atm-salvage#F7]; Claude Code's `stream-json` `system/init` is per-run self-description [ev:harness-cli-capabilities-a#F10]. ATM's ADR 0007 `native | emulated(strategy) | unsupported(reason)` is the salvaged vocabulary for a capability value [ev:atm-salvage#F17].
 
@@ -139,10 +148,10 @@ One record per execution of one Backend for one Member/task, opened at start and
 {
   "invocation_id": "inv_01J…", "run_id": "run_…", "member": "reviewer", "ensemble_id": null,
   "assistant_ref": {"id": "code-reviewer", "base_version": "1.3.0", "overlays": {"user": "u7", "evolution": "e2"}, "effective_hash": "sha256:…"},
-  "backend": {"kind": "harness", "name": "claude-code", "version": "2.1.239", "profile_hash": "sha256:…"},
+  "backend": {"kind": "harness", "name": "claude-code", "version": "2.1.241", "profile_hash": "sha256:…", "execution_mode": "native-subscription"},
   "selection": {"decided_by": "user", "candidates": ["claude-code", "codex"], "fallback_from": null},
   "injection": {"bundle_id": "bnd_…", "bundle_hash": "sha256:…", "render": {"persona": "--append-system-prompt-file", "skills": "--add-dir", "mcp": "--mcp-config"}, "degraded": []},
-  "command": {"argv_redacted": ["claude", "-p", "--bare", "…"], "cwd": "/work/run_…/reviewer", "env_names": ["ANTHROPIC_API_KEY"], "launcher": "subprocess"},
+  "command": {"argv_redacted": ["claude", "-p", "--safe-mode", "--no-session-persistence", "…"], "cwd": "/work/run_…/reviewer", "env_names": [], "launcher": "subprocess"},
   "model": {"requested": "strong", "effective": "claude-…"},
   "harness_session": {"id": "<session_id from JSON>", "resume_of": null, "transcript_hint": "~/.claude/projects/<cwd>/…"},
   "timing": {"start": "2026-08-22T10:00:00Z", "end": "2026-08-22T10:04:12Z"},
@@ -154,7 +163,13 @@ One record per execution of one Backend for one Member/task, opened at start and
 
 Field names here are canonical: `run_id` is the TeamRun id, or the solo-run id when the `direct` launcher runs one Assistant outside a team (PoC A); `assistant_ref.effective_hash` is the hash of the resolved definition after the Base → Reviewed Evolution → User merge (`assistant-domain-model.md` §9) — the field that proves *which* text ran (AD-08, EV-05) and that `architecture-options.md` §3 expects every invocation to record; `bundle_hash` covers the rendered bundle. `minimal-poc-plan.md` §2 writes `assistant_ref.version` for `base_version`. Field availability per harness: Claude Code `session_id`, `total_cost_usd`, `modelUsage`, model from `system/init` [ev:harness-cli-capabilities-a#F10]; Codex `thread.started`/`turn.completed`, token counts, `cli_version`/`model_provider` from the rollout `session_meta` line, **no cost** (`cost_source: derived|unavailable`) [ev:harness-cli-capabilities-a#F8][ev:harness-cli-capabilities-a#F10]; Grok `sessionId`, `total_cost_usd(_ticks)` [ev:harness-cli-capabilities-a#F10]; Hermes `--usage-file` (cost, tokens, model, api_calls) even on failure [ev:harness-cli-capabilities-b#F7]; OpenClaw `agent --json` `meta`, `openclaw audit` for in-gateway runs [ev:harness-cli-capabilities-b#F13]. No substrate writes such a record for an external CLI today: ClawTeam's `spawn_registry.json` holds `{backend, tmux_target, block_id, pid, command[], spawned_at}`, cost is self-reported by the ClawTeam worker, the exit journal writes `exit_code: null` [ev:clawteam-probe-log#F13][ev:clawteam-probe-log#F14][ev:clawteam-model#F28]; dsh-agent-team-gui's `SquadRunRecord` + usage meter is the closest ledger, DSH-only, "tokens are not money" [ev:dsh-agent-teams-and-gui#F27][ev:dsh-agent-teams-and-gui#F28]; ATM recorded a materialization per tuple, never run [ev:atm-salvage#F9]. Deterministic backends (§9) use the same record with `backend.kind: deterministic`, no `model`/`usage`.
 
+For an `api-test` invocation, the record should identify the provider-profile reference and effective base/protocol/model plus the credential environment-variable **name**; it must never serialize the value. Exact field names remain provisional. A native-auth failure is recorded as that invocation's failure, not retried through the API-test profile [ev:m0-product-architecture-review-2026-08-22#F4].
+
 ## 8. Pressure test — Ensemble + synthesis (HB-05; PoC A Run 3)
+
+> Historical M0 pressure-test scenario, not an approved first-pass run design.
+> A re-baselined first pass must include Grok Build and may change the leg
+> count, synthesis harness, schema, and acceptance evidence.
 
 **Scenario.** `code-reviewer` reviews one diff on Codex and on Claude Code *independently*; a synthesis step lists agreements and disagreements with per-harness attribution; each HarnessInvocation is recorded; the definition is byte-identical afterwards (PoC A, `product-intent.md` §4).
 
@@ -167,7 +182,7 @@ Field names here are canonical: `run_id` is the TeamRun id, or the solo-run id w
 
 **Breakpoints.**
 
-- B1 *Independence* — nothing prevents legs from sharing context: ClawTeam shares mailbox/cwd; OpenClaw isolates its native subagent sessions but no channel carrying the persona to an ACP child is evidenced (~); scripts must set `--bare`/`--no-session-persistence`, `--ephemeral`/`--ignore-user-config` and separate worktrees themselves.
+- B1 *Independence* — nothing prevents legs from sharing context: ClawTeam shares mailbox/cwd; OpenClaw isolates native child sessions but persona injection to an ACP child is unevidenced; scripts must apply Claude `--safe-mode --no-session-persistence`, Codex `--ephemeral --ignore-user-config`, isolated Grok state, and separate worktrees themselves.
 - B2 *Identical injection bundle* — the legs must receive the *same* definition through *different* channels (flags vs `-c developer_instructions`/AGENTS.md); ClawTeam provably gives them different content; nothing hashes the bundle.
 - B3 *Disagreement detection* — synthesis is prompt prose everywhere; findings are unstructured unless each leg is forced to a schema.
 - B4 *Synthesis as its own invocation* — in ClawTeam/OpenClaw it is the leader/orchestrator's turn; PoC A needs it recorded with its own harness, inputs and cost.
@@ -193,7 +208,7 @@ Contrast: ClawTeam's per-CLI knowledge lives in `NativeCliAdapter.prepare_comman
 | Concept | ClawTeam (CT/CTF) | Claude Code | Codex | OpenClaw | Hermes | dsh (teams/gui) |
 |---|---|---|---|---|---|---|
 | HarnessProfile | no data model; adapter chain + `AgentProfile{command, model, env, args}` [ev:clawteam-spawn-platform#F1][ev:clawteam-spawn-platform#F12] — partial source | `system/init` self-description [ev:harness-cli-capabilities-a#F10] — input only | rollout `session_meta` [ev:harness-cli-capabilities-a#F8] — input only | `acp` alias registry, `agents.list[].runtime`, `config schema` [ev:openclaw-native-and-telegram-verification#F16][ev:atm-salvage#F7] — ids + introspection | profile `config.yaml` — input only | no primitive — model routes [ev:dsh-agent-teams-and-gui#F18] |
-| Injection bundle | `--append-system-prompt` (claude/pi), `--skill` inline, `-p`/positional [ev:clawteam-spawn-platform#F6] | flags incl. `--agents`, `--mcp-config`, `--add-dir`, `--bare` [ev:harness-cli-capabilities-a#F17] | `-c developer_instructions`, `CODEX_HOME` AGENTS.md, `.agents/skills`, `codex mcp add` [ev:harness-cli-capabilities-a#F17] | per-run workspace bootstrap files, `agents.list[]` entry, `agent:bootstrap` hook [ev:harness-cli-capabilities-b#F24] | per-run profile (`profile create --clone`, distributions), `HERMES_EPHEMERAL_SYSTEM_PROMPT`, `-s` [ev:harness-cli-capabilities-b#F24][ev:claude-agent-teams-hermes-openbot#F24] | `AgentRecord.systemPrompt` to DSH children |
+| Injection bundle | `--append-system-prompt` (claude/pi), `--skill` inline, `-p`/positional [ev:clawteam-spawn-platform#F6] | flags incl. `--agents`, `--mcp-config`, `--add-dir`, `--safe-mode --no-session-persistence` [ev:m0-product-architecture-review-2026-08-22#F3] | `-c developer_instructions`, `CODEX_HOME` AGENTS.md, `.agents/skills`, `codex mcp add` [ev:harness-cli-capabilities-a#F17] | per-run workspace bootstrap files, `agents.list[]` entry, `agent:bootstrap` hook [ev:harness-cli-capabilities-b#F24] | per-run profile (`profile create --clone`, distributions), `HERMES_EPHEMERAL_SYSTEM_PROMPT`, `-s` [ev:harness-cli-capabilities-b#F24][ev:claude-agent-teams-hermes-openbot#F24] | `AgentRecord.systemPrompt` to DSH children |
 | HarnessSelectionPolicy | static `AgentDef.command`/profile; fork `resolve_model()` (model) [ev:clawteam-probe-log#F17][ev:clawteam-openclaw-fork-delta#F15] | `--model`, `--fallback-model` (model) | `-m`, `-p <profile>` (model/provider) | `runtime.acp.agent`, `acp.defaultAgent/allowedAgents/fallbacks`, `model{primary,fallbacks}` [ev:openclaw-native-and-telegram-verification#F16] | kanban per-task `--model/--provider`, `hermes fallback`, `delegation.model` [ev:claude-agent-teams-hermes-openbot#F25] | per-agent route + `fallback*` (`retry-once`); `memberModel` [ev:dsh-agent-teams-and-gui#F5][ev:dsh-agent-teams-and-gui#F18][ev:dsh-agent-teams-and-gui#F23] |
 | HarnessBroker loop | `spawn`/`launch` + `--replace` + error strings; custom `SpawnBackend` in-process [ev:clawteam-spawn-platform#F8][ev:clawteam-probe-log#F21] | `-p` / Agent SDK as target; `--bg` (Claude-only) [ev:claude-agent-teams-hermes-openbot#F17] | `codex exec` as target | `sessions_spawn(runtime:"acp")`, `openclaw agent --local` [ev:harness-cli-capabilities-b#F12] | kanban dispatcher (`hermes -p <profile> -q`), `delegate_task`, `hermes acp` [ev:harness-cli-capabilities-b#F19] | no primitive |
 | HarnessInvocation record | `spawn_registry.json`, self-reported `CostEvent`, exit journal (`exit_code: null`) [ev:clawteam-probe-log#F13][ev:clawteam-probe-log#F14] | JSON result (`session_id`, `total_cost_usd`, `modelUsage`) [ev:harness-cli-capabilities-a#F10] | `--json` JSONL + rollout `session_meta`, tokens only [ev:harness-cli-capabilities-a#F10] | `openclaw audit`, `tasks`, `sessions --json` [ev:harness-cli-capabilities-b#F13] | `-z --usage-file`, kanban `task_runs`/logs [ev:harness-cli-capabilities-b#F7][ev:claude-agent-teams-hermes-openbot#F25] | gui `SquadRunRecord` + usage meter [ev:dsh-agent-teams-and-gui#F27] |
@@ -220,15 +235,15 @@ Hermes is both a target harness (profile + `-z`/`-q` + usage file) and a substra
 
 ## 13. Open questions
 
-1. Is `codex exec -c developer_instructions="…"` honoured on 0.148.0, and does it reach `multi_agent` subagents? Until probed, PoC A Run 1's persona channel rests on AGENTS.md in a prepared `CODEX_HOME` [ev:harness-cli-capabilities-a open question 2].
+1. Is `codex exec -c developer_instructions="…"` honoured on 0.149.0, and does it reach `multi_agent` subagents? Until probed, a prepared `CODEX_HOME`/AGENTS.md remains the documented fallback [ev:harness-cli-capabilities-a open question 2].
 2. Does `claude --agent <name>` accept an agent defined only by `--agents '<json>'` in the same invocation (roster + persona as one channel)? [ev:harness-cli-capabilities-a open question 1]
 3. What does OpenClaw `acp.fallbacks` fall back *to* (another harness alias or another ACP bridge), and can a custom acpx alias map Hermes? (fit-gap HB-04/HB-08 OC `C?~`)
 4. Bundle equivalence across channels — the *semantic* question only (bundle *identity* is settled: one `bundle_hash` regardless of channel, §4(2) and PoC A criterion 4): does "persona as system prompt" (Claude) steer the model as "persona as AGENTS.md in a workspace" (Codex) does, for ensemble purposes, or must policy require one channel class per leg? For `minimal-poc-plan.md`.
 5. Codex cost: derive USD from tokens with which price table, and how is `cost_source: derived` shown in synthesis attribution?
 6. Synthesis harness choice (a third harness, one leg, or the Lead's harness) and how synthesizer bias is recorded; `synthesis_harness` is a placeholder.
 7. Where the broker runs (§6 a–e) — *resolved by reference*. Decided in architecture-options §5/§8: the HarnessBroker runs inside the layer as library/CLI (never as a ClawTeam backend; the in-process backend is the Windows fallback only); the operational-mode scheduler is an OS timer by default with OpenClaw/Hermes cron pluggable.
-8. Subscription-login automation terms for Codex and Grok are unverified (HTTP 403) [ev:harness-cli-capabilities-a#F15]; the profile's `terms` row may constrain credentials for unattended invocations.
-9. Whether ATM's ADR 0022 resolution/lock text is reusable verbatim (no LICENSE in that repo; XC-01) or only as ideas.
+8. Exact provider-profile fields/protocol mappings across Claude, Codex, and Grok remain a PoC-design question. The fixed boundary is native subscription mode vs separate API-test mode, with environment-name-only credentials and no cross-mode fallback [ev:m0-product-architecture-review-2026-08-22#F4].
+9. ATM text/code is internally reusable by owner authorization. Any copy must record source/provenance and preserve third-party obligations; public licensing remains a separate decision [ev:m0-product-architecture-review-2026-08-22#F7].
 
 ## 14. Inconsistencies noted
 

@@ -1,29 +1,28 @@
 # Open questions
 
-Questions an agent could not answer from the repository and must not
-guess. Check off with the answer inline once resolved.
+Questions that require an owner decision or later credentialed evidence. Agents
+must not guess. Answered items remain here for traceability.
 
-- [ ] Implementation language for M1+ (Python beside ClawTeam vs TypeScript vs other) — decide after the M0 architecture review.
+## Open
+
+- [ ] Q1. Implementation language for M1+ (Python, TypeScript, or other).
+- [ ] Q4. Whether/when to file the bounded ClawTeam issues/PRs. Plan capability as if none merges.
+- [ ] Q6. Whether a later mixed-team expansion should include Hermes, and what evidence should gate that expansion. Hermes and OpenClaw are deferred from the first pass.
+- [ ] Q8. Live-run budget/accounts and whether the deterministic no-op tier is a precondition or a scored acceptance tier.
+- [ ] Q9. Ensemble/synthesis design, including synthesizer choice and Codex `cost_source: derived|unavailable` policy.
+- [ ] Q10. Whether Member coordination text may be ClawTeam-specific in the PoC or must be rendered per substrate immediately.
 - [ ] Final project name (working name "Assistant Team System"; do not assume "ATM").
-- [ ] Engage HKUDS/ClawTeam upstream with issues/PRs (e.g. nested teams, `os.getuid()` Windows crash in `spawn/adapters.py`, `clawteam run --profile` ImportError)? Owner decision.
-- [ ] API budget / accounts for PoCs A–C (Codex, Claude Code, optionally OpenClaw/Hermes/Grok).
-- [ ] Must Grok / Hermes / OpenClaw be first-class in PoC A, or is Codex + Claude Code sufficient for the first pass?
-- [ ] Should discovery docs be bilingual (EN/中文) or English only? (Assumed English only for M0.)
+- [ ] English-only vs bilingual discovery/product documentation.
+- [ ] Detailed PoC choices: run count, schemas, acceptance evidence, sequence/gates, implementation slice, and LOC re-baseline.
+- [ ] Timing and target for the deferred API-test canary. The current OpenRouter `stealth/ox-alpha` route is temporary/replaceable and unverified; no key is needed until a canary is explicitly approved.
 
-- [x] Should ATM register-gap candidates (lock layer, local-modification safety, approval-hash integrity, isolation posture, export/import archive, trust zones) become new rows? — **Answered 2026-08-22 (owner/session decision):** one new row AR-06 (artifact lock/fingerprint, S); isolation posture folded into TC-03; approval integrity/bounded proposals into EV-05; export/import into AR-03; platform-vs-harness dimensions into XC-02; trust zones not added (security posture is a later-phase concern; noted in RISKS).
+## Answered in the 2026-08-22 product/architecture review
 
-## Raised by the architecture panel (2026-08-22) — owner decisions, not answered by the session
-
-Numbered Q1–Q10 to match `docs/discovery/architecture-options.md` §7 (Q11 resolved).
-
-- [ ] Q1. Implementation language for the layer (language-agnostic CLI coupling assumed; Python makes vendoring `platform_compat.py`/`model_resolution.py` and the in-process ClawTeam fallback natural; TypeScript turns dsh-gui modules into candidates).
-- [ ] Q2. Windows/macOS probe: who provides hosts, and is a passing smoke (wrapper + one `clawteam spawn subprocess`, `skip_permissions=false`, no `--task`) a precondition for accepting the architecture or the first PoC task? (TE-08 is M and unverified everywhere.)
-- [ ] Q3. Acceptable enforcement levels for PoC pass: TC-05 as gate + convention + `CLAWTEAM_BIN` shim + post-hoc reconciliation; TE-05 as namespace/data-dir isolation with `independence.achieved` recorded — or must mechanical enforcement be demonstrated?
-- [ ] Q4. File the nine bounded ClawTeam PRs (getuid guard, `mcp<2`, logs+exit code, parent link, `TeamMember.hidden`, cleanup stops processes, Hermes/Grok branches, `launch` errors + per-member profile + `blocked_by`, inbox ACL) now, later, or never? Upstream dormant since 2026-05-09; buys goodwill, not capability.
-- [ ] Q5. Unattended-run credentials for PoC A Run 3 / ensembles: API keys (documented automation path) vs subscription OAuth for Claude Code / Codex / Grok (vendor ToS pages returned 403 to verification).
-- [ ] Q6. PoC B: include a Hermes Member (exercises profile-clone adapter and `--source tool`) or Claude Code + Codex only?
-- [ ] Q7. ATM licence statement (owner's own repo, no LICENSE file) so ADR 0022 schema text can be reused at rung 4 rather than re-derived.
-- [ ] Q8. PoC budget and a deterministic no-op-harness tier as the first pass criterion before live-LLM runs?
-- [ ] Q9. Ensemble synthesis harness for PoC A Run 3 (third harness, one of the two legs, or the Lead) and the Codex cost derivation rule (`cost_source: derived|unavailable`).
-- [ ] Q10. May the Member coordination protocol be ClawTeam-CLI-specific for the PoC (cheapest) or must it be rendered per substrate from day one (avoids editing every definition on a substrate swap)?
-- [x] Q11. Solo runs: may PoC A run through the `direct` launcher outside ClawTeam, or must every run be a ClawTeam team? — **Answered by the owner tiebreak (2026-08-22):** PoC A runs on the `direct` launcher; the `direct` path is in scope from day one.
+- [x] Q2. Windows/macOS verification uses GitHub-hosted CI. Test deterministic direct-path plumbing at its milestone and ClawTeam subprocess plumbing at its milestone. Do not put live credentials in CI or claim live auth/model behavior from it.
+- [x] Q3. Advisory controls may pass a PoC only when bypassability is visible and audited; production claims require mechanical enforcement. Hidden is a UI projection, not an access-control boundary.
+- [x] Q5. Native and unattended live runs use each vendor CLI's subscription OAuth on the owner's persistent host. ATS does not broker third-party login or copy credential stores. API-test mode is separate and never a native-auth fallback.
+- [x] Q7. ATM is owner-authored and internally reusable by ATS without a separate licence grant. Record copy/adaptation provenance and retain third-party notices/terms; public licensing is still separate.
+- [x] Q11. Solo/direct execution remains in scope.
+- [x] First-pass harnesses are Claude Code + Codex + Grok Build. Hermes/OpenClaw are deferred.
+- [x] The current API model is test-only and replaceable; no availability, price, behavior, or compatibility claim exists until a canary is run.
+- [x] Register-gap disposition: AR-06 added; isolation folded into TC-03; approval integrity into EV-05; export/import into AR-03; platform-vs-harness into XC-02; trust zones deferred.

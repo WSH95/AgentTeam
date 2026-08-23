@@ -4,7 +4,9 @@ topic: HarnessCapability checklist and definition-injection matrix for Claude Co
 systems: [Claude Code, Codex CLI, Grok CLI, ClawTeam]
 sources:
   - {kind: cli, ref: "claude --help; claude {mcp,agents,plugin,project,auth,import} --help; claude mcp add --help", accessed: 2026-08-21, version: 2.1.239}
+  - {kind: cli, ref: "claude --version; claude --help; claude auth status --json (sanitized fields only)", accessed: 2026-08-22, version: 2.1.241}
   - {kind: cli, ref: "codex --help; codex {exec,resume,review,mcp,plugin,fork,sandbox,features,login,debug,doctor} --help; codex exec resume --help; codex features list", accessed: 2026-08-21, version: 0.148.0}
+  - {kind: cli, ref: "codex --version; codex exec --help; codex login status", accessed: 2026-08-22, version: 0.149.0}
   - {kind: cli, ref: "grok --help; grok {agent,mcp,plugin,sessions,inspect,memory,setup,login} --help; grok agent {stdio,headless,serve} --help; grok inspect", accessed: 2026-08-21, version: "1.0.5 (5115b46bc9)"}
   - {kind: repo, ref: "~/.grok/docs/user-guide/*.md and ~/.grok/README.md (docs bundled with the installed 1.0.5 binary)", accessed: 2026-08-21, version: 1.0.5}
   - {kind: probe, ref: "grep -a -c <string> on installed binaries (claude 2.1.239, codex 0.148.0, grok 1.0.5) for flags/keys absent from --help", accessed: 2026-08-21}
@@ -33,11 +35,11 @@ sources:
   - {kind: web, ref: https://github.com/xai-org/grok-build (README), accessed: 2026-08-21}
   - {kind: repo, ref: "ClawTeam/clawteam/spawn/{adapters,keepalive,subprocess_backend}.py, spawn/session_locators/{claude,codex}.py, cli/commands.py @ 0.3.0 working tree", accessed: 2026-08-21, version: 0.3.0}
 method: Local `--help` trees of the three installed CLIs (no prompts sent); bundled Grok docs read from disk; official Claude Code and Codex docs fetched on 2026-08-21; binary string counts used only to confirm presence of flags/config keys that the `--help` text omits; local config inspected for key names only; ClawTeam adapter code cross-checked against installed flag names.
-platform: {os: Ubuntu (Linux 5.15), tmux: absent, cli_versions: {claude: 2.1.239, codex: 0.148.0, grok: 1.0.5}}
+platform: {os: Ubuntu (Linux 5.15), tmux: absent, cli_versions_current: {claude: 2.1.241, codex: 0.149.0, grok: 1.0.5}, original_probe_versions: {claude: 2.1.239, codex: 0.148.0, grok: 1.0.5}}
 author_agent: ev:harness-caps-A
 date: 2026-08-21
 confidence: high
-status: draft
+status: current with dated original probe log and 2026-08-22 recheck
 ---
 # Harness CLI capabilities A: Claude Code, Codex CLI, Grok CLI
 
@@ -143,22 +145,22 @@ status: draft
 - Suggested fit cell: Claude Code → S!, Codex → S!, Grok → S!
 
 ### F14. Version and platform support
-- Claim: Claude Code 2.1.239: macOS 13+, Windows 10 1809+/Server 2019+ (native via PowerShell/CMD; Git for Windows optional for Bash tool; sandboxing unsupported natively, supported in WSL 2), Ubuntu 20.04+/Debian 10+/Alpine 3.19+; Node not required (native binary). Codex 0.148.0: macOS, Linux, Windows native ("can run natively in PowerShell with a Windows sandbox instead of requiring WSL"), WSL2 inherits Linux sandbox, WSL1 dropped in 0.115; Apache-2.0. Grok 1.0.5: macOS, Linux, Windows via PowerShell installer / Git Bash / WSL; README of the open-source tree: "Windows builds are best-effort and not currently tested"; sandbox Linux (Landlock ≥5.13, bubblewrap for deny lists) and macOS only.
+- Claim: Current installed versions are Claude Code 2.1.241, Codex 0.149.0, and Grok 1.0.5. The original platform findings remain: Claude supports macOS, native Windows/WSL, and Linux; Codex supports macOS, Linux, and native Windows sandboxing; Grok documents macOS/Linux/Windows but calls Windows builds best-effort. No Windows or macOS execution was performed in either evidence pass.
 - Evidence: https://code.claude.com/docs/en/setup (accessed 2026-08-21) §"System requirements", §"Set up on Windows"; https://learn.chatgpt.com/docs/windows/windows-sandbox and …/agent-approvals-security (accessed 2026-08-21); https://github.com/openai/codex README; ~/.grok/docs/user-guide/01-getting-started.md lines 11-35; ~/.grok/docs/user-guide/18-sandbox.md §"Platform support"; https://github.com/xai-org/grok-build README (accessed 2026-08-21).
 - Level: observed
 - Requirements: TE-08, XC-02
 - Suggested fit cell: Claude Code → S~, Codex → S~, Grok → S~ (Windows sandbox n/a)
 
-### F15. Provider/API-key configuration and automation terms
-- Claim: Claude: OAuth login (`claude auth login`), `ANTHROPIC_API_KEY` ("used instead of your … subscription even if you are logged in"), `claude setup-token` (OAuth token "for CI and scripts", subscription required), Bedrock/Vertex/Foundry switches; `--bare` never reads OAuth. Legal page: OAuth "is designed to support ordinary use"; "Developers building products … should use API key authentication"; "Advertised usage limits for Pro and Max plans assume ordinary, individual usage of Claude Code and the Agent SDK"; embedding Claude Code needs Commercial Terms and an unmodified binary. Codex: ChatGPT sign-in, `codex login --with-api-key` (stdin), `--with-access-token`, `--device-auth`; docs: "Use API key authentication for programmatic Codex CLI workflows, such as CI/CD jobs"; `CODEX_API_KEY=<key> codex exec --json`. Grok: `grok login` (OAuth), `--device-auth`, `XAI_API_KEY` ("For CI/CD, automation, or environments without browser access"), `GROK_AUTH_PROVIDER_COMMAND`; README: "Headless (for scripts/automation)". xAI consumer ToS not fetchable (HTTP 403).
-- Evidence: `claude auth --help`; https://code.claude.com/docs/en/legal-and-compliance (accessed 2026-08-21) §"Usage policy"; https://code.claude.com/docs/en/headless §"Start faster with bare mode"; `codex login --help`; https://learn.chatgpt.com/docs/auth and …/non-interactive-mode (accessed 2026-08-21); `grok login --help`; ~/.grok/docs/user-guide/02-authentication.md lines 3-49; ~/.grok/README.md lines 1-20.
-- Level: observed
+### F15. Provider/authentication configuration and operational boundary
+- Claim: Claude supports first-party subscription OAuth plus API-key/gateway modes; Codex supports ChatGPT sign-in plus API-key/custom-provider modes; Grok supports OAuth/device authentication plus API-key/custom-provider modes. The current product boundary is owner-operated native/unattended live runs through each CLI's subscription OAuth. A separate, replaceable API-test profile may use an environment-injected key. Neither mode silently falls back to the other, ATS does not broker third-party login, and hosted CI receives neither subscription nor live API credentials. `--bare` explicitly disables Claude OAuth/keychain access and is therefore only suitable for API-key mode.
+- Evidence: original sources above; sanitized `claude auth status --json`; `codex login status`; current help recheck; [ev:m0-product-architecture-review-2026-08-22#F2][ev:m0-product-architecture-review-2026-08-22#F4].
+- Level: verified locally for Claude/Codex auth state and help; Grok active auth unverified
 - Requirements: XC-01, AR-04, HB-07
-- Suggested fit cell: all three → S~ with caveat (subscription credentials are for "ordinary" use; API keys are the documented automation path)
+- Suggested fit cell: all three → S~ with the owner-operated/no-hosted-CI boundary above
 
 ### F16. HarnessCapability checklist (one row per capability)
 
-| # | Capability | Claude Code 2.1.239 | Codex CLI 0.148.0 | Grok CLI 1.0.5 |
+| # | Capability | Claude Code 2.1.241 | Codex CLI 0.149.0 | Grok CLI 1.0.5 |
 |---|---|---|---|---|
 | 1 | Headless | `-p/--print` (F1) | `codex exec` (F1) | `-p/--single`, `--prompt-file`, `grok agent stdio` (F1) |
 | 2 | System prompt | `--system-prompt`, `--append-system-prompt`, `--*-file` variants, `--append-subagent-system-prompt` (F2) | none as flag; `-c developer_instructions="…"`, `-c model_instructions_file=…` (F2) | `--system-prompt-override` (=`--system-prompt`), `--rules` (=`--append-system-prompt`) (F2) |
@@ -170,11 +172,11 @@ status: draft
 | 8 | Resume | `--continue`, `--resume`, `--session-id`, `--fork-session` (F8) | `resume [id] --last`, `exec resume`, `fork`, `--ephemeral` (F8) | `--continue`, `--resume`, `--session-id`, `--fork-session` (F8) |
 | 9 | cwd | process cwd; `--add-dir`; `-w` (F9) | `-C/--cd`, `--add-dir` (F9) | `--cwd`, `-w` (F9) |
 | 10 | Structured output / usage | `--output-format json|stream-json`, `--json-schema`, `total_cost_usd`, `modelUsage`, `--max-budget-usd` (F10) | `--json` JSONL, `-o`, `--output-schema`; tokens only (F10) | `--output-format json|streaming-json|streaming-messages-json`, `--json-schema`, `total_cost_usd(_ticks)` (F10) |
-| 11 | Permissions/sandbox | `--permission-mode`, `--dangerously-skip-permissions`, `--allowedTools`, `--tools`, `--bare` (F11) | `--sandbox`, `--ask-for-approval`, `--dangerously-bypass-approvals-and-sandbox`, `--ignore-user-config` (F11) | `--permission-mode`, `--always-approve`, `--allow/--deny`, `--tools`, `--sandbox`, `--max-turns` (F11) |
+| 11 | Permissions/sandbox | `--permission-mode`, `--dangerously-skip-permissions`, `--allowedTools`, `--tools`, `--safe-mode` (F11/F19) | `--sandbox`, `--ask-for-approval`, `--dangerously-bypass-approvals-and-sandbox`, `--ignore-user-config` (F11) | `--permission-mode`, `--always-approve`, `--allow/--deny`, `--tools`, `--sandbox`, `--max-turns` (F11) |
 | 12 | Model | `--model`, `--fallback-model`, `--effort` (F12) | `-m`, `-p profile`, `--oss`, `-c model_provider` (F12) | `-m`, `--effort`, `[model.<id>]` (F12) |
 | 13 | Hooks | settings.json / plugin / frontmatter; 5 hook types (F13) | hooks.json / config.toml; command only; trust hash (F13) | `.grok/hooks/*.json` + Claude settings compat; command|http (F13) |
 | 14 | Platform | macOS/Linux/Windows native (F14) | macOS/Linux/Windows native sandbox (F14) | macOS/Linux/Windows best-effort; sandbox Linux+macOS (F14) |
-| 15 | Auth / automation terms | OAuth or `ANTHROPIC_API_KEY`; API key recommended for products (F15) | ChatGPT login or API key; API key for CI (F15) | OAuth/device/`XAI_API_KEY`; docs support automation (F15) |
+| 15 | Auth / execution mode | Native subscription OAuth on owner host; API key only in separate test mode (F15) | Native ChatGPT login on owner host; API key only in separate test mode (F15) | OAuth/device native mode; active login unverified; API key only in separate test mode (F15) |
 
 - Level: as per referenced findings
 - Requirements: HB-01, HB-08
@@ -199,15 +201,15 @@ Parts of an Assistant definition and where each part can land **without editing 
 - Suggested fit cell: Claude Code → S! (all parts injectable by flag), Grok → C! (flags for prompt/permissions; files for skills/MCP), Codex → C~ (config override + files)
 
 ### F18. ClawTeam's adapter flags cross-checked against installed versions
-- Claim: `NativeCliAdapter.prepare_command` appends `--dangerously-skip-permissions` (claude, unless root) and `--dangerously-bypass-approvals-and-sandbox` (codex) when `skip_permissions`; headless prompt is `-p <prompt>` for claude (interactive: pasted post-launch) and positional for codex; `--append-system-prompt` is inserted by the backends only for claude/pi (subprocess_backend.py:92-94, tmux_backend.py:112); `--skill <name>` reads `~/.claude/skills/<name>/SKILL.md` and **inlines it into the system prompt** (commands.py:98-117, 3284-3296) rather than wiring a skills dir; resume commands per F8. All emitted flags exist in claude 2.1.239 and codex 0.148.0. Grok has **no** adapter branch in ClawTeam or the OpenClaw fork (`grep -rn -i grok` → 0 hits in both); it would fall into the generic `-p <prompt>` branch (adapters.py:139-140), which is valid for grok, but no skip-permissions flag would be added.
+- Claim: `NativeCliAdapter.prepare_command` behavior is unchanged from the original finding. All emitted flags still exist in Claude Code 2.1.241 and Codex 0.149.0. Grok still has no dedicated adapter branch in the inspected ClawTeam snapshot; the generic `-p <prompt>` branch is syntactically valid but does not render Grok-specific permissions or definition channels.
 - Evidence: ClawTeam/clawteam/spawn/adapters.py:32-147; ClawTeam/clawteam/spawn/subprocess_backend.py:80-116; ClawTeam/clawteam/cli/commands.py:98-117,3108,3284-3308; ClawTeam/clawteam/spawn/keepalive.py:11-34; `claude --help`; `codex --help`; `grok --help`.
 - Level: verified (code read + installed help)
 - Requirements: HB-08, XC-03
 - Suggested fit cell: ClawTeam → S! (claude/codex), ClawTeam → Xs! (grok: needs `--always-approve`/`--rules` branch)
 
 ### F19. Isolation knobs useful for "fresh by default"
-- Claim: Claude `--bare` skips hooks/plugins/CLAUDE.md/auto-memory/keychain and is "the recommended mode for scripted and SDK calls"; `--setting-sources`, `--strict-mcp-config`, `--no-session-persistence`, `CLAUDE_CONFIG_DIR`. Codex `--ignore-user-config`, `--ephemeral`, `--ignore-rules`, `CODEX_HOME`. Grok `GROK_HOME`, `GROK_MEMORY=0`, `--no-subagents`, `[compat.claude]` toggles to stop reading Claude dirs.
-- Evidence: `claude --help` (`--bare`); https://code.claude.com/docs/en/headless §"Start faster with bare mode"; `codex exec --help`; ~/.grok/docs/user-guide/05-configuration.md §"Harness compatibility", §"Environment variables".
+- Claim: For native Claude subscription runs, use `--safe-mode --no-session-persistence` plus an isolated `CLAUDE_CONFIG_DIR` as needed; do not use `--bare`, because 2.1.241 says it disables OAuth/keychain access. Codex exposes `--ignore-user-config`, `--ephemeral`, `--ignore-rules`, and `CODEX_HOME`. Grok exposes `GROK_HOME`, `GROK_MEMORY=0`, `--no-subagents`, and `[compat.claude]` toggles.
+- Evidence: current `claude --help`; `codex exec --help`; bundled Grok docs; [ev:m0-product-architecture-review-2026-08-22#F3].
 - Level: verified (flags) / observed (docs)
 - Requirements: TE-02, AD-05, EV-04
 - Suggested fit cell: all three → S!
@@ -218,6 +220,13 @@ Parts of an Assistant definition and where each part can land **without editing 
 - Level: verified
 - Requirements: HB-02, AR-05, HB-08
 - Suggested fit cell: Grok → S!
+
+### F21. Current recheck fixes the first-pass harness and CI boundaries
+- Claim: Claude Code 2.1.241, Codex 0.149.0, and Grok Build 1.0.5 all retain credential-free headless/help surfaces sufficient to include them in the first-pass harness scope. This verifies interface availability, not model behavior. Windows/macOS verification will use GitHub-hosted CI only for deterministic process/path/record plumbing, with no live credentials; live authentication/model claims remain limited to an authenticated persistent host.
+- Evidence: 2026-08-22 local version/help recheck; [ev:m0-product-architecture-review-2026-08-22#F1][ev:m0-product-architecture-review-2026-08-22#F3][ev:m0-product-architecture-review-2026-08-22#F5].
+- Level: verified locally + owner constraint
+- Requirements: HB-01, HB-02, HB-08, TE-08, XC-02
+- Suggested fit cell: n/a — current planning constraint, not a matrix reclassification
 
 ## 3. Negative findings
 
@@ -231,22 +240,22 @@ Parts of an Assistant definition and where each part can land **without editing 
 
 | Harness | License | Platforms (source) | Caveats |
 |---|---|---|---|
-| Claude Code 2.1.239 | Proprietary; Commercial Terms (Team/Enterprise/API) or Consumer Terms (Free/Pro/Max); binary must not be modified when embedded (legal page) | macOS 13+, Windows 10 1809+ native (PowerShell/CMD; Git for Windows optional), WSL, Ubuntu 20.04+/Debian 10+/Alpine 3.19+ (setup page) | Sandboxing unsupported on native Windows; `--dangerously-skip-permissions` rejected as root (ClawTeam adapters.py:50-55) |
-| Codex CLI 0.148.0 | Apache-2.0 (github.com/openai/codex README) | macOS, Linux, Windows native with Windows sandbox; WSL2; WSL1 dropped in 0.115 (docs) | Native Windows sandbox needs admin-approved setup; ChatGPT-plan automation terms unverified (403) |
+| Claude Code 2.1.241 | Proprietary; Commercial Terms (Team/Enterprise/API) or Consumer Terms (Free/Pro/Max); binary must not be modified when embedded (legal page) | macOS 13+, Windows 10 1809+ native (PowerShell/CMD; Git for Windows optional), WSL, Ubuntu 20.04+/Debian 10+/Alpine 3.19+ (setup page) | Native owner-operated subscription mode; `--bare` disables OAuth, so use `--safe-mode --no-session-persistence`; no live credential in hosted CI |
+| Codex CLI 0.149.0 | Apache-2.0 (github.com/openai/codex README) | macOS, Linux, Windows native with Windows sandbox; WSL2; WSL1 dropped in 0.115 (docs) | Native owner-operated ChatGPT login; no live credential in hosted CI |
 | Grok CLI 1.0.5 | Apache-2.0 for first-party code of github.com/xai-org/grok-build; "External contributions are not accepted" | macOS, Linux, Windows (PowerShell installer / Git Bash / WSL); upstream README: Windows builds "best-effort and not currently tested" | Sandbox only Linux (Landlock ≥5.13, bubblewrap for deny) and macOS; child-network block Linux-only; xAI ToS unverified (403) |
 
 ## 5. Open questions
 
 1. Does `claude --agent <name>` accept an agent defined only via `--agents '<json>'` in the same invocation (docs list built-in/project/user/plugin agents)? Needs a probe.
-2. Is `codex exec -c developer_instructions="…"` honored in 0.148.0 (docs + binary say yes; never executed here)? Does it reach subagents spawned by `multi_agent`?
+2. Is `codex exec -c developer_instructions="…"` honored in 0.149.0 (docs + binary say yes; never executed here)? Does it reach subagents spawned by `multi_agent`?
 3. Exact JSON shape of Grok `--agents <JSON>` (assumed Claude-compatible; undocumented in bundled docs).
 4. Can Codex `[[skills.config]]` be supplied as a `-c` inline-table array, and do skills load in `codex exec`?
 5. Whether Grok's `--trust` is a real CLI flag (binary string present, not in `--help`), which matters for auto-trusting a temp workspace's `.grok/config.toml` MCP servers in headless runs.
-6. Subscription-login automation terms for Codex (ChatGPT plan) and Grok (SuperGrok) — vendor ToS pages blocked.
+6. Before any multi-user or hosted product is proposed, re-check vendor policy boundaries. The current design is narrower: owner-operated subscription OAuth on a persistent host, never hosted CI or third-party credential brokerage.
 
 ## 6. Probe / CLI log
 
-Full outputs: `/tmp/claude-1000/-home-wsh-Documents-assistant-team-system-dev/17fd77ac-75ce-402b-a1a9-5d1eebba9843/scratchpad/harness-caps-A/{probe-log.md, claude-help.txt, claude-sub-help.txt, claude-sub2.txt, codex-help.txt, codex-sub-help.txt, codex-sub2.txt, grok-help.txt, grok-sub-help.txt, grok-sub2.txt}`.
+The excerpts below are the **2026-08-21 historical probe snapshot** (Claude 2.1.239 / Codex 0.148.0). F14–F21 and the frontmatter record the current 2026-08-22 recheck. Original full outputs were written to a temporary path and are not durable project artifacts.
 
 Trimmed excerpts:
 

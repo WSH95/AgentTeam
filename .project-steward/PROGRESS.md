@@ -2,6 +2,11 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-23T02:51:49Z — cli
+[auto-checkpoint] No material project change after the completed M0.1 documentation handoff; final scope check passed and nothing is staged.
+
+### 2026-08-23T02:48:03Z — [auto-checkpoint] M0.1 documentation review applied and validated: current CLI/auth/Telegram evidence, confirmed constraints, targeted AD-07 correction, and 54×11/link/secret/diff checks PASS; no code, live calls, key, or commit
+
 ### 2026-08-23T04:30:00Z — M0 discovery complete; STOP for product/architecture review
 W3b fixers (8 docs) + re-checks all PASS; owner cross-document alignment (cells, carrier, stale notes), RISKS rows from ATM salvage merged, QUESTIONS numbered Q1–Q10, README answer + STOP, VERIFY updated. Final commit of the nine discovery documents + evidence. Session closed at the review gate.
 
@@ -31,4 +36,3 @@ Plan approved; steward init committed (78272d8); glossary, requirement register 
 
 ### 2026-08-22T01:42:57Z — project-steward init
 Project initialized as a Project Steward managed project.
-

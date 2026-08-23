@@ -1,8 +1,8 @@
 ---
 title: Product intent — Assistant Team System
-status: draft v3.2 — register FROZEN 2026-08-22; W3 critic findings applied (PI-01 citations; §7 brief coverage map) after evidence phase W1 (AR-06 added; notes folded into TC-03, EV-05, AR-03, XC-02 from ATM salvage)
-date: 2026-08-21
-owns: requirement register (the only place requirements are authored), lifecycle principles, non-goals, PoC acceptance criteria
+status: draft v3.3 — register FROZEN 2026-08-22; current review constraints applied; M0 PoC sketches retained as provisional coverage examples
+date: 2026-08-22
+owns: requirement register (the only place requirements are authored), lifecycle principles, non-goals, current PoC constraints and historical acceptance sketches
 ---
 
 # Product intent
@@ -205,7 +205,13 @@ Priority: **M** must · **S** should · **C** could. "Brief §" = section of the
 | XC-03 | M | Reuse ladder honored with evidence: configuration/composition → thin adapter → upstream-friendly extension → selective licensed reuse → fork only if necessary → new implementation only if nothing else satisfies. | 14 |
 | XC-04 | S | All automated actions (spawns, invocations, proposals) are auditable. | 6, 9 |
 
-## 4. Minimal PoC acceptance criteria (definitions only — no PoC code in this phase)
+## 4. Historical M0 PoC acceptance sketches (definitions only — no PoC code in this phase)
+
+> These three sketches are preserved as requirement-coverage examples, not as
+> an approved implementation plan or sequence. A re-baselined plan may change
+> their run count, schemas, synthesis, ordering, and gates, but its first pass
+> must include Claude Code, Codex, and Grok Build. Hermes and OpenClaw are
+> deferred. See [ev:m0-product-architecture-review-2026-08-22#F3].
 
 **PoC A — reusable Assistant, interchangeable harness.** One `code-reviewer` Assistant definition. Run 1 executes it on Codex; Run 2 on Claude Code; Run 3 on both independently followed by a synthesis step. Pass if: the definition file is byte-identical before and after all three runs; each run produces a review of the same target; Run 3's synthesis lists agreements and disagreements with per-harness attribution; each HarnessInvocation is recorded. Covers AD-04, AD-08, HB-02, HB-03, HB-05, HB-07.
 
@@ -213,11 +219,19 @@ Priority: **M** must · **S** should · **C** could. "Brief §" = section of the
 
 **PoC C — nested TeamRun.** One visible Assistant receives a complex task, creates a temporary inner TeamRun, collects the result, reports back, and the inner run is ended/archived while the outer run continues. Pass if: the inner run's tasks/messages are isolated from the outer run; the result is returned to the creating Member; the inner run is archived; nothing of the inner run leaks into any persistent definition. Covers TE-05, TE-07, EV-04.
 
-Constraints for all PoCs: no Telegram or OpenClaw required unless the analysis proves necessity; must be runnable on this host (Ubuntu, no tmux) and have a documented path for Windows/macOS (TE-08).
+Current constraints for any re-baselined PoC plan: no Telegram or OpenClaw is
+required; native/live execution uses subscription OAuth on the owner's
+persistent host; hosted Windows/macOS CI carries no live credentials and
+verifies deterministic plumbing rather than model behavior; advisory controls
+must be bypass-visible and audited, while production claims require mechanical
+enforcement. The detailed run plan is not yet approved
+[ev:m0-product-architecture-review-2026-08-22#F2]
+[ev:m0-product-architecture-review-2026-08-22#F5]
+[ev:m0-product-architecture-review-2026-08-22#F10].
 
 ## 5. Non-goals of this phase
 
-- No production code; no PoC implementation (PoCs are *defined* in `minimal-poc-plan.md`).
+- No production code; no PoC implementation. The M0 sketches in `minimal-poc-plan.md` are provisional and require re-baselining before implementation.
 - No ATM architecture inheritance by default (demotions enumerated in `legacy-atm-disposition.md`).
 - No commitment yet to project name, implementation language, or upstream engagement (tracked in `.project-steward/QUESTIONS.md`).
 

@@ -11,12 +11,14 @@ sources:
   - {kind: web, ref: https://docs.openclaw.ai/tools/acp-agents | /tools/subagents | /channels/telegram | /concepts/multi-agent, accessed: 2026-08-21}
   - {kind: web, ref: https://github.com/openclaw/openclaw/issues/41004 | /issues/31671, accessed: 2026-08-21}
   - {kind: web, ref: https://core.telegram.org/bots/faq | /bots/api | /bots/api-changelog | /bots/features | /api/bots/bot-to-bot, accessed: 2026-08-21, version: Bot API 10.2 (2026-07-14)}
+  - {kind: web, ref: https://core.telegram.org/api/bots/managed-bots | /api/bots/guest-mode | https://telegram.org/blog/ai-bot-revolution-11-new-features | /blog/communities-editor-invisible-messages, accessed: 2026-08-22}
+  - {kind: repo, ref: /home/wsh/.nvm/versions/node/v24.16.0/lib/node_modules/openclaw/{docs,dist} negative feature-symbol recheck, accessed: 2026-08-22, version: 2026.7.1-2}
 method: Read every kit doc/template/example with line numbers; grepped kit for term coverage; ran read-only OpenClaw CLI help/list/schema commands (no gateway start, no prompts sent); parsed `openclaw config schema` JSON (2.4 MB) with a masking script; read the version-matched docs shipped inside the installed npm package; grepped installed dist for error strings; fetched official Telegram and OpenClaw web pages; restated ATM V11–V13 and re-verified each.
 platform: {os: Ubuntu (Linux 5.15), tmux: absent, cli_versions: {openclaw: "2026.7.1-2 (0790d9f)", acpx: "not installed (not on PATH; no acpx plugin in `openclaw plugins list`)", node: v24.16.0}}
 author_agent: ev:openclaw-kit-native
 date: 2026-08-21
 confidence: high
-status: draft
+status: current with 2026-08-22 Telegram/OpenClaw addendum
 ---
 # openclaw-multi-agent-kit conventions, OpenClaw native multi-agent (installed), and Telegram Bot API — verification
 
@@ -181,7 +183,7 @@ Terminology note: the kit and OpenClaw say "agent", "persona", "subagent", "chan
 - Evidence: openclaw package docs/tools/subagents.md:12,341-348,371-379,384-395,409-410,436-441; web docs.openclaw.ai/tools/subagents (same, accessed 2026-08-21); schema `agents.list.subagents` keys.
 - Level: verified
 - Requirements: TE-04, TE-05, TE-07, TC-05, AD-07
-- Suggested fit cell: OpenClaw → P! for TE-04/AD-07 (hidden spawn + audit via `openclaw audit`/`tasks`); Xs~ for TE-05 (depth-2 orchestrator pattern gives a tree of sessions but no TeamRun boundary/result object; see §3)
+- Suggested fit cell: OpenClaw → S! for TE-04 and AD-07 (non-user-roster child + audit/archive; portable persona-object caveat belongs to AD-01); Xs~ for TE-05 (depth-2 orchestrator pattern gives a tree of sessions but no TeamRun boundary/result object; see §3)
 
 ### F22. Audit/recording surfaces exist: `openclaw audit`, `openclaw tasks`, `sessions export-trajectory`
 - Claim: `openclaw audit` "Inspect metadata-only agent run and tool action records" (`--kind agent_run|tool_action`, `--agent`, `--run`, `--session`, `--status started|succeeded|failed|cancelled|timed_out|blocked`); `openclaw tasks` "Inspect durable background tasks and TaskFlow state" (`--runtime subagent|acp|cron|cli`); `openclaw sessions export-trajectory` "Export a redacted trajectory bundle for a stored session"; live docs: "For a child started through `sessions_spawn`, the child owns a new context; it never reuses or mutates the parent context. The lineage projection links the parent context".
@@ -264,8 +266,8 @@ Terminology note: the kit and OpenClaw say "agent", "persona", "subagent", "chan
 - Requirements: MS-02, MS-04
 - Suggested fit cell: n/a
 
-### F33. V12 "What cannot be automated via Bot API?" → today: **confirmed**
-- Claim: ATM row: "Creating groups (user-only MTProto methods …); creating bots / issuing tokens / toggling privacy & bot-to-bot mode (BotFather only). Once a human adds a bot (as admin), the API covers `promoteChatMember`, `setChatPermissions`, `createForumTopic`, invite links, pins". Today: no group/bot-creation method in Bot API 10.2; `createForumTopic` exists (6.3, `can_manage_topics`); OpenClaw exposes it as `createForumTopic`/`topic-create` action; kit INSTRUCTIONS.md:53 "(you cannot do this programmatically)" for BotFather steps agrees.
+### F33. V12 "What cannot be automated via Bot API?" → **Bot API confirmed; broader platform changed**
+- Claim: The Bot API still has no group-creation or bot-creation method, while it does cover `promoteChatMember`, `setChatPermissions`, `createForumTopic`, invite links and pins. However, "bot creation is BotFather-only" is no longer true for the Telegram platform as a whole: a user-authorized MTProto managed-bot flow now lets an approved manager bot create and manage bots (F36). This does not add such a method to the Bot API.
 - Evidence: agent-team-manager-dev/docs/design/feasibility-report.md:35; F30 sources; openclaw package docs/channels/telegram.md:512-516.
 - Level: web + observed
 - Requirements: MS-02, XC-02
@@ -285,6 +287,34 @@ Terminology note: the kit and OpenClaw say "agent", "persona", "subagent", "chan
 - Requirements: HB-01, XC-02
 - Suggested fit cell: n/a
 
+### F36. Managed bots add a user-authorized MTProto creation path — **new platform capability**
+- Claim: Telegram documents managed bots that an approved manager bot can create and control after user authorization. This is an MTProto/user-authorized flow, not a Bot API method and not evidence that OpenClaw can provision managed bots.
+- Evidence: https://core.telegram.org/api/bots/managed-bots; https://telegram.org/blog/ai-bot-revolution-11-new-features (accessed 2026-08-22).
+- Level: web
+- Requirements: MS-02, XC-02
+- Suggested fit cell: no change — Telegram platform capability; OpenClaw adapter support unverified
+
+### F37. Guest bots and bot-to-bot communication broaden Telegram delivery — **new/changed**
+- Claim: Telegram documents guest bots that can be mentioned where they are not members, plus opt-in bot-to-bot communication. These affect surface reachability and bot deployment choices; they do not create a TeamRun, task DAG, or coordination substrate.
+- Evidence: https://core.telegram.org/api/bots/guest-mode; https://core.telegram.org/api/bots/bot-to-bot; https://telegram.org/blog/ai-bot-revolution-11-new-features (accessed 2026-08-22).
+- Level: web
+- Requirements: MS-02, MS-04
+- Suggested fit cell: no change
+
+### F38. Communities and ephemeral messages are surface features — **new platform capability**
+- Claim: Telegram Communities group channels, groups, and bots at the client/product layer. Telegram also documents commands/messages visible only to the bot and one group member. Neither feature is an ATS Team semantic, and Telegram's UI visibility is not proof of AD-07 hidden-Member behavior in ATS.
+- Evidence: https://telegram.org/blog/communities-editor-invisible-messages; https://core.telegram.org/bots/api (accessed 2026-08-22).
+- Level: web
+- Requirements: AD-07, MS-02, MS-04
+- Suggested fit cell: no change
+
+### F39. Installed OpenClaw 2026.7.1-2 does not establish support for the newly checked features
+- Claim: Read-only searches of installed OpenClaw docs and distribution found no guest-chat, managed-bot creation, or Telegram ephemeral-message handling symbols. The installed Telegram adapter documentation remains mature for DMs/groups, topics, multi-account routing, streaming, and rich messages. Therefore the new Telegram capabilities are recorded as platform-available/OpenClaw-support-unverified. They do not re-score MS-02, and MS-04 remains unchanged because surface topology must not define Team semantics.
+- Evidence: installed OpenClaw 2026.7.1-2 `{docs,dist}` negative search; [ev:m0-product-architecture-review-2026-08-22#F6].
+- Level: verified negative search + installed docs; runtime unverified
+- Requirements: MS-02, MS-04, XC-02
+- Suggested fit cell: no change
+
 ## 3. Negative findings
 
 - **No team/template/nested-team object in OpenClaw.** Installed docs grep (ugrep, fixed strings, case-insensitive): `'team template' → 0 files`, `'TeamTemplate' → 0`, `'nested team' → 0`, `'sub-team' → 0`, `'role package' → 0`, `'agent template' → 0`; `'Nested sub-agents' → 2` (tools/subagents.md, docs_map) and `'maxSpawnDepth' → 3` — nesting is a per-agent *session* tree (depth 1–5) with announces, not a TeamRun with a result/archive boundary. `'team' → 83 files` but only as `bindings.match.teamId` ("team/workspace ID constraint used by providers", e.g. Slack) and prose. Web docs.openclaw.ai/concepts/multi-agent: "no mentions of 'team', 'template', or 'nested' agent concepts" (accessed 2026-08-21). `openclaw --help` has no `team*`/`template*` command (commands listed in §6).
@@ -299,7 +329,7 @@ Terminology note: the kit and OpenClaw say "agent", "persona", "subagent", "chan
 
 - openclaw-multi-agent-kit: MIT, `openclaw-multi-agent-kit/LICENSE` ("Copyright (c) 2026 Raul Vidis"); last commit 2026-07-10 (`5d6418d`). Docs-only; platform-neutral text but assumes `~/.openclaw/...` POSIX paths and `npm install -g acpx`.
 - OpenClaw 2026.7.1-2: MIT (`package.json` license field; `LICENSE` + `THIRD_PARTY_NOTICES.md` in the installed package; npm registry `"license":"MIT"`). Installed via npm (Node v24.16.0) on Ubuntu; `openclaw daemon` help mentions "launchd/systemd/schtasks" → macOS/Linux/Windows service install paths exist; `--container` flag for Podman/Docker; `sandbox` requires Docker. Not probed on Windows/macOS here.
-- Telegram Bot API terms: bots/tokens/privacy/bot-to-bot mode are BotFather-only (human); rate limits 1 msg/s per chat, 20/min per group, ~30/s broadcast (FAQ, accessed 2026-08-21). Using a bot token from two pollers conflicts (409).
+- Telegram Bot API operations still do not create bots/groups; BotFather remains the ordinary human configuration route for tokens/privacy/bot-to-bot mode. Separately, Telegram now documents a user-authorized MTProto managed-bot flow (F36). Rate limits and single-poller token constraints remain as recorded.
 - This host: Ubuntu, no tmux; OpenClaw gateway configured local/loopback (not started by this probe).
 
 ## 5. Open questions
