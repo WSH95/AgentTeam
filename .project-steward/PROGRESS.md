@@ -2,6 +2,9 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-23T10:13:36Z — cli
+Independent review of the M0/M0.1 package at 3407ec9 (22 substantive + 14 hygiene findings; three read-only audits reconciled) written to docs/reviews/; independent M1 proposal written to docs/plans/m1-agentteam-direct-slice.md; owner decisions recorded as ADR 0018; QUESTIONS/PLAN/RISKS appended. No code; no edits to discovery documents or the M1a plan.
+
 ### 2026-08-23T09:59:52Z — cli
 Kept prospective API-test documentation provider-neutral; preserved generic contracts and factual third-party evidence; validation passed
 

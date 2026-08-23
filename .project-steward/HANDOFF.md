@@ -1,13 +1,27 @@
 ---
-updated_at: 2026-08-23T09:59:52Z
+updated_at: 2026-08-23T10:13:36Z
 updated_by: cli
 session_status: closed
 branch: main
-last_commit: 223beb6
+last_commit: 6e4ab00
 ---
 # Handoff
 
 ## Now
+
+An owner-requested **independent review of the M0/M0.1 baseline at `3407ec9`**
+is complete and recorded: `docs/reviews/2026-08-23-m0-review-at-3407ec9.md`
+(22 substantive + 14 hygiene findings, three read-only audits reconciled; valid
+for `3407ec9` only — ADRs 0012–0017 post-date it) and an independent M1 proposal
+for comparison, `docs/plans/m1-agentteam-direct-slice.md`. The owner's decisions
+on the review are ADR 0018: assumptions (a)–(l) are historical panel inputs;
+ClawTeam's fate is measured in PoC B under a written exit criterion with a local
+deterministic provider built first; first use is code/dev teams; plan approval
+is a DECISIONS entry naming file + SHA; all-three-harness gate, Python/`uv`,
+tier policy, English-only and AgentTeam/`atm` reaffirmed. The M1a plan was
+deliberately not read by that session; **two candidate M1 plans now exist and
+the owner merges or selects** before the approval step. No code, no edits to the
+discovery documents or the M1a plan.
 
 The owner-requested provider-neutral documentation amendment is complete and
 validated. Current tracked documentation selects no prospective API-test
@@ -25,40 +39,48 @@ optional provider, exact-pinned and confined to one owned compatibility module;
 it never launches harnesses and initially claims namespace separation only.
 
 This handoff is included in the local commit
-`docs(architecture): keep API test route provider-neutral`; `last_commit` above
-is its pre-change baseline because a commit cannot record its own final SHA.
+`docs(review): independent review of M0/M0.1 at 3407ec9, M1 direct-slice plan, decisions recorded`;
+`last_commit` above is its pre-change baseline because a commit cannot record its
+own final SHA.
 The M1a direct harness plan remains **proposed for multi-agent review and is not
 approved for product implementation**. No product code exists.
 
 ## In flight
 
-Nothing is in flight. The expected documentation-only dirty set consists of
-five architecture/plan/evidence documents plus Project Steward decision, plan,
-question, risk, verification, progress, handoff, and metadata records. No source
-scaffold, dependency install, repository move, credential operation, model
-invocation, CI workflow change, remote creation, or push occurred.
+Nothing is in flight. The expected documentation-only dirty set for this
+session consists of two new documents (`docs/reviews/…`, `docs/plans/m1-agentteam-direct-slice.md`)
+plus appended Project Steward decision (ADR 0018), question, plan, risk, progress
+and handoff records. No source scaffold, dependency install, repository move,
+credential operation, model invocation, CI workflow change, remote creation, or
+push occurred. The earlier provider-neutral amendment is already committed (`6e4ab00`).
 
-Validation passes: 50 tracked Markdown files, 12 local links with zero broken,
-60 balanced fence markers, zero candidate model/endpoint/credential/key-prefix
-identifiers, exactly one provider-name occurrence in the factual ClawTeam
-preset list, zero common key/private-key patterns, and `git diff --check`.
-The 54×11 fit-gap matrix is untouched and was not semantically rerun.
+Validation for this session: 52 tracked Markdown files; the two new documents'
+13 repo-path references all resolve except the future `docs/design/agentteam-m1-design.md`,
+which is named as a T1 deliverable, not linked; no code fences; zero key/private-key
+patterns in changed files; `git diff --check` clean. The earlier provider-neutral
+checks (zero candidate identifiers; one factual ClawTeam preset occurrence) were
+not re-run because no document they cover was touched. The 54×11 fit-gap matrix
+is untouched.
 
 ## Next steps
 
-1. Have the other agents review
+1. Read `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and compare
+   `docs/plans/m1-agentteam-direct-slice.md` with `docs/plans/m1a-direct-harness-poc.md`;
+   merge or select, fold the agreed review findings (R/H lists) into the review
+   resolution, and record the outcome as a DECISIONS entry.
+2. Have the other agents review
    `docs/plans/m1a-direct-harness-poc.md`, especially section 21, against the
    original requirements and ADRs 0014–0017. Do not start G1 during review.
-2. Apply only agreed plan/document corrections, rerun the checks in
+3. Apply only agreed plan/document corrections, rerun the checks in
    `.project-steward/VERIFY.md`, and commit the review resolution.
-3. After the owner explicitly approves the final reviewed plan, change its
+4. After the owner explicitly approves the final reviewed plan, change its
    status to `approved`, record G0/approval in Project Steward, and commit that
    decision before product work.
-4. Execute G1 only under that approval: confirm a clean tree and absent target,
+5. Execute G1 only under that approval: confirm a clean tree and absent target,
    move the same repository to `/home/wsh/Documents/AgentTeam`, add root product
    files, and preserve historical evidence. The future managed AGENTS command
    table update requires its own shown diff/approval after the scaffold exists.
-5. Follow G2–G8 in order. Native login, live subscription calls, public GitHub
+6. Follow G2–G8 in order. Native login, live subscription calls, public GitHub
    repository creation, and every push remain separate visible gates.
 
 ## Blockers
@@ -76,6 +98,10 @@ The 54×11 fit-gap matrix is untouched and was not semantically rerun.
 
 ## Key files
 
+- `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` — independent review of
+  the `3407ec9` baseline (findings R1–R22, H1–H14; decisions in ADR 0018).
+- `docs/plans/m1-agentteam-direct-slice.md` — independent M1 proposal for
+  comparison with M1a; not approved.
 - `docs/discovery/architecture-options.md` — current architecture constraints;
   prospective API testing is explicitly unselected.
 - `docs/discovery/harness-broker-model.md` — provider-neutral execution-mode
@@ -129,3 +155,6 @@ The 54×11 fit-gap matrix is untouched and was not semantically rerun.
 - Full live evidence will be sensitive local state: gitignored, owner-only,
   and never automatically committed or uploaded.
 - The commit is local only. Never push without explicit approval.
+- The independent review is dated to `3407ec9`; it does not account for ADRs
+  0012–0017 or the M1a plan, which may already address some of its findings.
+  Treat overlaps as confirmation, not as new work.

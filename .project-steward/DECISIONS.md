@@ -172,3 +172,32 @@ Unrelated factual third-party inventories remain intact.
 history retains their earlier wording. M1a CI remains deterministic and
 credential-free, no API-test route is approved, and any later selection needs
 its own evidence, owner approval, and decision update.
+
+## 0018 — 2026-08-23 — Independent review of the `3407ec9` baseline recorded; decisions taken on its findings
+
+**Context**: At the owner's request a Claude session reviewed the M0/M0.1 package
+strictly at commit `3407ec9` — without reading the M1a plan or ADRs 0012–0017 —
+and wrote an independent next-step proposal; the owner answered eight questions
+the review raised. Records: `docs/reviews/2026-08-23-m0-review-at-3407ec9.md`
+(22 substantive + 14 hygiene findings, three read-only audits reconciled) and
+`docs/plans/m1-agentteam-direct-slice.md`.
+**Decision**: (1) The tiebreak assumptions (a)–(l) quoted in
+`architecture-options.md` §5.0 are historical, session-authored panel inputs,
+not owner decisions; later plans restate only what they need. (2) ClawTeam's
+place in team execution is decided by measurement in PoC B under a written exit
+criterion drafted before PoC B starts; a local deterministic coordination
+provider is built first (deterministic tier / CI). This complements ADR 0015
+(optional, exact-pinned, in-process seam) and does not reopen it. (3) The first
+real use is code/dev teams: PoC A → B → C in the brief's order; no early
+operational-mode slice. (4) Approval of any plan is recorded as a DECISIONS
+entry naming the plan file and commit SHA (review R20). Reaffirmed, not
+re-decided: all three first-pass harnesses required for PoC A (ADR 0011/0013;
+review R4 kept as a recorded dissent), Python `>=3.11` + `uv` (ADR 0014), the
+deterministic tier as precondition with live evidence as the only passing tier
+(QUESTIONS Q8), English-only documentation, and AgentTeam / `atm` naming.
+**Consequences**: Two candidate M1 plans exist (`docs/plans/m1a-direct-harness-poc.md`,
+owner; `docs/plans/m1-agentteam-direct-slice.md`, independent); the owner merges
+or selects. Review hygiene items H1–H14 and findings R7/R19/R21/R22 are tracked
+as cleanup work in the next plan (T0), not fixed retroactively inside the dated
+review. The review is valid for `3407ec9` only; ADRs 0012–0017 post-date it and
+may already address some findings.

@@ -39,6 +39,7 @@ The document is review-only until the owner explicitly approves it.
 - [x] Commit the proposed plan and steward records as the multi-agent review baseline
 - [x] Re-baseline the plan and current architecture documents for Python 3.11+/`uv`, a language-neutral edge, a built-in direct runner, and optional in-process coordination providers
 - [x] Keep prospective API-test provider/model/endpoint selection unspecified across tracked documentation; preserve generic profile and secret-handling contracts
+- [x] Independent review of the `3407ec9` baseline recorded (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`) with an independent M1 proposal for comparison (`docs/plans/m1-agentteam-direct-slice.md`); owner decisions in ADR 0018 — owner merges/selects before the approval step
 - [ ] Incorporate multi-agent review findings without starting implementation
 - [ ] Obtain explicit owner implementation approval, mark the reviewed plan `approved`, and commit any review resolutions
 - [ ] G1 — rename/re-baseline the local project as AgentTeam

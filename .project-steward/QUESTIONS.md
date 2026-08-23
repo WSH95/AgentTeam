@@ -67,3 +67,24 @@ approves that plan.
 - [x] The owner approved the exact one-time `AGENTS.md` identity/stack wording
   shown during planning; the managed command block remains unchanged until
   product scaffolding exists.
+
+## Raised by the 2026-08-23 independent review of `3407ec9`
+
+See `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and ADR 0018.
+
+- [ ] Write the ClawTeam exit criterion before PoC B (review R2/R13): for example,
+  the ClawTeam provider stays only if provider + workarounds are ≤ 1.5× the local
+  deterministic provider's LOC and the two-roster / on-exit-noise caveats are
+  accepted in writing; otherwise the local provider becomes the product path.
+- [ ] HB-03 precedence: the frozen register says user > Assistant > default; the
+  living documents say user > Assistant > team > default. Amend the register
+  (v3.4) or the glossary, and decide whether a team-level *constraint*
+  (reviewer ≠ implementer harness) binds above an Assistant preference (review R7).
+- [ ] User-specific preferences in the Base definition vs User-Overlay-only
+  (`assistant-domain-model.md` §13 Q1; review R15) — decide before overlay work.
+- [x] Tiebreak assumptions (a)–(l): historical, session-authored panel inputs,
+  not owner decisions (ADR 0018).
+- [x] First real use: code/dev teams; PoC A → B → C order; operational mode
+  after PoC C (ADR 0018).
+- [x] Grok Build stays a required first-pass harness (reaffirmed; review R4 is
+  recorded as a dissent; its probes are day-one blockers).
