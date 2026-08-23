@@ -7,7 +7,9 @@ must not guess. Answered items remain here for traceability.
 
 - [ ] Q4. Whether/when to file the bounded ClawTeam issues/PRs. Plan capability as if none merges.
 - [ ] Q6. Whether a later mixed-team expansion should include Hermes, and what evidence should gate that expansion. Hermes and OpenClaw are deferred from the first pass.
-- [ ] Timing and target for the deferred API-test canary. The current OpenRouter `stealth/ox-alpha` route is temporary/replaceable and unverified; no key is needed until a canary is explicitly approved.
+- [ ] Timing and target for any deferred API-test canary. No provider,
+  endpoint, or model is selected; no key is needed unless a canary is
+  separately approved.
 
 ## Current review gate
 
@@ -24,7 +26,9 @@ approves that plan.
 - [x] Q7. ATM is owner-authored and internally reusable by AgentTeam without a separate licence grant. Record copy/adaptation provenance and retain third-party notices/terms; public licensing is still separate.
 - [x] Q11. Solo/direct execution remains in scope.
 - [x] First-pass harnesses are Claude Code + Codex + Grok Build. Hermes/OpenClaw are deferred.
-- [x] The current API model is test-only and replaceable; no availability, price, behavior, or compatibility claim exists until a canary is run.
+- [x] No API-test provider, endpoint, or model is currently selected; no
+  availability, price, behavior, or compatibility claim exists until a canary
+  is run.
 - [x] Register-gap disposition: AR-06 added; isolation folded into TC-03; approval integrity into EV-05; export/import into AR-03; platform-vs-harness into XC-02; trust zones deferred.
 
 ## Answered in the 2026-08-23 M1a planning pass

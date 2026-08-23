@@ -3,6 +3,27 @@
 How to check the project is healthy. This is a documentation-only discovery
 phase; there is no build, product code, or automated product test suite yet.
 
+## Current provider-neutral documentation verification — 2026-08-23
+
+| Check | Result |
+| --- | --- |
+| Documentation-only scope | PASS — architecture, planning, evidence, and Project Steward records only; no product code, dependency, credential operation, model call, CI workflow, remote change, or push |
+| Prospective-route neutrality | PASS — 0 candidate model, endpoint, credential-variable, or key-prefix identifiers; the provider-name inventory has exactly 1 occurrence, confined to the factual ClawTeam preset list |
+| Generic contract retention | PASS — provider/profile/protocol/model fields remain conceptual; credentials remain environment-name-only; API mode remains separate from native auth with no fallback |
+| CI and approval boundary | PASS — M1a hosted CI remains deterministic and credential-free; no API-test route is selected or approved and product implementation remains review-gated |
+| Decision/history traceability | PASS — ADR 0017 records the neutrality rule; candidate-context history remains recoverable from Git while unrelated third-party capability evidence is preserved |
+| Local Markdown targets | PASS — 50 tracked Markdown files scanned, 12 local links checked, 0 broken |
+| Markdown fences | PASS — 60 fence markers across 50 tracked Markdown files, 0 unbalanced files |
+| Secret-pattern scan | PASS — 0 common API-key-shaped values and 0 private-key headers |
+| Patch hygiene | PASS — `git diff --check` exits 0 |
+
+Validation removes tentative route selection from current tracked documentation;
+it does not choose or test a provider/model, change CI, approve M1a, or run a
+vendor harness.
+
+Last verified: 2026-08-23 by Codex (documentation-only; no credential values or
+model prompts used).
+
 ## Current Python/optional-provider rebaseline verification — 2026-08-23
 
 | Check | Result |
@@ -36,7 +57,7 @@ model prompts used).
 | Volatile primary-source check | PASS — Node 22/24 remain LTS; Claude auth/env precedence and Codex model/effort/profile configuration rechecked; Anthropic's Help Center says the separate Agent SDK/`claude -p` credit change is paused |
 | Local Markdown targets | PASS — the five project-local plan sources and the PLAN-to-plan link resolve |
 | Markdown fences | PASS — 14 fence markers (7 balanced blocks) in the proposed plan |
-| Secret-pattern scan | PASS — 0 OpenRouter-key-shaped values and 0 private-key headers in the planning/steward scope |
+| Secret-pattern scan | PASS — 0 candidate-route-key-shaped values and 0 private-key headers in the planning/steward scope |
 | Patch hygiene | PASS — `git diff --check` exits 0 |
 
 The proposed plan is
@@ -57,7 +78,7 @@ model prompts used).
 | Canonical architecture answer | PASS — exactly 3 copies and 0 byte-level line mismatches across `architecture-options.md`, `minimal-poc-plan.md`, and discovery `README.md` |
 | Local Markdown links | PASS — 47 Markdown files scanned, 12 local `.md` links checked, 0 broken |
 | Placeholder inventory | PASS with 3 intentional matches — all mark the still-open implementation-language decision (`PROJECT.md` once; `reuse-vs-build-analysis.md` twice) |
-| Secret-pattern scan | PASS — 0 OpenRouter-key-shaped values and 0 private-key headers |
+| Secret-pattern scan | PASS — 0 candidate-route-key-shaped values and 0 private-key headers |
 | Patch hygiene | PASS — `git diff --check` exits 0 |
 
 The fit-gap regression is deliberately **structural**, not a second semantic
@@ -66,7 +87,7 @@ drop, duplicate, shift, or corrupt a requirement row. The M0 matrix is trusted
 except for the targeted AD-07 semantic correction documented in
 `docs/discovery/evidence/m0-product-architecture-review-2026-08-22.md` F9.
 
-No model prompt, OpenRouter request, live ClawTeam run, live OpenClaw run, or
+No model prompt, API-test-provider request, live ClawTeam run, live OpenClaw run, or
 Windows/macOS execution was performed. Hosted CI coverage is a future
 milestone requirement, not evidence already obtained. No credential value or
 authentication file was inspected.

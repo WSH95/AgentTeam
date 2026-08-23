@@ -35,7 +35,10 @@ Execution modes are deliberately separate:
 - `native-subscription`: invoke the vendor CLI with its existing OAuth login on the owner's persistent host; no credential value is copied, exported, or placed in hosted CI.
 - `api-test`: invoke a replaceable provider/model route whose conceptual data is provider id, base URL, wire protocol, model id, and credential **environment-variable name**. The value is runtime-only. This mode never silently replaces a failed native invocation.
 
-The current OpenRouter `stealth/ox-alpha` route is test-only and unverified; its URL/model may change. These are conceptual fields, not a final provider schema [ev:m0-product-architecture-review-2026-08-22#F4].
+No API-test provider, endpoint, or model is selected. These remain conceptual,
+replaceable profile fields rather than a final provider schema; any future
+canary requires separate owner approval and verification
+[ev:m0-product-architecture-review-2026-08-22#F4].
 
 Illustrative profile for Claude Code, from [ev:harness-cli-capabilities-a#F1–F15,F19] (illustrative, not a schema):
 

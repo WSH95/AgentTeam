@@ -2,6 +2,9 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-23T09:59:52Z — cli
+Kept prospective API-test documentation provider-neutral; preserved generic contracts and factual third-party evidence; validation passed
+
 ### 2026-08-23T09:19:12Z — codex
 [auto-checkpoint] Re-baselined AgentTeam documentation and M1a proposal for Python/uv, language-neutral edges, a built-in direct runner, and an optional in-process ClawTeam provider; validation passed and product implementation remains review-gated.
 

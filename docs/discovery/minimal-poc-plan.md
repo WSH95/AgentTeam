@@ -20,7 +20,9 @@ Discovery proposed the smallest layer in `architecture-options.md` §5. The curr
 
 - First-pass harnesses: Claude Code 2.1.241, Codex 0.149.0, and Grok Build 1.0.5. Hermes/OpenClaw are deferred.
 - Native/unattended live runs: subscription OAuth on the owner's persistent host. Claude uses `--safe-mode --no-session-persistence`; `--bare` disables OAuth. Hosted CI receives no live credentials.
-- API-test mode: separate, replaceable provider profile; current `stealth/ox-alpha` is temporary and unverified. Store only the credential environment-variable name, never a key value. Do not fall back from native auth to this mode.
+- API-test mode: separate, replaceable provider profile; no provider, endpoint,
+  or model is selected. Store only the credential environment-variable name,
+  never a key value. Do not fall back from native auth to this mode.
 - Cross-platform: GitHub-hosted Windows/macOS CI verifies deterministic direct-path plumbing at M1a and the optional ClawTeam import/coordination seam separately. It cannot prove live auth/model behavior.
 - Enforcement: bypass-visible/audited advisory controls are acceptable for PoC evidence; production claims require mechanical enforcement. UI hiding is a projection.
 - ATM: internal copy/adaptation is authorized; preserve provenance and third-party notices.

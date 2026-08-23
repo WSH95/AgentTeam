@@ -38,6 +38,7 @@ The document is review-only until the owner explicitly approves it.
 - [x] Draft the exact direct-first implementation sequence, contracts, CLI, test matrix, live acceptance bar, publication gate, and stop rules
 - [x] Commit the proposed plan and steward records as the multi-agent review baseline
 - [x] Re-baseline the plan and current architecture documents for Python 3.11+/`uv`, a language-neutral edge, a built-in direct runner, and optional in-process coordination providers
+- [x] Keep prospective API-test provider/model/endpoint selection unspecified across tracked documentation; preserve generic profile and secret-handling contracts
 - [ ] Incorporate multi-agent review findings without starting implementation
 - [ ] Obtain explicit owner implementation approval, mark the reviewed plan `approved`, and commit any review resolutions
 - [ ] G1 — rename/re-baseline the local project as AgentTeam

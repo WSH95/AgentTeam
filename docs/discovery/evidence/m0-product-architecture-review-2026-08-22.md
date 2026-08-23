@@ -1,7 +1,7 @@
 ---
 id: ev:m0-product-architecture-review-2026-08-22
 topic: M0 product/architecture review, current CLI verification, and owner-supplied constraints
-systems: [Assistant Team System, Claude Code, Codex CLI, Grok Build, OpenClaw, Telegram, OpenRouter, ATM]
+systems: [Assistant Team System, Claude Code, Codex CLI, Grok Build, OpenClaw, Telegram, ATM]
 date: 2026-08-22
 confidence: high for local CLI/help results; mixed where explicitly marked web-only or untested
 status: current
@@ -26,7 +26,7 @@ Methods were deliberately credential-free and non-mutating:
 - repository consistency checks (`git diff --check`, placeholder scan, and a
   secret-pattern filename/value scan).
 
-No model prompt was sent. No OpenRouter request was made. No credential value,
+No model prompt or API-test-provider request was sent. No credential value,
 account identifier, or authentication file was read into this report.
 
 ## 2. Findings
@@ -86,33 +86,31 @@ skins differ:
 
 - Codex custom providers use a Responses-compatible `base_url` and an
   environment-key reference.
-- Claude Code gateways use the Anthropic Messages interface; OpenRouter's
-  documented base is `https://openrouter.ai/api`.
+- Claude Code gateways use the Anthropic Messages interface.
 - Grok supports custom model/provider configuration for OpenAI-compatible
   endpoints.
 
-The current `stealth/ox-alpha` choice is **test-only and replaceable**. A future
-provider profile must keep provider id, base URL, protocol, model, and
-credential environment-variable name as data. It must never contain the key
-value. A test-gateway API key is not a fallback for a failed native
-subscription-OAuth run.
+No API-test provider, endpoint, or model is selected. A future provider profile
+must keep provider id, base URL, protocol, model, and credential
+environment-variable name as data. It must never contain the key value. A
+test-gateway API key is not a fallback for a failed native subscription-OAuth
+run.
 
-The owner deferred the OpenRouter canary. No result, cost, availability, or
-native-harness equivalence is claimed.
+Any future API-test canary is deferred until the owner separately selects and
+approves a route. No result, cost, availability, or native-harness equivalence
+is claimed.
 
 Safe key handling for a later approved canary: do not paste the key into chat,
 prompts, repository files, command arguments, or logs. Set it locally through a
-process environment/secret store (for example, the conventional
-`OPENROUTER_API_KEY` name); ATS receives only that environment-variable name,
-checks presence without echoing the value, and redacts it from invocation
-records. Rotate the key if it is ever exposed. No key is needed now.
+process environment/secret store under an owner-selected environment-variable
+name. ATS receives only that name, checks presence without echoing the value,
+and redacts it from invocation records. Rotate the key if it is ever exposed.
+No key is needed now.
 
 Sources (accessed 2026-08-22):
 
 - https://learn.chatgpt.com/docs/config-file/config-reference
-- https://openrouter.ai/docs/cookbook/coding-agents/codex-cli
 - https://code.claude.com/docs/en/llm-gateway
-- https://openrouter.ai/docs/guides/coding-agents/claude-code-integration
 - https://docs.x.ai/build/overview
 
 Level: observed from official docs; live compatibility unverified.
@@ -189,7 +187,8 @@ Level: owner-supplied. Requirements: XC-01, XC-03, AR-06.
   discovery prose still explicitly marks the implementation language as
   undecided.
 - `git diff --check` passed.
-- No tracked file contains an OpenRouter-key-shaped `sk-or-v1-` value.
+- No tracked file contains a candidate-route-key-shaped value or private-key
+  header.
 
 Historical progress, panel, and critic artifacts remain unchanged; current
 indexes and verification state carry the correction.
@@ -220,8 +219,8 @@ XC-04.
 
 ## 3. Limitations and deferred verification
 
-- No OpenRouter/API call; no assertion about `stealth/ox-alpha` availability,
-  behavior, price, or compatibility.
+- No API-test-provider request; no assertion about any prospective provider or
+  model's availability, behavior, price, or compatibility.
 - No live Codex, Claude, Grok, OpenClaw, or ClawTeam model invocation.
 - No active Grok-authentication proof.
 - No Windows/macOS execution; only the future CI approach is fixed.

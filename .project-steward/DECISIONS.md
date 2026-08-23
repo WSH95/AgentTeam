@@ -63,7 +63,7 @@ canonical instruction file and CLAUDE.md as a thin Claude Code adapter.
 ## 0011 — 2026-08-22 — Fix execution modes, CI boundary, first-pass harnesses and reuse permission
 
 **Context**: Owner confirmations and current CLI/platform verification after M0.
-**Decision**: (1) Claude Code + Codex + Grok Build are required first-pass harnesses; Hermes/OpenClaw are deferred. (2) Native and unattended live runs use each CLI's subscription OAuth on the owner's persistent host; ATS does not broker third-party login, copy credential stores, or put live credentials in hosted CI. (3) API-test mode is separate/replaceable, stores credential environment-variable names only, and never substitutes for native auth; `stealth/ox-alpha` is temporary and unverified. (4) GitHub-hosted Windows/macOS CI proves deterministic direct/ClawTeam plumbing only. (5) Advisory PoC controls are acceptable only when bypass-visible/audited; production requires mechanical enforcement; hidden is UI projection. (6) ATM internal copy/adaptation is authorized with provenance and third-party obligations retained.
+**Decision**: (1) Claude Code + Codex + Grok Build are required first-pass harnesses; Hermes/OpenClaw are deferred. (2) Native and unattended live runs use each CLI's subscription OAuth on the owner's persistent host; ATS does not broker third-party login, copy credential stores, or put live credentials in hosted CI. (3) API-test mode is separate/replaceable, stores credential environment-variable names only, and never substitutes for native auth; provider, endpoint, and model selection remains deferred and unverified. (4) GitHub-hosted Windows/macOS CI proves deterministic direct/ClawTeam plumbing only. (5) Advisory PoC controls are acceptable only when bypass-visible/audited; production requires mechanical enforcement; hidden is UI projection. (6) ATM internal copy/adaptation is authorized with provenance and third-party obligations retained.
 **Consequences**: Current architecture/model/evidence documents use Claude `--safe-mode --no-session-persistence` for subscription mode, not `--bare`; open questions Q2/Q3/Q5/Q7 and the first-pass-harness question are closed; no API key is requested until a canary is explicitly approved.
 
 ## 0012 — 2026-08-23 — Adopt the AgentTeam product identity and TypeScript baseline
@@ -156,3 +156,19 @@ providers remain optional later integrations.
 **Consequences**: M1a may stop before TeamRun implementation without treating
 the broader requirements as optional. Each later milestone still needs its own
 reviewed implementation plan and explicit owner approval.
+
+## 0017 — 2026-08-23 — Keep prospective API-test routes provider-neutral
+
+**Context**: Candidate-specific route details appeared in current and historical
+documentation before any future CI or live API-test provider, endpoint, or model
+had been selected. That wording could be mistaken for an approved choice.
+**Decision**: Until the owner makes a separate selection, tracked documentation
+uses provider-neutral terms for prospective API testing and does not name a
+tentative provider, endpoint, model, credential-variable name, or provider URL.
+Generic profile fields, protocol distinctions, environment-only credential
+handling, redaction, and the prohibition on native-auth fallback remain.
+Unrelated factual third-party inventories remain intact.
+**Consequences**: Candidate-context passages are narrowly neutralized while Git
+history retains their earlier wording. M1a CI remains deterministic and
+credential-free, no API-test route is approved, and any later selection needs
+its own evidence, owner approval, and decision update.

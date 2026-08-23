@@ -135,7 +135,9 @@ These constraints supersede the dated assumptions above only where they conflict
 - GitHub-hosted Windows/macOS CI verifies deterministic direct-path plumbing and ClawTeam subprocess plumbing at their milestones. *[Superseded by §5.0.2 for ClawTeam: current CI qualifies the optional import/coordination seam and never adopts its subprocess backend.]* It carries no live credentials and proves neither live authentication nor model behavior.
 - Advisory controls are acceptable in a PoC when bypassability is visible and audited; production claims require mechanical enforcement. UI hiding is a projection, not an access-control claim.
 - ATM is owner-authorized for internal copy/adaptation; preserve provenance and third-party notices. At this review the permission did not select a public licence; ADR 0012 later selected MIT for AgentTeam without relicensing ATM wholesale.
-- OpenRouter `stealth/ox-alpha` is a temporary API-test-only model. Its canary is deferred; no availability, cost, quality, or native-harness equivalence is claimed.
+- No API-test provider, endpoint, or model is selected. Any future canary
+  requires separate approval and verification; no availability, cost, quality,
+  or native-harness equivalence is claimed.
 
 [ev:m0-product-architecture-review-2026-08-22#F2][ev:m0-product-architecture-review-2026-08-22#F3][ev:m0-product-architecture-review-2026-08-22#F4][ev:m0-product-architecture-review-2026-08-22#F5][ev:m0-product-architecture-review-2026-08-22#F7]
 

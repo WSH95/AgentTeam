@@ -435,7 +435,7 @@ Optional provider matrix:
 - `uv sync --frozen --all-groups --extra clawteam`;
 - ClawTeam compatibility tests only, with temporary data/config fixtures.
 
-CI has no vendor login, model call, API key, OpenRouter route, or secret
+CI has no vendor login, model call, API key, API-test route, or secret
 permission. Passing proves deterministic Python/path/process/archive/schema
 and optional-provider plumbing only.
 
