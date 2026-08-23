@@ -30,6 +30,11 @@ resolved in `uv.lock` (inspect with `uv tree --no-dev`). Development-only
 tools (pytest, Ruff, mypy, jsonschema, type stubs) are likewise declared in
 the `dev` dependency group.
 
+## AgentTeam-authored content
+
+The JSON Schemas under `schemas/` are AgentTeam-authored, generated from the
+Pydantic models in `src/agentteam/domain/`.
+
 ## Optional ClawTeam provider
 
 The optional `clawteam` extra is a **direct Git reference** to upstream

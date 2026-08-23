@@ -1,6 +1,6 @@
 # Discovery phase (M0) — AgentTeam
 
-Status: **M0 discovery delivered; M0.1 review and 2026-08-23 Python architecture rebaseline applied; M1a implementation approved (G0, DECISIONS 0021) and under way gate by gate**. Historical panel, critic, evidence, and progress records are preserved as dated records. No product code exists until M1a G2.
+Status: **M0 discovery delivered; M0.1 review and 2026-08-23 Python architecture rebaseline applied; M1a implementation approved (G0, DECISIONS 0021) and under way gate by gate**. Historical panel, critic, evidence, and progress records are preserved as dated records. The G2 scaffold (packaging, `atm` CLI skeleton, V1 schemas) exists at the repository root; the runner arrives with G3-G4.
 
 > **Naming amendment (2026-08-23, G1).** The product is **AgentTeam** (repository `WSH95/AgentTeam`, CLI `atm`; ADR 0012); "legacy ATM" denotes the superseded agent-team-manager experiment. Dated M0 records — panel proposals, judges, critics, evidence, the historical PoC plan, and PoC sketches in living documents — use the working name "Assistant Team System" and the working CLI name `ats`; they were deliberately not rewritten. Where a discovery document still describes Claude's subscription-compatible isolation as `--safe-mode --no-session-persistence`, the approved M1a plan §11 (revision r3) supersedes it: `--safe-mode` disables Skills, plugins, hooks, and MCP servers, so the recipe is a fresh `CLAUDE_CONFIG_DIR` plus `--setting-sources user`, `--strict-mcp-config`, tool restriction, and `--no-session-persistence`.
 

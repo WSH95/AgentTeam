@@ -1,0 +1,345 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:harness-profile-set:v1",
+  "$defs": {
+    "AuthMode": {
+      "enum": [
+        "native-subscription"
+      ],
+      "title": "AuthMode",
+      "type": "string"
+    },
+    "CapabilityRecordV1": {
+      "additionalProperties": false,
+      "description": "One harness capability row with its verification level.",
+      "properties": {
+        "name": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Name",
+          "type": "string"
+        },
+        "verification": {
+          "$ref": "#/$defs/Verification",
+          "default": "unverified"
+        },
+        "cli_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cli Version"
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Verified At"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "CapabilityRecordV1",
+      "type": "object"
+    },
+    "EffortMappingV1": {
+      "additionalProperties": false,
+      "description": "Maps the abstract `reasoning` hint to a local vendor effort value.",
+      "properties": {
+        "reasoning": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Reasoning",
+          "type": "string"
+        },
+        "effort": {
+          "title": "Effort",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reasoning",
+        "effort"
+      ],
+      "title": "EffortMappingV1",
+      "type": "object"
+    },
+    "EnvironmentNamesV1": {
+      "additionalProperties": false,
+      "description": "Environment-variable names only; values are never recorded.",
+      "properties": {
+        "config_home_variable": {
+          "description": "e.g. CLAUDE_CONFIG_DIR, CODEX_HOME, GROK_HOME",
+          "minLength": 1,
+          "title": "Config Home Variable",
+          "type": "string"
+        },
+        "passthrough": {
+          "description": "Names allowed through to the vendor process.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Passthrough",
+          "type": "array"
+        },
+        "conflicts": {
+          "description": "Names that make a native run fail closed when set (API keys, base URLs, proxies).",
+          "items": {
+            "type": "string"
+          },
+          "title": "Conflicts",
+          "type": "array"
+        }
+      },
+      "required": [
+        "config_home_variable"
+      ],
+      "title": "EnvironmentNamesV1",
+      "type": "object"
+    },
+    "HarnessId": {
+      "description": "Harness identifiers used in records and profiles (plan section 2).",
+      "enum": [
+        "claude-code",
+        "codex",
+        "grok"
+      ],
+      "title": "HarnessId",
+      "type": "string"
+    },
+    "HarnessProfileV1": {
+      "additionalProperties": false,
+      "description": "The description of one installed harness as data.",
+      "properties": {
+        "harness": {
+          "$ref": "#/$defs/HarnessId"
+        },
+        "kind": {
+          "$ref": "#/$defs/ProfileKind",
+          "default": "native"
+        },
+        "executable": {
+          "description": "Command name or path.",
+          "minLength": 1,
+          "title": "Executable",
+          "type": "string"
+        },
+        "expected_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Version"
+        },
+        "config_home": {
+          "description": "Dedicated vendor config home used by runs.",
+          "minLength": 1,
+          "title": "Config Home",
+          "type": "string"
+        },
+        "auth_mode": {
+          "$ref": "#/$defs/AuthMode",
+          "default": "native-subscription"
+        },
+        "capabilities": {
+          "items": {
+            "$ref": "#/$defs/CapabilityRecordV1"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "model_defaults": {
+          "$ref": "#/$defs/ModelDefaultsV1"
+        },
+        "model_mappings": {
+          "items": {
+            "$ref": "#/$defs/ModelMappingV1"
+          },
+          "title": "Model Mappings",
+          "type": "array"
+        },
+        "effort_mappings": {
+          "items": {
+            "$ref": "#/$defs/EffortMappingV1"
+          },
+          "title": "Effort Mappings",
+          "type": "array"
+        },
+        "timeouts": {
+          "$ref": "#/$defs/TimeoutsV1"
+        },
+        "proxy_policy": {
+          "$ref": "#/$defs/ProxyPolicy",
+          "default": "deny"
+        },
+        "environment": {
+          "$ref": "#/$defs/EnvironmentNamesV1"
+        }
+      },
+      "required": [
+        "harness",
+        "executable",
+        "config_home",
+        "environment"
+      ],
+      "title": "HarnessProfileV1",
+      "type": "object"
+    },
+    "ModelDefaultsV1": {
+      "additionalProperties": false,
+      "description": "Optional local defaults; concrete model names live only here, never in a definition.",
+      "properties": {
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "effort": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Effort"
+        }
+      },
+      "title": "ModelDefaultsV1",
+      "type": "object"
+    },
+    "ModelMappingV1": {
+      "additionalProperties": false,
+      "description": "Maps the abstract `tier` model hint to a local concrete model name.",
+      "properties": {
+        "tier": {
+          "enum": [
+            "fast",
+            "balanced",
+            "strong"
+          ],
+          "title": "Tier",
+          "type": "string"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tier",
+        "model"
+      ],
+      "title": "ModelMappingV1",
+      "type": "object"
+    },
+    "ProfileKind": {
+      "enum": [
+        "native",
+        "api-test"
+      ],
+      "title": "ProfileKind",
+      "type": "string"
+    },
+    "ProxyPolicy": {
+      "enum": [
+        "deny",
+        "inherit"
+      ],
+      "title": "ProxyPolicy",
+      "type": "string"
+    },
+    "TimeoutsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_seconds": {
+          "default": 900,
+          "maximum": 900,
+          "minimum": 1,
+          "title": "Attempt Seconds",
+          "type": "integer"
+        }
+      },
+      "title": "TimeoutsV1",
+      "type": "object"
+    },
+    "Verification": {
+      "description": "verified = observed under the AgentTeam runner; observed = in --help/docs only.",
+      "enum": [
+        "verified",
+        "observed",
+        "unverified"
+      ],
+      "title": "Verification",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The local profile set (`~/.agentteam/profiles.yaml`; never committed).",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "harness-profile-set",
+      "title": "Kind",
+      "type": "string"
+    },
+    "profiles": {
+      "items": {
+        "$ref": "#/$defs/HarnessProfileV1"
+      },
+      "title": "Profiles",
+      "type": "array"
+    },
+    "default_harness": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/HarnessId"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Chosen when the Assistant expresses no preference (decided_by: default)."
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind"
+  ],
+  "title": "HarnessProfileSetV1",
+  "type": "object"
+}

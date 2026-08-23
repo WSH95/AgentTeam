@@ -67,6 +67,12 @@ jobs:
         run: uv run --no-sync pytest
       - name: Build
         run: uv build
+      - name: Schema reproduction check
+        run: uv run --no-sync python -m agentteam.schema check
+      - name: Schema export round-trip is clean
+        run: |
+          uv run --no-sync python -m agentteam.schema export
+          git diff --exit-code -- schemas
       - name: CLI --help / --version
         run: |
           uv run --no-sync atm --help

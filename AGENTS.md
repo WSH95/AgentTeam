@@ -31,9 +31,11 @@ Primary language/stack: Python `>=3.11` with `uv` (implementation planned); Mark
 
 | Task | Command |
 | --- | --- |
-| Build | `n/a (discovery phase — no code)` |
-| Test | `n/a (discovery phase — no code)` |
-| Lint | `n/a (discovery phase — no code)` |
+| Build | `uv build` |
+| Test | `uv run pytest` |
+| Lint | `uv run ruff check .` |
+| Typecheck | `uv run mypy src tests` |
+| Schemas | `uv run python -m agentteam.schema check` |
 <!-- PROJECT-STEWARD:END commands -->
 
 <!-- PROJECT-STEWARD:BEGIN task-backend -->

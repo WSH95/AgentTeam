@@ -1,0 +1,718 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:harness-invocation:v1",
+  "$defs": {
+    "ArtifactRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "description": "stdout, stderr, rendered-prompt, normalized-review, ...",
+          "minLength": 1,
+          "title": "Role",
+          "type": "string"
+        },
+        "path": {
+          "description": "Relative to the run archive.",
+          "maxLength": 1024,
+          "minLength": 1,
+          "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "path",
+        "sha256"
+      ],
+      "title": "ArtifactRefV1",
+      "type": "object"
+    },
+    "Attendance": {
+      "enum": [
+        "attended",
+        "unattended"
+      ],
+      "title": "Attendance",
+      "type": "string"
+    },
+    "CommandV1": {
+      "additionalProperties": false,
+      "description": "Redacted argv (typed placeholders, never raw paths or content).",
+      "properties": {
+        "argv_redacted": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Argv Redacted",
+          "type": "array"
+        },
+        "launcher": {
+          "description": "Resolved launcher, as a placeholder or basename.",
+          "minLength": 1,
+          "title": "Launcher",
+          "type": "string"
+        },
+        "launcher_policy": {
+          "$ref": "#/$defs/LauncherPolicy"
+        },
+        "cwd": {
+          "description": "Placeholder for the working directory.",
+          "minLength": 1,
+          "title": "Cwd",
+          "type": "string"
+        }
+      },
+      "required": [
+        "argv_redacted",
+        "launcher",
+        "launcher_policy",
+        "cwd"
+      ],
+      "title": "CommandV1",
+      "type": "object"
+    },
+    "CostSource": {
+      "enum": [
+        "vendor",
+        "unavailable"
+      ],
+      "title": "CostSource",
+      "type": "string"
+    },
+    "DecidedBy": {
+      "description": "Who decided the harness; `team` and forced variants are reserved for M1b.",
+      "enum": [
+        "user",
+        "assistant",
+        "default"
+      ],
+      "title": "DecidedBy",
+      "type": "string"
+    },
+    "DegradedPartV1": {
+      "additionalProperties": false,
+      "description": "An optional part that could not be delivered; required parts fail before launch.",
+      "properties": {
+        "part": {
+          "minLength": 1,
+          "title": "Part",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "part",
+        "reason"
+      ],
+      "title": "DegradedPartV1",
+      "type": "object"
+    },
+    "EnvironmentV1": {
+      "additionalProperties": false,
+      "description": "Environment names and policy outcomes only — never values.",
+      "properties": {
+        "names": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Names",
+          "type": "array"
+        },
+        "config_home_variable": {
+          "minLength": 1,
+          "title": "Config Home Variable",
+          "type": "string"
+        },
+        "conflicts_detected": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Conflicts Detected",
+          "type": "array"
+        }
+      },
+      "required": [
+        "config_home_variable"
+      ],
+      "title": "EnvironmentV1",
+      "type": "object"
+    },
+    "ExitV1": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Code"
+        },
+        "signal": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Signal"
+        }
+      },
+      "title": "ExitV1",
+      "type": "object"
+    },
+    "HarnessId": {
+      "description": "Harness identifiers used in records and profiles (plan section 2).",
+      "enum": [
+        "claude-code",
+        "codex",
+        "grok"
+      ],
+      "title": "HarnessId",
+      "type": "string"
+    },
+    "InjectionV1": {
+      "additionalProperties": false,
+      "properties": {
+        "render": {
+          "items": {
+            "$ref": "#/$defs/RenderedPartV1"
+          },
+          "title": "Render",
+          "type": "array"
+        },
+        "degraded": {
+          "items": {
+            "$ref": "#/$defs/DegradedPartV1"
+          },
+          "title": "Degraded",
+          "type": "array"
+        },
+        "undeliverable_required_parts": {
+          "description": "Required parts that could not be delivered; render fails before launch.",
+          "items": {
+            "$ref": "#/$defs/DegradedPartV1"
+          },
+          "title": "Undeliverable Required Parts",
+          "type": "array"
+        }
+      },
+      "title": "InjectionV1",
+      "type": "object"
+    },
+    "InvocationAuthMode": {
+      "enum": [
+        "native-subscription"
+      ],
+      "title": "InvocationAuthMode",
+      "type": "string"
+    },
+    "LauncherPolicy": {
+      "description": "Branch of the plan section 9 launcher policy that was taken.",
+      "enum": [
+        "posix-direct",
+        "native-exe",
+        "resolved-cmd-shim",
+        "allowlisted-cmd",
+        "refused"
+      ],
+      "title": "LauncherPolicy",
+      "type": "string"
+    },
+    "ObservedV1": {
+      "additionalProperties": false,
+      "properties": {
+        "harness": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HarnessId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "effort": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Effort"
+        }
+      },
+      "title": "ObservedV1",
+      "type": "object"
+    },
+    "PlaceholderV1": {
+      "additionalProperties": false,
+      "description": "Typed path placeholder used in argv/env records (e.g. <WORKSPACE>).",
+      "properties": {
+        "token": {
+          "minLength": 1,
+          "title": "Token",
+          "type": "string"
+        },
+        "role": {
+          "minLength": 1,
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "token",
+        "role"
+      ],
+      "title": "PlaceholderV1",
+      "type": "object"
+    },
+    "RenderedPartV1": {
+      "additionalProperties": false,
+      "description": "Which channel carried one definition part (persona, principles, skill:<name>, ...).",
+      "properties": {
+        "part": {
+          "minLength": 1,
+          "title": "Part",
+          "type": "string"
+        },
+        "channel": {
+          "minLength": 1,
+          "title": "Channel",
+          "type": "string"
+        }
+      },
+      "required": [
+        "part",
+        "channel"
+      ],
+      "title": "RenderedPartV1",
+      "type": "object"
+    },
+    "RequestedV1": {
+      "additionalProperties": false,
+      "properties": {
+        "harness": {
+          "$ref": "#/$defs/HarnessId"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "effort": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Effort"
+        }
+      },
+      "required": [
+        "harness"
+      ],
+      "title": "RequestedV1",
+      "type": "object"
+    },
+    "RetryClassification": {
+      "enum": [
+        "none",
+        "transient",
+        "permanent"
+      ],
+      "title": "RetryClassification",
+      "type": "string"
+    },
+    "RetryV1": {
+      "additionalProperties": false,
+      "description": "Attempt identity is (invocation_id, attempt); section 9 allows one retry.",
+      "properties": {
+        "classification": {
+          "$ref": "#/$defs/RetryClassification",
+          "default": "none"
+        },
+        "attempt": {
+          "default": 1,
+          "maximum": 2,
+          "minimum": 1,
+          "title": "Attempt",
+          "type": "integer"
+        },
+        "max_attempts": {
+          "default": 2,
+          "maximum": 2,
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        }
+      },
+      "title": "RetryV1",
+      "type": "object"
+    },
+    "RunStatus": {
+      "description": "Lifecycle status; a record is created `pending` before the first side effect.",
+      "enum": [
+        "pending",
+        "running",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "timed-out"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    },
+    "SchemaOutcome": {
+      "enum": [
+        "valid",
+        "invalid",
+        "missing",
+        "not-requested"
+      ],
+      "title": "SchemaOutcome",
+      "type": "string"
+    },
+    "SelectionV1": {
+      "additionalProperties": false,
+      "properties": {
+        "decided_by": {
+          "$ref": "#/$defs/DecidedBy"
+        },
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/HarnessId"
+          },
+          "title": "Candidates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "decided_by"
+      ],
+      "title": "SelectionV1",
+      "type": "object"
+    },
+    "TargetHashesV1": {
+      "additionalProperties": false,
+      "description": "AgentTeam-computed hashes of the leg workspace; detect target mutation.",
+      "properties": {
+        "before": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Before",
+          "type": "string"
+        },
+        "after": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "After"
+        }
+      },
+      "required": [
+        "before"
+      ],
+      "title": "TargetHashesV1",
+      "type": "object"
+    },
+    "TimingV1": {
+      "additionalProperties": false,
+      "properties": {
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finished At"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        }
+      },
+      "required": [
+        "started_at"
+      ],
+      "title": "TimingV1",
+      "type": "object"
+    },
+    "UsageV1": {
+      "additionalProperties": false,
+      "description": "Vendor-reported usage; telemetry, never subscription billing.",
+      "properties": {
+        "input_tokens": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Tokens"
+        },
+        "output_tokens": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Tokens"
+        },
+        "cost_amount": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cost Amount"
+        },
+        "cost_currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cost Currency"
+        },
+        "cost_source": {
+          "$ref": "#/$defs/CostSource",
+          "default": "unavailable"
+        }
+      },
+      "title": "UsageV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One execution of one harness for one Member/task — the ledger entry.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "harness-invocation",
+      "title": "Kind",
+      "type": "string"
+    },
+    "invocation_id": {
+      "pattern": "^inv-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+      "title": "Invocation Id",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "ensemble_id": {
+      "anyOf": [
+        {
+          "pattern": "^ens-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ensemble Id"
+    },
+    "requested": {
+      "$ref": "#/$defs/RequestedV1"
+    },
+    "observed": {
+      "$ref": "#/$defs/ObservedV1"
+    },
+    "selection": {
+      "$ref": "#/$defs/SelectionV1"
+    },
+    "effective_definition_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Effective Definition Hash",
+      "type": "string"
+    },
+    "target": {
+      "$ref": "#/$defs/TargetHashesV1"
+    },
+    "injection": {
+      "$ref": "#/$defs/InjectionV1"
+    },
+    "command": {
+      "$ref": "#/$defs/CommandV1"
+    },
+    "environment": {
+      "$ref": "#/$defs/EnvironmentV1"
+    },
+    "placeholders": {
+      "items": {
+        "$ref": "#/$defs/PlaceholderV1"
+      },
+      "title": "Placeholders",
+      "type": "array"
+    },
+    "attendance": {
+      "$ref": "#/$defs/Attendance"
+    },
+    "auth_mode": {
+      "$ref": "#/$defs/InvocationAuthMode"
+    },
+    "timing": {
+      "$ref": "#/$defs/TimingV1"
+    },
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/ArtifactRefV1"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "usage": {
+      "$ref": "#/$defs/UsageV1"
+    },
+    "retry": {
+      "$ref": "#/$defs/RetryV1"
+    },
+    "exit": {
+      "$ref": "#/$defs/ExitV1"
+    },
+    "schema_outcome": {
+      "$ref": "#/$defs/SchemaOutcome",
+      "default": "not-requested"
+    },
+    "status": {
+      "$ref": "#/$defs/RunStatus"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "invocation_id",
+    "run_id",
+    "requested",
+    "selection",
+    "effective_definition_hash",
+    "target",
+    "command",
+    "environment",
+    "attendance",
+    "auth_mode",
+    "timing",
+    "status"
+  ],
+  "title": "HarnessInvocationV1",
+  "type": "object"
+}

@@ -22,7 +22,7 @@ which remains a source of requirements, experiments, and evidence only.
 | M1a direct-harness PoC plan, revision r3 | [`docs/plans/m1a-direct-harness-poc.md`](docs/plans/m1a-direct-harness-poc.md) | approved for implementation (DECISIONS 0021) |
 | Project state: charter, plan, decisions, questions, risks, verification, handoff | [`.project-steward/`](.project-steward/) | current |
 | Product scaffold: packaging, `atm` CLI skeleton, unit tests, CI smoke matrix | `pyproject.toml`, [`src/agentteam/`](src/agentteam/), [`tests/`](tests/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | alpha (M1a G2); the CLI has `--help`/`--version` only |
-| V1 JSON Schemas + domain records | — | this gate, next commit |
+| V1 domain records + checked-in JSON Schemas | [`src/agentteam/domain/`](src/agentteam/domain/), [`schemas/`](schemas/README.md) | alpha (M1a G2); closed records, vendor-facing review/synthesis contracts |
 | Harness adapters, runner, live evidence | — | not yet (M1a gates G3–G8) |
 
 ## Planned stack
@@ -58,8 +58,13 @@ uv run ruff format --check .  # formatting
 uv run mypy                   # typecheck (strict)
 uv run pytest                 # unit tests (no vendor CLI, no model call)
 uv build                      # wheel + sdist
+uv run python -m agentteam.schema check   # checked-in schemas reproduce
 uv run atm --version
 ```
+
+The nine V1 JSON Schemas under [`schemas/`](schemas/README.md) are generated
+from the Pydantic models; regenerate with
+`uv run python -m agentteam.schema export`.
 
 The optional coordination provider is installed with `--extra clawteam`
 (exact upstream revision; qualified at gate G4 — not needed for development).

@@ -357,3 +357,23 @@ are written and dated by the decision event; both orders stand as recorded.
 `docs/discovery/evidence/critics/owner-decisions-fix-pass.md` carries a matching
 provenance note; the critic findings files carry closure notes (review H8); the
 glossary defines the seam and identity terms (review H10/R10/R16).
+
+## 0023 — 2026-08-23 — AGENTS.md managed command table updated for the G2 scaffold
+
+**Context**: The approved M1a plan (§4) prescribes updating the managed
+command table once the Python scaffold exists, and requires that managed-block
+edit to have its own shown diff and explicit approval (ADR 0008/0014;
+DECISIONS 0021 excluded it from the plan approval).
+**Decision**: The `PROJECT-STEWARD:BEGIN commands` block now reads Build
+`uv build`, Test `uv run pytest`, Lint `uv run ruff check .`, Typecheck
+`uv run mypy src tests`, Schemas `uv run python -m agentteam.schema check`.
+The exact diff was shown to the owner inside the G2 execution plan (step B4)
+together with the question "How do you want that edit approved?"; the owner
+selected **"Approve with this plan (Recommended)"** on 2026-08-23. Deviations
+from the plan §4 table, recorded there and in VERIFY: the `Live PoC` row is
+deferred to G4 (its command and request file do not exist yet) and a `Schemas`
+row is added; `ruff check .` is safe because `pyproject.toml` excludes `*.md`
+from ruff. Nothing outside the managed block changed; the stale
+"(implementation planned)" stack line stays until its own shown edit.
+**Consequences**: Agents use the real commands from G2 on. The table gains the
+`Live PoC` row at G4 via the same guarded procedure.

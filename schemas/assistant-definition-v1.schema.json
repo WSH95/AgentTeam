@@ -1,0 +1,518 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:assistant-definition:v1",
+  "$defs": {
+    "ArtifactKind": {
+      "enum": [
+        "agent-skill",
+        "local-script",
+        "plugin",
+        "mcp-server",
+        "binary"
+      ],
+      "title": "ArtifactKind",
+      "type": "string"
+    },
+    "ArtifactRequirementV1": {
+      "additionalProperties": false,
+      "description": "An explicit demand for one concrete artifact (never substituted).",
+      "properties": {
+        "ref": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Ref",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ArtifactKind"
+        },
+        "source": {
+          "$ref": "#/$defs/VendoredSourceV1"
+        },
+        "level": {
+          "$ref": "#/$defs/RequirementLevel",
+          "default": "required"
+        }
+      },
+      "required": [
+        "ref",
+        "kind",
+        "source"
+      ],
+      "title": "ArtifactRequirementV1",
+      "type": "object"
+    },
+    "CapabilityRequirementV1": {
+      "additionalProperties": false,
+      "description": "A semantic ability requirement satisfiable natively or by different artifacts.",
+      "properties": {
+        "capability": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Capability",
+          "type": "string"
+        },
+        "level": {
+          "$ref": "#/$defs/RequirementLevel",
+          "default": "required"
+        }
+      },
+      "required": [
+        "capability"
+      ],
+      "title": "CapabilityRequirementV1",
+      "type": "object"
+    },
+    "CollaborationV1": {
+      "additionalProperties": false,
+      "description": "Substrate-neutral hand-off, review, and escalation guidance (AD-03).",
+      "properties": {
+        "handoff": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Handoff"
+        },
+        "review": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review"
+        },
+        "escalate_when": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Escalate When",
+          "type": "array"
+        }
+      },
+      "title": "CollaborationV1",
+      "type": "object"
+    },
+    "EvolutionV1": {
+      "additionalProperties": false,
+      "description": "Which sections accept reviewed proposals (EV-01..EV-05); overlays arrive in M3.",
+      "properties": {
+        "accepts_proposals_for": {
+          "items": {
+            "$ref": "#/$defs/ProposalTarget"
+          },
+          "title": "Accepts Proposals For",
+          "type": "array"
+        },
+        "failure_modes": {
+          "anyOf": [
+            {
+              "maxLength": 1024,
+              "minLength": 1,
+              "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Failure Modes"
+        }
+      },
+      "title": "EvolutionV1",
+      "type": "object"
+    },
+    "HarnessId": {
+      "description": "Harness identifiers used in records and profiles (plan section 2).",
+      "enum": [
+        "claude-code",
+        "codex",
+        "grok"
+      ],
+      "title": "HarnessId",
+      "type": "string"
+    },
+    "HarnessPolicyV1": {
+      "additionalProperties": false,
+      "description": "Assistant-level harness selection preferences as data (HB-03).",
+      "properties": {
+        "preferred": {
+          "items": {
+            "$ref": "#/$defs/HarnessId"
+          },
+          "title": "Preferred",
+          "type": "array"
+        },
+        "allowed": {
+          "description": "Empty means no restriction beyond `forbidden` (plan section 11 step 3).",
+          "items": {
+            "$ref": "#/$defs/HarnessId"
+          },
+          "title": "Allowed",
+          "type": "array"
+        },
+        "forbidden": {
+          "items": {
+            "$ref": "#/$defs/HarnessId"
+          },
+          "title": "Forbidden",
+          "type": "array"
+        },
+        "required_capabilities": {
+          "items": {
+            "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+            "type": "string"
+          },
+          "title": "Required Capabilities",
+          "type": "array"
+        },
+        "model_hints": {
+          "$ref": "#/$defs/ModelHintsV1"
+        }
+      },
+      "title": "HarnessPolicyV1",
+      "type": "object"
+    },
+    "ModelHintsV1": {
+      "additionalProperties": false,
+      "description": "Abstract model hints only — never a concrete model or provider.",
+      "properties": {
+        "tier": {
+          "anyOf": [
+            {
+              "enum": [
+                "fast",
+                "balanced",
+                "strong"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tier"
+        },
+        "reasoning": {
+          "anyOf": [
+            {
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reasoning"
+        }
+      },
+      "title": "ModelHintsV1",
+      "type": "object"
+    },
+    "PermissionsV1": {
+      "additionalProperties": false,
+      "description": "Harness-neutral permission intent; each adapter renders it natively.",
+      "properties": {
+        "filesystem": {
+          "default": "read-only",
+          "enum": [
+            "read-only",
+            "read-write-workspace"
+          ],
+          "title": "Filesystem",
+          "type": "string"
+        },
+        "network": {
+          "default": "deny",
+          "enum": [
+            "allow",
+            "deny"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "shell": {
+          "default": "deny",
+          "enum": [
+            "allow",
+            "deny"
+          ],
+          "title": "Shell",
+          "type": "string"
+        }
+      },
+      "title": "PermissionsV1",
+      "type": "object"
+    },
+    "PreferenceV1": {
+      "additionalProperties": false,
+      "description": "One user-independent stable working preference.",
+      "properties": {
+        "name": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "PreferenceV1",
+      "type": "object"
+    },
+    "PresentationDefaultsV1": {
+      "additionalProperties": false,
+      "description": "Optional presentation hints; never an account, topic, or token.",
+      "properties": {
+        "display_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Display Name"
+        },
+        "emoji": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Emoji"
+        }
+      },
+      "title": "PresentationDefaultsV1",
+      "type": "object"
+    },
+    "ProhibitedContentCheck": {
+      "description": "Content classes that must never appear in a definition (ADM section 4).",
+      "enum": [
+        "workspace-paths",
+        "branch-names",
+        "session-identifiers",
+        "surface-topology",
+        "bound-harness",
+        "secrets",
+        "runtime-memory"
+      ],
+      "title": "ProhibitedContentCheck",
+      "type": "string"
+    },
+    "ProposalTarget": {
+      "enum": [
+        "principles",
+        "preferences",
+        "collaboration",
+        "harness_policy",
+        "failure_modes"
+      ],
+      "title": "ProposalTarget",
+      "type": "string"
+    },
+    "RequirementLevel": {
+      "enum": [
+        "required",
+        "preferred"
+      ],
+      "title": "RequirementLevel",
+      "type": "string"
+    },
+    "VendoredSourceV1": {
+      "additionalProperties": false,
+      "description": "Where an artifact's content lives inside the portable package.",
+      "properties": {
+        "vendored": {
+          "description": "Path inside the package (directory or file).",
+          "maxLength": 1024,
+          "minLength": 1,
+          "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+          "title": "Vendored",
+          "type": "string"
+        }
+      },
+      "required": [
+        "vendored"
+      ],
+      "title": "VendoredSourceV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The portable, reusable definition of one Assistant (AD-01..AD-06, AD-08).",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "assistant-definition",
+      "title": "Kind",
+      "type": "string"
+    },
+    "id": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Id",
+      "type": "string"
+    },
+    "version": {
+      "description": "Base Definition version; overlays are versioned separately.",
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "summary": {
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "persona": {
+      "description": "Persona instruction file inside the package.",
+      "maxLength": 1024,
+      "minLength": 1,
+      "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+      "title": "Persona",
+      "type": "string"
+    },
+    "purpose": {
+      "description": "Responsibilities; what done means.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Purpose",
+      "type": "array"
+    },
+    "principles": {
+      "description": "Judgment-principle instruction file inside the package.",
+      "maxLength": 1024,
+      "minLength": 1,
+      "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+      "title": "Principles",
+      "type": "string"
+    },
+    "methods": {
+      "anyOf": [
+        {
+          "maxLength": 1024,
+          "minLength": 1,
+          "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Working-method instruction file.",
+      "title": "Methods"
+    },
+    "preferences": {
+      "items": {
+        "$ref": "#/$defs/PreferenceV1"
+      },
+      "title": "Preferences",
+      "type": "array"
+    },
+    "capabilities": {
+      "items": {
+        "$ref": "#/$defs/CapabilityRequirementV1"
+      },
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/ArtifactRequirementV1"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "permissions": {
+      "$ref": "#/$defs/PermissionsV1"
+    },
+    "collaboration": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CollaborationV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "harness_policy": {
+      "$ref": "#/$defs/HarnessPolicyV1"
+    },
+    "presentation_defaults": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationDefaultsV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "evolution": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EvolutionV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "prohibited_content": {
+      "description": "Content checks the validator enforces on this definition.",
+      "items": {
+        "$ref": "#/$defs/ProhibitedContentCheck"
+      },
+      "title": "Prohibited Content",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "id",
+    "version",
+    "summary",
+    "persona",
+    "purpose",
+    "principles"
+  ],
+  "title": "AssistantDefinitionV1",
+  "type": "object"
+}

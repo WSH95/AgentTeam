@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:normalized-review:v1",
+  "additionalProperties": false,
+  "description": "One leg's review in the shared normalized form.",
+  "properties": {
+    "schema_version": {
+      "enum": [
+        1
+      ],
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "enum": [
+        "normalized-review"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "target_sha256": {
+      "description": "SHA-256 of the review target the leg was given.",
+      "title": "Target Sha256",
+      "type": "string"
+    },
+    "findings": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "severity": {
+            "description": "Finding severity; section 14's semantic predicate keys on critical/high.",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "info"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "severity",
+          "category",
+          "file",
+          "line",
+          "title",
+          "rationale"
+        ],
+        "title": "ReviewFindingV1",
+        "type": "object"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    },
+    "verdict": {
+      "enum": [
+        "approve",
+        "request-changes",
+        "reject"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "target_sha256",
+    "findings",
+    "summary",
+    "verdict"
+  ],
+  "title": "NormalizedReviewV1",
+  "type": "object"
+}

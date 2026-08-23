@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:run-record:v1",
+  "$defs": {
+    "AssistantRefV1": {
+      "additionalProperties": false,
+      "description": "Reference to a Base Definition by id, version, and content hash.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "package_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Package Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "package_hash"
+      ],
+      "title": "AssistantRefV1",
+      "type": "object"
+    },
+    "ExecutionBindingV1": {
+      "additionalProperties": false,
+      "description": "A Member is bound to one execution at a time (TEM section 4, M1a r3).",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ExecutionKind"
+        },
+        "ref": {
+          "description": "The invocation id or ensemble id.",
+          "minLength": 1,
+          "title": "Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "ref"
+      ],
+      "title": "ExecutionBindingV1",
+      "type": "object"
+    },
+    "ExecutionKind": {
+      "enum": [
+        "invocation",
+        "ensemble"
+      ],
+      "title": "ExecutionKind",
+      "type": "string"
+    },
+    "MemberRecordV1": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Name",
+          "type": "string"
+        },
+        "assistant": {
+          "$ref": "#/$defs/AssistantRefV1"
+        },
+        "effective_definition_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Effective Definition Hash",
+          "type": "string"
+        },
+        "execution": {
+          "$ref": "#/$defs/ExecutionBindingV1"
+        }
+      },
+      "required": [
+        "name",
+        "assistant",
+        "effective_definition_hash",
+        "execution"
+      ],
+      "title": "MemberRecordV1",
+      "type": "object"
+    },
+    "RunStatus": {
+      "description": "Lifecycle status; a record is created `pending` before the first side effect.",
+      "enum": [
+        "pending",
+        "running",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "timed-out"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    },
+    "TimingV1": {
+      "additionalProperties": false,
+      "properties": {
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finished At"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        }
+      },
+      "required": [
+        "started_at"
+      ],
+      "title": "TimingV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The archive manifest (`run.json`); written `pending` before any side effect.\n\n`effective_definition_hash` lives on the Member (the one-Member subset of\nthe later TeamRun record; M1b members each carry their own).",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "run-record",
+      "title": "Kind",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "mode": {
+      "const": "direct",
+      "title": "Mode",
+      "type": "string"
+    },
+    "member": {
+      "$ref": "#/$defs/MemberRecordV1"
+    },
+    "timing": {
+      "$ref": "#/$defs/TimingV1"
+    },
+    "status": {
+      "$ref": "#/$defs/RunStatus"
+    },
+    "failure_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Failure Reason"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "run_id",
+    "mode",
+    "member",
+    "timing",
+    "status"
+  ],
+  "title": "RunRecordV1",
+  "type": "object"
+}

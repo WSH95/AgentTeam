@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:ensemble-record:v1",
+  "$defs": {
+    "AcceptanceResultV1": {
+      "additionalProperties": false,
+      "properties": {
+        "passed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Passed"
+        },
+        "conditions": {
+          "items": {
+            "$ref": "#/$defs/ConditionResultV1"
+          },
+          "title": "Conditions",
+          "type": "array"
+        }
+      },
+      "title": "AcceptanceResultV1",
+      "type": "object"
+    },
+    "AcceptanceV1": {
+      "additionalProperties": false,
+      "description": "Mechanical (architecture gate) and semantic (product-useful gate) results, kept apart.",
+      "properties": {
+        "mechanical": {
+          "$ref": "#/$defs/AcceptanceResultV1"
+        },
+        "semantic": {
+          "$ref": "#/$defs/AcceptanceResultV1"
+        }
+      },
+      "title": "AcceptanceV1",
+      "type": "object"
+    },
+    "AttributionV1": {
+      "additionalProperties": false,
+      "description": "Links a merged finding to the leg findings it came from.",
+      "properties": {
+        "merged_finding_id": {
+          "minLength": 1,
+          "title": "Merged Finding Id",
+          "type": "string"
+        },
+        "sources": {
+          "description": "<invocation_id>:<finding_id> references.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "merged_finding_id"
+      ],
+      "title": "AttributionV1",
+      "type": "object"
+    },
+    "ConditionResultV1": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "passed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Passed"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "ConditionResultV1",
+      "type": "object"
+    },
+    "RunStatus": {
+      "description": "Lifecycle status; a record is created `pending` before the first side effect.",
+      "enum": [
+        "pending",
+        "running",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "timed-out"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    },
+    "SynthesisLinkV1": {
+      "additionalProperties": false,
+      "properties": {
+        "invocation_id": {
+          "anyOf": [
+            {
+              "pattern": "^inv-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Invocation Id"
+        },
+        "inputs": {
+          "items": {
+            "pattern": "^inv-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+            "type": "string"
+          },
+          "title": "Inputs",
+          "type": "array"
+        },
+        "instruction_hash": {
+          "description": "SHA-256 of the committed synthesis instruction (src/agentteam/synthesis/instructions.md).",
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instruction Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instruction_hash"
+      ],
+      "title": "SynthesisLinkV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "ensemble-record",
+      "title": "Kind",
+      "type": "string"
+    },
+    "ensemble_id": {
+      "pattern": "^ens-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+      "title": "Ensemble Id",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "legs": {
+      "items": {
+        "pattern": "^inv-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Legs",
+      "type": "array"
+    },
+    "synthesis": {
+      "$ref": "#/$defs/SynthesisLinkV1"
+    },
+    "attribution": {
+      "items": {
+        "$ref": "#/$defs/AttributionV1"
+      },
+      "title": "Attribution",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/RunStatus"
+    },
+    "acceptance": {
+      "$ref": "#/$defs/AcceptanceV1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "ensemble_id",
+    "run_id",
+    "legs",
+    "synthesis",
+    "status"
+  ],
+  "title": "EnsembleRecordV1",
+  "type": "object"
+}

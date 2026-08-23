@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:bundle-manifest:v1",
+  "$defs": {
+    "AssistantRefV1": {
+      "additionalProperties": false,
+      "description": "Reference to a Base Definition by id, version, and content hash.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "package_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Package Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "package_hash"
+      ],
+      "title": "AssistantRefV1",
+      "type": "object"
+    },
+    "FileEntryV1": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+          "title": "Path",
+          "type": "string"
+        },
+        "size": {
+          "minimum": 0,
+          "title": "Size",
+          "type": "integer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "size",
+        "sha256"
+      ],
+      "title": "FileEntryV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "bundle-manifest",
+      "title": "Kind",
+      "type": "string"
+    },
+    "assistant": {
+      "$ref": "#/$defs/AssistantRefV1"
+    },
+    "overlay_refs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Overlay Refs",
+      "type": "array"
+    },
+    "effective_definition_hash": {
+      "description": "Computed by AgentTeam; equals assistant.package_hash in M1a.",
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Effective Definition Hash",
+      "type": "string"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/FileEntryV1"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "assistant",
+    "effective_definition_hash",
+    "created_at"
+  ],
+  "title": "BundleManifestV1",
+  "type": "object"
+}

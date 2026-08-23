@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:run-request:v1",
+  "$defs": {
+    "EvidenceSettingsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "retain_raw_streams": {
+          "default": true,
+          "description": "Keep raw vendor output in the local, gitignored archive.",
+          "title": "Retain Raw Streams",
+          "type": "boolean"
+        }
+      },
+      "title": "EvidenceSettingsV1",
+      "type": "object"
+    },
+    "HarnessId": {
+      "description": "Harness identifiers used in records and profiles (plan section 2).",
+      "enum": [
+        "claude-code",
+        "codex",
+        "grok"
+      ],
+      "title": "HarnessId",
+      "type": "string"
+    },
+    "HarnessOverrideV1": {
+      "additionalProperties": false,
+      "description": "One local per-harness override; `harness` uses the harness identifiers.",
+      "properties": {
+        "harness": {
+          "$ref": "#/$defs/HarnessId"
+        },
+        "value": {
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "harness",
+        "value"
+      ],
+      "title": "HarnessOverrideV1",
+      "type": "object"
+    },
+    "LimitsV1": {
+      "additionalProperties": false,
+      "description": "May lower but never raise the section 9 caps.",
+      "properties": {
+        "attempt_seconds": {
+          "anyOf": [
+            {
+              "maximum": 900,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt Seconds"
+        },
+        "transient_retries": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transient Retries"
+        }
+      },
+      "title": "LimitsV1",
+      "type": "object"
+    },
+    "SynthesisSettingsV1": {
+      "additionalProperties": false,
+      "description": "Fan-out legs are followed by one fresh synthesis invocation when enabled.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "harness": {
+          "$ref": "#/$defs/HarnessId",
+          "default": "claude-code"
+        }
+      },
+      "title": "SynthesisSettingsV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "What `atm run` consumes (file and/or flags).",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "run-request",
+      "title": "Kind",
+      "type": "string"
+    },
+    "assistant": {
+      "description": "Path to the Assistant package.",
+      "minLength": 1,
+      "title": "Assistant",
+      "type": "string"
+    },
+    "overlay_refs": {
+      "description": "Reserved for M3 overlays; must be empty in M1a.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Overlay Refs",
+      "type": "array"
+    },
+    "workspace": {
+      "description": "Path to the workspace to review.",
+      "minLength": 1,
+      "title": "Workspace",
+      "type": "string"
+    },
+    "task_file": {
+      "description": "Path to the task text file.",
+      "minLength": 1,
+      "title": "Task File",
+      "type": "string"
+    },
+    "mode": {
+      "const": "direct",
+      "title": "Mode",
+      "type": "string"
+    },
+    "harnesses": {
+      "description": "Requested harnesses (unique). Empty: the Assistant's harness_policy decides and the run is solo.",
+      "items": {
+        "$ref": "#/$defs/HarnessId"
+      },
+      "title": "Harnesses",
+      "type": "array"
+    },
+    "synthesis": {
+      "$ref": "#/$defs/SynthesisSettingsV1"
+    },
+    "model_overrides": {
+      "items": {
+        "$ref": "#/$defs/HarnessOverrideV1"
+      },
+      "title": "Model Overrides",
+      "type": "array"
+    },
+    "effort_overrides": {
+      "items": {
+        "$ref": "#/$defs/HarnessOverrideV1"
+      },
+      "title": "Effort Overrides",
+      "type": "array"
+    },
+    "output_dir": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Output Dir"
+    },
+    "evidence": {
+      "$ref": "#/$defs/EvidenceSettingsV1"
+    },
+    "limits": {
+      "$ref": "#/$defs/LimitsV1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "assistant",
+    "workspace",
+    "task_file",
+    "mode"
+  ],
+  "title": "RunRequestV1",
+  "type": "object"
+}

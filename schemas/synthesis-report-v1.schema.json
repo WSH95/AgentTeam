@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:synthesis-report:v1",
+  "additionalProperties": false,
+  "description": "The synthesis invocation's output over the leg reviews.",
+  "properties": {
+    "schema_version": {
+      "enum": [
+        1
+      ],
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "enum": [
+        "synthesis-report"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "inputs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Inputs",
+      "type": "array"
+    },
+    "agreements": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "title",
+          "sources"
+        ],
+        "title": "AgreementV1",
+        "type": "object"
+      },
+      "title": "Agreements",
+      "type": "array"
+    },
+    "disagreements": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "asserted_by": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Asserted By",
+            "type": "array"
+          },
+          "not_asserted_by": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Not Asserted By",
+            "type": "array"
+          }
+        },
+        "required": [
+          "title",
+          "asserted_by",
+          "not_asserted_by"
+        ],
+        "title": "DisagreementV1",
+        "type": "object"
+      },
+      "title": "Disagreements",
+      "type": "array"
+    },
+    "merged_findings": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "severity": {
+            "description": "Finding severity; section 14's semantic predicate keys on critical/high.",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "info"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "severity",
+          "category",
+          "file",
+          "line",
+          "title",
+          "rationale",
+          "sources"
+        ],
+        "title": "MergedFindingV1",
+        "type": "object"
+      },
+      "title": "Merged Findings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "inputs",
+    "agreements",
+    "disagreements",
+    "merged_findings"
+  ],
+  "title": "SynthesisReportV1",
+  "type": "object"
+}
