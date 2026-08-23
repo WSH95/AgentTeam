@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-23T23:45:35Z — cli
+M1a G3 closed: direct harness core (adapters/runner/launcher/selection + full deterministic CLI) landed as 4d6e082+f5e7cbb with fixes 42c43be/37219bb, each push separately approved; all six CI legs green at 37219bb (run 32674468887) incl. the first real-runner Windows .cmd shim evidence; 213 tests, no model call. Next: G4 per-gate execution plan.
+
 ### 2026-08-23T23:35:27Z — cli
 [auto] Run 32673977915: ubuntu+macos x 3.11/3.13 GREEN — the Windows legs ran the real .cmd shim suite for the first time and it PASSED; the only Windows failure was a platform-naive test assertion (Path('/abs/x') is drive-relative on Windows). Test fixed to use a real absolute path. Awaiting push approval.
 

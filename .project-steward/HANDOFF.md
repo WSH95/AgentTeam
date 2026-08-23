@@ -1,95 +1,98 @@
 ---
-updated_at: 2026-08-23T22:39:52Z
+updated_at: 2026-08-23T23:45:35Z
 updated_by: cli
 session_status: closed
 branch: main
-last_commit: f5e7cbb
+last_commit: 37219bb
 ---
 # Handoff
 
 ## Now
 
-**M1a G3 local work is COMPLETE; stopped at the push gate (2026-08-23).** G2 closed earlier the same day. The approved plan is
-`docs/plans/m1a-direct-harness-poc.md` r3 (DECISIONS 0021). G2 ran under an
-owner-approved per-gate execution plan (the owner's standing working
-agreement: every coding gate gets its own reviewed plan first).
+**M1a G3 is COMPLETE and closed (2026-08-23).** G1, G2, and G3 all closed
+today. Public repository https://github.com/WSH95/AgentTeam, `main @ 37219bb`,
+local == origin, tree clean (except the wrap commit that carries this file).
 
-Public repository: **https://github.com/WSH95/AgentTeam** (PUBLIC, MIT,
-default `main`) — created and first pushed (`8660e6a`, secret-scanned, 0 hits)
-on the owner's explicit approval; two CI fixes (`671c2d9` setup-uv pin,
-`d9440f8` explicit matrix-Python install) each pushed on their own approval
-(DECISIONS 0024). **Scaffold smoke matrix: all six legs green** at `d9440f8`
-— ubuntu/windows/macos x Python 3.11/3.13, run
-https://github.com/WSH95/AgentTeam/actions/runs/32667607711 (VERIFY "G2
-evidence").
-
-What exists in code: `pyproject.toml` (agentteam 0.1.0a0, Hatchling >=1.27,
-Typer/Pydantic v2/PyYAML, optional `clawteam` extra @0119833 + `mcp>=1,<2`),
-frozen `uv.lock`, `src/agentteam/` (`cli.py` with `--help`/`--version` only;
-`domain/` = nine closed V1 records per plan §7 incl. the review-contract
-fixes from the G2 plan; `schema/` exporter/check; `py.typed`), nine checked-in
-JSON Schemas + `schemas/README.md` (model-only invariants), 91 unit tests
-(red-first), CI workflow, `docs/provenance.md`. AGENTS.md command table is
-live (ADR 0023).
+G3 (per the owner-approved per-gate execution plan; every coding gate needs
+such a plan first — standing working agreement):
+- `4d6e082` feat(harness): V1 archive hasher; package loader + prohibited-
+  content heuristics; §11 selection with `decided_by`; model/effort
+  precedence; env builder (conflict names as profile data, fail closed);
+  launcher policy (npm `.cmd` shim parser, allowlist, refused,
+  `python-script` for fakes); async process runner (tree kill, cancel, 130);
+  Claude/Codex/Grok adapters (verified argv recipes, Skill channels,
+  injection records, argv guard, redaction by construction); parser fixtures
+  (promotion-only after G5); deterministic fakes + `examples/profiles/
+  ci-fake.yaml`; example `code-reviewer` package (three Skills).
+- `f5e7cbb` feat(cli): exit codes 0/1/2/3/130; `atm assistant validate
+  [--strict-content]`; `atm profile init/validate/doctor` (no `--probe`);
+  `atm run --render-only` (+ `claude` alias); CI smoke step.
+- Fixes on their own push approvals: `42c43be` (bare-dot ruff over the
+  fakes), `37219bb` (platform-naive test assertion).
+- **Evidence:** all six CI legs green at `37219bb` — run
+  https://github.com/WSH95/AgentTeam/actions/runs/32674468887 — including
+  the Windows-only `.cmd` shim suite on real runners. 213 tests; no model
+  call anywhere. VERIFY "G3 evidence" + "G3 local verification" (deviations
+  recorded there; G5 probe items listed).
 
 ## In flight
 
-**Waiting on the owner's push approval for G3** (commits `4d6e082`
-feat(harness) and `f5e7cbb` feat(cli) + the steward close commit). After the
-push: watch the six CI legs — the Windows legs run the `.cmd` shim suite for
-the first time (needs `node` on the runner, preinstalled on windows-latest).
-On green: VERIFY "G3 evidence", PLAN tick, HANDOFF for G4, wrap.
+Nothing.
 
 ## Next steps
 
-1. **G3 needs its own per-gate execution plan first** (owner working
-   agreement; use plan mode, review the draft, get approval). Scope per plan
-   §3/§9/§11: `HarnessAdapter` protocol + Claude/Codex/Grok adapters
-   (render/invoke/parse against deterministic fakes), the shared shell-free
-   process runner (asyncio, process-group termination, 15-min cap, single
-   transient retry), launcher policy incl. the Windows-only `.cmd` fake with
-   metacharacters, Skill-channel rendering per harness, selection algorithm
-   with `decided_by` + hard failure for forbidden/ineligible requests, exit
-   codes 0/1/2/3/130, `claude` alias, `atm assistant validate` + `atm
-   profile init/validate/doctor` (no probes until G5), YAML loaders
-   (aware-datetime rule), archive hash V1 implementation; adapter tests into
-   CI (commit 6 of §17; workflow grows).
-2. Optional later: AGENTS.md `Live PoC` row at G4 (own shown diff); HB-03
-   register amendment whenever the owner answers the QUESTIONS item.
+1. **G4 needs its own per-gate execution plan first** (plan mode → review →
+   owner approval). Scope per plan §3/§10/§12/§14/§15: the direct ensemble
+   state machine (§12 steps 1–12: pending archive before side effects, leg
+   workspace copies + target hashes, parallel fan-out, one transient retry,
+   synthesis over labelled leg reports only, atomic finalize, stable exit
+   codes incl. 3), run archive + `RunRecordV1`/`HarnessInvocationV1`/
+   `EnsembleRecordV1` writers, solo mode, `fixtures/review-target/` (three
+   labelled defects) + oracle outside the workspace + the deterministic §14
+   matcher, example run-requests, cross-OS example-package hash identity in
+   CI, deterministic acceptance jobs, and the optional exact-pinned ClawTeam
+   seam qualification (separate uv extra install in CI; `src/agentteam/
+   compat/clawteam.py`; report under `docs/`; failure never contaminates the
+   direct core). Synthesis instruction file `src/agentteam/synthesis/
+   instructions.md` (hash carried by `EnsembleRecordV1`).
+2. The wrap commit after this handoff is local; push only on explicit
+   approval.
+3. Still parked: HB-03 register amendment (owner answer pending); AGENTS.md
+   `Live PoC` row at G4 (own shown diff); G5 probe items (Claude skill
+   channel + `--append-system-prompt-file`, Codex final event, Grok
+   structured-output location + auth).
 
 ## Blockers
 
-- None for planning G3. Live-call work stays behind G5/G6 gates (probes <= 2
-  per harness; ceiling 30 calls; owner-attended).
+- None for planning G4. Live calls stay behind G5/G6 (probes ≤ 2/harness,
+  ceiling 30 calls, owner-attended).
 
 ## Key files
 
-- `src/agentteam/` + `schemas/` + `tests/` — the G2 code (see VERIFY for the
-  exact verification block; run everything as `env -u PYTHONPATH uv run ...`).
-- `.github/workflows/ci.yml` — scaffold matrix; grows at G3/G4/G7.
-- `.project-steward/VERIFY.md` — "G2 evidence" + "G2 local verification".
-- `.project-steward/DECISIONS.md` — 0023 (AGENTS table), 0024 (repo + push).
-- `docs/plans/m1a-direct-harness-poc.md` — §9/§11/§12/§15 are the G3 spec.
-- The archived G2 execution plan:
-  `~/.claude/plans/continue-i-want-to-toasty-ladybug.md` (session-local).
+- `src/agentteam/{harness,resolution,commands}/` — the G3 core; `tests/`
+  213 tests; `fixtures/fake-harness/` + `examples/profiles/ci-fake.yaml`;
+  `examples/assistants/code-reviewer/`.
+- `docs/plans/m1a-direct-harness-poc.md` §10/§12/§13/§14/§15 — the G4 spec.
+- `.project-steward/VERIFY.md` — G3 evidence + deviations; DECISIONS 0023/
+  0024; PLAN (G4 next).
+- Run everything locally as `env -u PYTHONPATH uv run …` (ROS quirk); lint
+  is bare-dot (`ruff check .`) exactly as CI runs it.
 
 ## Tried and rejected
 
-- Never push without an explicit owner approval; never force-push.
-- Do not remove the `*.md` ruff exclusion; never run a formatter over docs.
-- No `--all-extras` (clones ClawTeam); the extra is G4-only.
-- No `--safe-mode` in anything Claude; no credential parsing; no API-mode
-  fallback; no model calls in tests/CI.
-- `uv python find` without a version argument is a trap (resolves
-  `.python-version`, never auto-installs) — keep the explicit install+find.
+- Never push without explicit approval; each push its own gate.
+- No model call in tests/CI; fakes only until G5/G6.
+- Do not use `grok agent headless` (WebSocket relay); headless Grok is
+  `grok -p`. Codex `exec` has no `-a` flag — approval via
+  `-c approval_policy="never"`.
+- Skills only into `.agentteam-managed`-marked dirs; never unmarked ones.
+- `Path("/abs/x")` is not absolute on Windows — never assert on it.
 
 ## Warnings
 
-- This host exports `PYTHONPATH=/opt/ros/foxy/...` — always
-  `env -u PYTHONPATH uv run ...` locally.
-- The repository is public: dated docs carry `/home/wsh/...` paths, commit
-  trailers carry session URLs (accepted, ADR 0019/0024 context).
-- Vendor-facing schema envelope is G5-probe-tested; the fallback (stripped
-  vendor copy, envelope stamped on parse) is planned but NOT pre-implemented.
-- Grok auth stays `unverified` until its first live leg; ClawTeam
-  qualification is G4 and must never contaminate the direct core.
+- Vendor-facing schema/channel choices are probe-verified at G5; the parser
+  tolerates both Grok structured-output locations until then.
+- The example package hash is content-derived; editing
+  `examples/assistants/code-reviewer/` changes bundle hashes G4 will pin.
+- ClawTeam qualification (G4) uses the optional extra in a separate CI job
+  only; never `--all-extras` on the core legs.

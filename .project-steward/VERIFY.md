@@ -4,6 +4,22 @@ How to check the project is healthy. There is no build, product code, or
 automated product test suite yet; the M1a G2 scaffold introduces them (and the
 AGENTS.md command table changes only then, with its own shown diff).
 
+## G3 evidence — 2026-08-23 (gate closed)
+
+| Check | Result |
+| --- | --- |
+| Scaffold matrix with the G3 suites | PASS — run 32674468887 (https://github.com/WSH95/AgentTeam/actions/runs/32674468887) at `37219bb`: **all six legs green** (ubuntu/windows/macos x 3.11/3.13). The Windows legs executed the Windows-only `.cmd` shim suite against real runners (resolved-shim branch through real `node`, allowlisted branch through `cmd.exe`, refused branch pre-launch) — first real-shim-environment evidence |
+| CI smoke | PASS on every leg — `atm assistant validate examples/assistants/code-reviewer --strict-content` and the three-harness `atm run --render-only` against `ci-fake.yaml` |
+| Failure history (evidence, not hidden) | run 32672319094: all legs at Lint (fakes' one-line constants; CI lints bare `.`, local block had been scoped to src/tests) → `42c43be`; run 32673977915: ubuntu+macos green, Windows failed one platform-naive test assertion (`Path("/abs/x")` is drive-relative on Windows) → `37219bb`. Each fix pushed on its own owner approval |
+| Boundaries | PASS — no model call, no vendor login, no credential; the only vendor-binary execution in CI is `node` running the synthetic test shim |
+
+G3 of the approved M1a plan is complete: adapters pass argv/env/parser tests
+against deterministic fakes incl. Skill-channel rendering, selection with
+`decided_by`, and the Windows-only `.cmd` shim fake; the tests are in CI; no
+model call.
+
+Last verified: 2026-08-23 by Claude (Fable 5) session.
+
 ## G3 local verification — 2026-08-23 (pre-push)
 
 Execution followed the owner-approved G3 execution plan (fact sheet verified
