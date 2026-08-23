@@ -5,13 +5,52 @@ Behaviour is selected by $FAKE_MODE (ok | rate-limit | hang | malformed |
 schema-invalid | exit-130). When $FAKE_OBSERVE is set, the fake records its
 argv, cwd, selected env names/values, and stdin to that path as JSON.
 """
+
 import json
 import os
 import sys
 import time
 
-REVIEW = {"schema_version": 1, "kind": "normalized-review", "target_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "findings": [{"id": "f1", "severity": "critical", "category": "command-injection", "file": "src/run.ts", "line": 12, "title": "Shell command built from user input", "rationale": "The task string reaches exec() unescaped."}], "summary": "One critical finding.", "verdict": "request-changes"}
-BAD_REVIEW = {"schema_version": 1, "kind": "normalized-review", "target_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "findings": [{"id": "f1", "severity": "critical", "category": "command-injection", "file": "src/run.ts", "line": 12, "title": "Shell command built from user input", "rationale": "The task string reaches exec() unescaped."}], "summary": "One critical finding.", "verdict": "maybe"}
+REVIEW = json.loads("""
+{
+  "schema_version": 1,
+  "kind": "normalized-review",
+  "target_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "findings": [
+    {
+      "id": "f1",
+      "severity": "critical",
+      "category": "command-injection",
+      "file": "src/run.ts",
+      "line": 12,
+      "title": "Shell command built from user input",
+      "rationale": "The task string reaches exec() unescaped."
+    }
+  ],
+  "summary": "One critical finding.",
+  "verdict": "request-changes"
+}
+""")
+BAD_REVIEW = json.loads("""
+{
+  "schema_version": 1,
+  "kind": "normalized-review",
+  "target_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "findings": [
+    {
+      "id": "f1",
+      "severity": "critical",
+      "category": "command-injection",
+      "file": "src/run.ts",
+      "line": 12,
+      "title": "Shell command built from user input",
+      "rationale": "The task string reaches exec() unescaped."
+    }
+  ],
+  "summary": "One critical finding.",
+  "verdict": "maybe"
+}
+""")
 
 
 KEEP_ENV = ("GROK_HOME", "GROK_MEMORY")
@@ -28,11 +67,15 @@ def emit(body, stdin_text):
         "sessionId": "fake-grok",
         "requestId": "req-1",
         "num_turns": 1,
-        "usage": {"input_tokens": 70, "cache_read_input_tokens": 0,
-                  "cache_creation_input_tokens": 0, "output_tokens": 30,
-                  "reasoning_tokens": 5, "total_tokens": 105},
-        "modelUsage": {"fake-grok-model": {"inputTokens": 70, "outputTokens": 30,
-                                            "modelCalls": 1}},
+        "usage": {
+            "input_tokens": 70,
+            "cache_read_input_tokens": 0,
+            "cache_creation_input_tokens": 0,
+            "output_tokens": 30,
+            "reasoning_tokens": 5,
+            "total_tokens": 105,
+        },
+        "modelUsage": {"fake-grok-model": {"inputTokens": 70, "outputTokens": 30, "modelCalls": 1}},
         "structured_output": body,
     }
     _sys.stdout.write(_json.dumps(result))
@@ -46,8 +89,7 @@ def observe(stdin_text):
     payload = {
         "argv": sys.argv,
         "cwd": os.getcwd(),
-        "env": {k: v for k, v in os.environ.items()
-                if k.startswith("FAKE_") or k in KEEP_ENV},
+        "env": {k: v for k, v in os.environ.items() if k.startswith("FAKE_") or k in KEEP_ENV},
         "stdin": stdin_text,
     }
     with open(path, "w", encoding="utf-8") as fh:

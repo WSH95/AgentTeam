@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-23T23:03:37Z — cli
+[auto] CI run 32672319094 failed on all six legs at Lint: the fakes embedded one-line 435-char review constants and CI lints `ruff check .` (bare dot) while my local block ran `ruff check src tests`. Fix: constants as json.loads(multi-line), ruff-formatted; local verification now uses the bare-dot commands CI uses. Awaiting push approval.
+
 ### 2026-08-23T22:39:08Z — cli
 G3 commit 7 (feat(cli), steps 11-14): exit codes 0/1/2/3/130; `atm assistant validate [--strict-content] [--json]`; `atm profile init` (seeded profiles + vendor config homes, refuses overwrite, prints manual login instructions), `validate`, `doctor` (sanitized names-only status, fake --version capture, exit 1 on unresolved executables; no --probe until G5); `atm run --render-only` (request/flag merge, `claude` alias, api-test rejection, selection, model/effort overrides h=v, bundle-manifest + per-harness invocation.render.json all under the output dir, launch refused until G4); cli wired; .gitignore .agentteam-local/; CI gains the validate + render-only smoke step. 212 tests green on 3.11 + fresh 3.13; ruff/mypy clean; build OK. No model call, no push.
 
