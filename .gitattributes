@@ -2,3 +2,8 @@
 # reproduce identically on Windows, macOS, and Linux checkouts
 # (M1a plan section 4 item 4).
 * text=auto eol=lf
+
+# Windows batch/cmd files must stay CRLF (cmd.exe mis-parses LF batch files);
+# needed for the G3 Windows-only .cmd fake shim.
+*.bat text eol=crlf
+*.cmd text eol=crlf

@@ -1,0 +1,108 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentteam"
+dynamic = ["version"]
+description = "Portable, harness-independent Assistant definitions and reusable Team templates, executed as fresh TeamRuns over existing coding-agent harnesses."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "ShuhanWang" }]
+requires-python = ">=3.11"
+keywords = ["agents", "assistants", "harness", "claude-code", "codex", "grok"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+# Runtime dependencies are limited to these three (M1a plan section 5).
+dependencies = [
+  "typer>=0.12",
+  "pydantic>=2.11,<3",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# Optional coordination provider (M1a plan sections 2, 5, 10): exact upstream
+# revision plus the mcp compatibility bound. Never part of a core installation.
+clawteam = [
+  "clawteam @ git+https://github.com/HKUDS/ClawTeam.git@01198332ef9270c32c5460b8a178f964fc0df451",
+  "mcp>=1,<2",
+]
+
+[project.scripts]
+atm = "agentteam.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/WSH95/AgentTeam"
+Repository = "https://github.com/WSH95/AgentTeam"
+
+[dependency-groups]
+dev = [
+  "pytest>=9",
+  "pytest-asyncio>=1.4",
+  "jsonschema>=4.26",
+  "types-jsonschema>=4.26",
+  "ruff>=0.16",
+  "mypy>=2.3",
+  "types-PyYAML>=6",
+]
+
+[tool.hatch.metadata]
+# The optional clawteam extra is a direct Git reference (exact revision); this
+# also means the distribution is not PyPI-publishable as is — no package is
+# published during M1a (plan section 5).
+allow-direct-references = true
+
+[tool.hatch.version]
+path = "src/agentteam/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agentteam"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src/agentteam",
+  "/schemas",
+  "/README.md",
+  "/LICENSE",
+  "/pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-ra --strict-config --strict-markers --import-mode=importlib"
+filterwarnings = ["error"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+# ruff also lints/formats Python blocks inside Markdown; the discovery corpus
+# and AGENTS.md must never be touched by a formatter run.
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "W", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+plugins = ["pydantic.mypy"]
+warn_unreachable = true
+files = ["src", "tests"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true

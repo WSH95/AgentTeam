@@ -1,0 +1,73 @@
+# Scaffold smoke matrix (M1a plan section 16). The workflow grows gate by
+# gate: G3 adds adapter tests and the Windows .cmd fake, G4 adds deterministic
+# acceptance / hash identity / optional ClawTeam jobs, G7 runs the final
+# matrices plus the vendor-smoke job. No vendor login, model call, API key, or
+# secret is ever used here.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scaffold:
+    name: scaffold (${{ matrix.os }}, py${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.11", "3.13"]
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: utf-8
+      UV_NO_PROGRESS: "1"
+      NO_COLOR: "1"
+      TERM: dumb
+      # Beats the repo's .python-version so the 3.13 legs really run 3.13.
+      UV_PYTHON: ${{ matrix.python }}
+    steps:
+      - name: Force LF-authoritative checkout
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.11.26"
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
+      - name: Show selected interpreter
+        run: uv python find
+      - name: Lock consistency
+        run: uv lock --check
+      - name: Sync (frozen, all groups; never --all-extras)
+        run: uv sync --frozen --all-groups
+      - name: Assert matrix Python
+        run: uv run --no-sync python -c "import sys; want = tuple(map(int, '${{ matrix.python }}'.split('.'))); assert sys.version_info[:2] == want, sys.version"
+      - name: Lint
+        run: uv run --no-sync ruff check .
+      - name: Format check
+        run: uv run --no-sync ruff format --check .
+      - name: Typecheck
+        run: uv run --no-sync mypy
+      - name: Tests
+        run: uv run --no-sync pytest
+      - name: Build
+        run: uv build
+      - name: CLI --help / --version
+        run: |
+          uv run --no-sync atm --help
+          uv run --no-sync atm --version

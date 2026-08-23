@@ -4,6 +4,12 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-23T21:13:37Z — cli
+G2 commit 3 (chore(core): scaffold Python CLI package with uv; per the approved G2 execution plan): pyproject (agentteam 0.1.0a0, Hatchling>=1.27, Typer/Pydantic/PyYAML, clawteam extra @0119833+mcp<2, dev group, strict mypy+pydantic plugin, pytest strict flags, ruff excludes *.md), uv.lock (57 pkgs), .python-version 3.11, atm CLI skeleton (--help/--version, console script tested), py.typed, CI scaffold smoke matrix (3 OS x 3.11/3.13, uv 0.11.26 pinned, UV_PYTHON beats .python-version), docs/provenance.md (no ATM code copied; ClawTeam MIT notice), README status/dev section, .gitattributes CRLF rows for *.bat/*.cmd. Local block green on 3.11 and fresh 3.13. No push, no repo.
+
+### 2026-08-23T15:50:30Z — cli
+[auto-checkpoint] G2 scaffold in progress, uncommitted and green: pyproject/uv.lock/.python-version, `atm --help/--version`, nine domain models + checked-in JSON Schemas with reproduction check, 51 tests, ruff/mypy/build clean; PyPI/GitHub name checks 404. Paused at owner request before CI workflow, provenance, secret scan, commits 3-4, and the repo/push approval. No push, no repo, no model call.
+
 ### 2026-08-23T15:30:12Z — cli
 G1 commit 2 (documentation hygiene, plan §4 item 6; ADR 0022): PROJECT.md success criteria + volatile pins/scope moved out (H3); glossary adds HarnessAdapter, CoordinationSubstrate, Run/direct run, `atm`, legacy ATM, independence {declared, achieved} (H10/R10/R16); DECISIONS 0022 amendment markers for 0007/0009/0012 (R19); VERIFY counts corrected + PROGRESS re-sorted (H9); RISKS ID/Owner/Status columns R01–R33 (H12); closure notes on 10 critic files + fix-pass provenance note (H8); MPP banner/`--safe-mode` amendment (H6); READMEs link QUESTIONS, config.toml pointer (H11). HB-03 register amendment deferred to the owner's answer (R7). G1 closed; next gate G2 (first push = explicit approval moment). No code, no repository, no push.
 
