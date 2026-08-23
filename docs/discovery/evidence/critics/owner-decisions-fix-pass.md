@@ -31,3 +31,9 @@ D13. **harness-broker-model HBM-01.** Reword §8: Claude/Codex/Grok enforce the 
 D14. **legacy-atm-disposition F-01 (BLOCKER).** Rewrite §1 item 4 exactly as the critic proposes: ATM's persistent objects (materialization records ADR 0016, ProjectRoleContext ADR 0017, Deployment plane ADR 0009/0018, A2A bus ADR 0023/0025/0026) are deployment objects; of architecture §2's four "non-negotiable distinctions" (RoleDefinition ≠ Runtime Agent; ProjectContext ≠ team-global conversation; Team semantics ≠ messaging-surface semantics; capability requirement ≠ runtime-specific implementation), three survive as K1/K11/K6 and only the second is demoted. Cite ATM/docs/design/2026-08-19-architecture.md:18-25. Fix V4 citation ([ev:harness-cli-capabilities-b#F15] + ATM fixture path) and close open question 6 by anchoring every parenthetical to real §n headings; cite every mapping cell or mark `?`.
 
 D15. **General.** Keep frontmatter status "draft v2 (W3 findings applied 2026-08-22)". Do not add requirements. Do not touch another document. Record rejected findings with evidence. The answer paragraph is frozen (D5).
+
+---
+
+## Provenance note (2026-08-23, G1 documentation hygiene — review R18/R19, ADR 0018/0022)
+
+These decisions were written on 2026-08-22 by the orchestrating session in the owner's voice, as binding inputs for the W3 fix pass. ADR 0018 reclassifies them (together with tiebreak assumptions (a)–(l)) as historical, session-authored inputs rather than human owner decisions; ADR 0022 records which of them still stand (D3 `independence {declared, achieved}` — now a glossary term), which were reversed later (D7 by the M0.1 AD-07 correction, F9), and which describe the superseded CLI-over-ClawTeam mechanics (D1, D10, D11). The text above is unchanged and remains the dated record of what the fix pass applied.

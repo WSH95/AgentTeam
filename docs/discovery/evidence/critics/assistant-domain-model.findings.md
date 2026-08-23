@@ -131,3 +131,10 @@ Missing brief items for this document: none outright; items 6 and 9 are covered 
 5. **Cross-document alignment** — HarnessCapability names per harness-broker-model §3 (ADM-05); add the TeamTemplate layer to the precedence sentence (ADM-06); fix the §14 roll-up/borrow sentence (ADM-13); reference form id@version vs hash (ADM-17).
 6. **Citation hygiene** — re-anchor the five mis-pointed citations (ADM-09), qualify the `memory:` claim (ADM-10), cite the uncited §11 cells (ADM-14), reconcile §4 "both borrowed" with §12 (ADM-11).
 7. **Glossary/register wording** — gloss "role-level" once and use "Assistant-level" (ADM-07); phrase the Base-only preferences rule as provisional pending Q1 (ADM-08); disambiguate Ephemeral inheritance and skill shorthand (ADM-12, ADM-15).
+
+
+---
+
+## Closure note (2026-08-23, G1 documentation hygiene — review H8)
+
+This file is a dated W3 critic record (2026-08-22) and is not re-verified here. The verdict above is the last recorded critic verdict for this document: the fix pass that followed applied decisions D1–D15 (`owner-decisions-fix-pass.md` — session-authored in the owner's voice and reclassified as historical fix-pass inputs by ADR 0018), and the PLAN/PROGRESS claim "re-checks all PASS" has no re-check artefact in the tree, so no re-check PASS is asserted for this document on that basis. What closes these findings today: the reviewed document was re-baselined on 2026-08-23 (Python/`uv` core, optional ClawTeam provider — ADR 0014/0015); the approved M1a plan (`docs/plans/m1a-direct-harness-poc.md`, ADR 0021) supersedes the M0 PoC design this critique targets; and the independent review of `3407ec9` (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`, ADR 0018) re-audited the whole package, with its open items tracked in the M1a plan, `QUESTIONS.md`, and ADR 0022. The findings below the verdict are historical evidence, not an open work list.

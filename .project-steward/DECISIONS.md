@@ -306,3 +306,54 @@ any later milestone plan.
 files, identity updates, documentation-hygiene commit) starts in a fresh, sole
 session; this session only records the approval and hands off. `PLAN.md`,
 `QUESTIONS.md`, and `HANDOFF.md` are updated in the following commit.
+
+## 0022 — 2026-08-23 — Amendment markers for ADRs 0007, 0009, and 0012 (append-only; G1 documentation hygiene)
+
+**Context**: The independent review of `3407ec9` (R19; ADR 0018) found that
+this append-only log carried silent reversals: ADR 0007's build plan was
+reopened by 0010 and its harness count superseded by 0011 without a marker;
+ADR 0009's D7 was reversed by the M0.1 AD-07 correction (review addendum F9,
+ADR 0010/0011) without a marker; and ADR 0012 pairs the still-valid AgentTeam
+identity with a TypeScript baseline that 0014 replaced. The approved M1a plan
+(§4 item 6) requires one append-only entry that adds the markers. Earlier
+entries are not edited; this entry is the marker. The log's append order also
+differs from its decision dates (0008/0009 are dated 2026-08-23 but were
+appended before 0010/0011, dated 2026-08-22): entries are appended when they
+are written and dated by the decision event; both orders stand as recorded.
+**Decision**:
+- **ADR 0007 — superseded in part.** Stands: the thin, format-independent
+  Assistant/Team layer; the substrate-neutral data it owns; the two declared
+  seams HarnessAdapter and CoordinationSubstrate. Superseded: "over the ClawTeam
+  CLI, subprocess backend" and ClawTeam as the one team substrate → ClawTeam is
+  an optional, exact-pinned in-process provider that never launches harnesses
+  (0014, 0015) with a local deterministic provider first (0018); "five harness
+  adapters" → three first-pass harnesses (0011, 0013); "PoC-A slice ≈2–3k LOC,
+  run layer gated on PoC A" and the rest of the slice/sequence → reopened by 0010
+  and replaced by the approved M1a plan (0021) and the committed roadmap (0016).
+- **ADR 0009 — amended and reclassified.** D7 ("hidden is the TC-04 row's
+  concern only — AD-07/TE-04 score the ability to create a temporary member")
+  was reversed on 2026-08-22 by the M0.1 AD-07 correction (hidden-if-desired
+  restored into AD-07 and its derived fit-gap text; `evidence/m0-product-architecture-review-2026-08-22.md`
+  F9; ADR 0010). D1/D10/D11 describe ClawTeam-CLI mechanics (`inbox send` result
+  carrier, `CLAWTEAM_BIN` shim, wrapper spawn) that belong to the superseded
+  CLI-over-ClawTeam architecture and are historical. D3 (`independence
+  {declared, achieved}`) stands and is now a glossary term. Per ADR 0018, D1–D15
+  were session-authored in the owner's voice and are historical fix-pass inputs,
+  not human owner decisions; the same applies to 0009's own "owner decisions"
+  wording.
+- **ADR 0012 — superseded in part.** Stands and executed at G1 (commits
+  `chore(project): rename project to AgentTeam` and this one): product name
+  AgentTeam, repository `WSH95/AgentTeam`, CLI `atm`, directory
+  `/home/wsh/Documents/AgentTeam`, English documentation, MIT with
+  `Copyright (c) 2026 ShuhanWang`. Superseded: "Implement in TypeScript on
+  Node.js" → Python `>=3.11` with `uv` and Hatchling (0014); "keep the package
+  private and do not publish to npm" → the repository is created public at G2
+  after the pre-first-push checklist and an explicit approval, and no package is
+  published during M1a (0019, M1a plan §2/§16).
+- **Convention going forward.** When a later entry supersedes or amends an
+  earlier one, the later entry names the earlier ID and the clause it changes
+  (as 0014 and 0019 already do); earlier entries are never rewritten.
+**Consequences**: Readers of 0007/0009/0012 must read this entry with them.
+`docs/discovery/evidence/critics/owner-decisions-fix-pass.md` carries a matching
+provenance note; the critic findings files carry closure notes (review H8); the
+glossary defines the seam and identity terms (review H10/R10/R16).

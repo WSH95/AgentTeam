@@ -88,3 +88,10 @@ verdict: PASS-WITH-MAJORS
 5. Restate the brief's discovery mandates (items 12, 13, 16, 19) in §6 so coverage is checkable from the register document; check the brief itself into the repo or append its section list. (PI-06, PI-10)
 6. PoC coverage: add TC-04 (PoC B) and AD-05 (PoC A); reword "through the DAG" to not presuppose TE-06's mechanism. (PI-07, PI-08)
 7. Replace unqualified "sessions" with "harness sessions" (TE-02, §2 table) and "reviewed role evolution" with "reviewed evolution overlays"; fix `date`/version in frontmatter and README; record the freeze + AR-06 decision in `DECISIONS.md`. (PI-09, PI-11, PI-12, PI-16)
+
+
+---
+
+## Closure note (2026-08-23, G1 documentation hygiene — review H8)
+
+This file is a dated W3 critic record (2026-08-22) and is not re-verified here. The verdict above is the last recorded critic verdict for this document: the fix pass that followed applied decisions D1–D15 (`owner-decisions-fix-pass.md` — session-authored in the owner's voice and reclassified as historical fix-pass inputs by ADR 0018), and the PLAN/PROGRESS claim "re-checks all PASS" has no re-check artefact in the tree, so no re-check PASS is asserted for this document on that basis. What closes these findings today: the reviewed document was re-baselined on 2026-08-23 (Python/`uv` core, optional ClawTeam provider — ADR 0014/0015); the approved M1a plan (`docs/plans/m1a-direct-harness-poc.md`, ADR 0021) supersedes the M0 PoC design this critique targets; and the independent review of `3407ec9` (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`, ADR 0018) re-audited the whole package, with its open items tracked in the M1a plan, `QUESTIONS.md`, and ADR 0022. The findings below the verdict are historical evidence, not an open work list.

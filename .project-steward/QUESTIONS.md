@@ -13,12 +13,14 @@ must not guess. Answered items remain here for traceability.
 
 ## Current gate
 
-M1a r3 is **approved** (DECISIONS 0021; approved text `0f3e478`). The next
-gate is G1 — the directory move to `/home/wsh/Documents/AgentTeam`, done by the
-owner between sessions, then root files, identity updates, and the
-documentation-hygiene commit in a fresh session — followed by G2. Each later
-gate keeps its own approvals (first push at G2; AGENTS.md managed block; live
-reruns).
+M1a r3 is **approved** (DECISIONS 0021; approved text `0f3e478`). **G1 is
+done** (2026-08-23): the owner moved the repository to
+`/home/wsh/Documents/AgentTeam`; root files, identity amendments, and the
+documentation-hygiene commit landed (ADR 0022). The next gate is **G2** — the
+Python/`uv` scaffold, the pre-first-push checklist, and the public
+`WSH95/AgentTeam` repository whose creation and first push need an explicit
+approval at that moment. Each later gate keeps its own approvals (AGENTS.md
+managed command table once the scaffold exists; live reruns; every push).
 
 ## Answered in the 2026-08-22 product/architecture review
 
@@ -98,7 +100,10 @@ See `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and ADR 0018.
   (v3.4) or the glossary, and decide whether a team-level *constraint*
   (reviewer ≠ implementer harness) binds above an Assistant preference (review R7).
   M1a r2 implements the register's three layers (user > assistant > default)
-  with `team` reserved; the amendment is applied in G1 only after this answer.
+  with `team` reserved. **Still open after G1 (2026-08-23):** the plan allows
+  the register amendment only after this answer, so G1 left `product-intent.md`
+  HB-03 untouched; the amendment becomes a small docs-only follow-up whenever
+  the owner answers (it does not block G2).
 - [ ] User-specific preferences in the Base definition vs User-Overlay-only
   (`assistant-domain-model.md` §13 Q1; review R15) — decide before overlay work.
 - [x] Tiebreak assumptions (a)–(l): historical, session-authored panel inputs,

@@ -111,3 +111,10 @@ Counted: 45 citations checked; 2 failed/weak (task-metadata carrier; spawn-platf
 4. Fix the misattributed open question in §4's falsification rule; make the Q-number scheme resolvable; state explicitly the rule adopted for harness-broker-model §13 Q4 and team-execution-model §13 Q4.
 5. Disambiguate PoC B mechanics: who sets the Lead's identity before `spawn-team`; spawn-all vs spawn-on-unblock; per-Member permission rendering (the reviewer's read-only flags cannot be "as in §3" for Lead/implementer); and in PoC C variant (ii) which data dir the carriers and the wait use.
 6. Correct the §1 over-claim that PoC A exercises the overlay resolver, or add an informational overlay check; tidy the NITs (TE-08 "M" wording, F12 citation, permission rendering consistency, PATH-shadowing shim).
+
+
+---
+
+## Closure note (2026-08-23, G1 documentation hygiene — review H8)
+
+This file is a dated W3 critic record (2026-08-22) and is not re-verified here. The verdict above is the last recorded critic verdict for this document: the fix pass that followed applied decisions D1–D15 (`owner-decisions-fix-pass.md` — session-authored in the owner's voice and reclassified as historical fix-pass inputs by ADR 0018), and the PLAN/PROGRESS claim "re-checks all PASS" has no re-check artefact in the tree, so no re-check PASS is asserted for this document on that basis. What closes these findings today: the reviewed document was re-baselined on 2026-08-23 (Python/`uv` core, optional ClawTeam provider — ADR 0014/0015); the approved M1a plan (`docs/plans/m1a-direct-harness-poc.md`, ADR 0021) supersedes the M0 PoC design this critique targets; and the independent review of `3407ec9` (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`, ADR 0018) re-audited the whole package, with its open items tracked in the M1a plan, `QUESTIONS.md`, and ADR 0022. The findings below the verdict are historical evidence, not an open work list.

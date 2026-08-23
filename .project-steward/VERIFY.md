@@ -1,10 +1,26 @@
 # Verification
 
-How to check the project is healthy. This is a documentation-only discovery
-phase; there is no build, product code, or automated product test suite yet.
+How to check the project is healthy. There is no build, product code, or
+automated product test suite yet; the M1a G2 scaffold introduces them (and the
+AGENTS.md command table changes only then, with its own shown diff).
 
+## G1 rename and documentation-hygiene verification — 2026-08-23
 
+| Check | Result |
+| --- | --- |
+| Move (plan §4 items 1–2) | PASS — the owner moved the repository between sessions; at session start the working directory was `/home/wsh/Documents/AgentTeam`, `/home/wsh/Documents/assistant-team-system-dev` no longer existed, `main @ 025d02a` matched the handoff, the tree was clean, no merge/rebase was in progress, and `command -v atm` found no executable on `PATH` |
+| Root files (plan §4 item 4) | PASS — `README.md` states alpha/pre-implementation status and links the steward files including QUESTIONS; `LICENSE` is MIT with `Copyright (c) 2026 ShuhanWang`; `.gitattributes` is `* text=auto eol=lf`; `git ls-files --eol` showed all 56 tracked files `i/lf w/lf`, so no renormalisation occurred; `.gitignore` adds Python/`uv` build and cache paths plus `.agentteam/` and `.env*` outside the steward-managed block |
+| Identity amendments (plan §4 item 3) | PASS — only living documents changed (discovery landing page, `product-intent.md` frontmatter, one `legacy-atm-disposition.md` question note, PROJECT.md); panel, critic, evidence, decision, and progress text was not rewritten — `git grep -w ats` still lists the same historical files; `CLAUDE.md` remains the thin `@AGENTS.md` adapter; `AGENTS.md` untouched |
+| Hygiene list (plan §4 item 6; review H3, H6, H8–H12, R7, R19) | PASS except the deferred item — PROJECT.md success criteria + volatile pins/scope decision moved out (H3); glossary defines HarnessAdapter, CoordinationSubstrate, Run/direct run, `atm`, legacy ATM, `independence {declared, achieved}` (H10/R10/R16); DECISIONS 0022 adds append-only amendment markers for 0007/0009/0012 (R19); VERIFY M0.1 counts corrected and PROGRESS re-sorted newest-first (H9); RISKS has ID/Owner/Status columns, 33 rows R01–R33 (H12); 10 critic files carry closure notes and the fix-pass file a provenance note, the three FAIL blockers spot-checked (H8); `minimal-poc-plan.md` banner confirmed and its pre-r3 Claude bullet amended (H6); both READMEs link QUESTIONS and `config.toml` names where its pointer lives (H11). **Deferred by design:** the HB-03 register amendment (R7) waits for the owner's QUESTIONS answer |
+| Local toolchain baseline (moved here from PROJECT.md) | PASS — read-only `--version` checks, no model call: Claude Code 2.1.241, Codex 0.149.0, Grok Build 1.0.5, OpenClaw 2026.7.1-2, Hermes 0.20.4, `uv` 0.11.26 with uv-managed CPython 3.11.16 and 3.13.14, system `python3` 3.8.10; Ubuntu host without tmux |
+| Local Markdown targets | PASS — 53 tracked Markdown files scanned, 30 local links checked, 0 broken |
+| Markdown fences | PASS — 60 fence markers across 53 files, 0 unbalanced |
+| Secret-pattern scan | PASS — 0 API-key-shaped values and 0 private-key headers across tracked files |
+| Scope | PASS — commit 1 touched root files, living docs, and steward state; commit 2 is docs/steward only (`.md` plus `config.toml`); no source, dependency, CI workflow, repository, AGENTS.md, credential, model call, or push |
+| Patch hygiene | PASS — `git diff --check` exits 0 for both commits |
 
+Last verified: 2026-08-23 by Claude (Fable 5) session (documentation-only; no
+credential values or model prompts used).
 
 ## G0 approval record — 2026-08-23
 
@@ -115,8 +131,8 @@ model prompts used).
 | Sanitized native-auth status | PASS for Claude subscription OAuth and Codex ChatGPT login; Grok active login not tested |
 | Fit-gap structural regression | PASS — 54 register IDs map one-to-one to 54 matrix rows; 11 non-empty system cells per row; priorities and cell syntax valid; 0 errors |
 | Canonical architecture answer | PASS — exactly 3 copies and 0 byte-level line mismatches across `architecture-options.md`, `minimal-poc-plan.md`, and discovery `README.md` |
-| Local Markdown links | PASS — 47 Markdown files scanned, 12 local `.md` links checked, 0 broken |
-| Placeholder inventory | PASS with 3 intentional matches — all mark the still-open implementation-language decision (`PROJECT.md` once; `reuse-vs-build-analysis.md` twice) |
+| Local Markdown links | PASS — 47 Markdown files scanned, 12 local `.md` links checked, 0 broken. *Correction (2026-08-23, G1 hygiene, review H9; re-counted with `git ls-tree 3407ec9`): 49 tracked Markdown files existed at `3407ec9` — the scan silently excluded `AGENTS.md` and `CLAUDE.md`.* |
+| Placeholder inventory | PASS with 3 intentional matches — all mark the still-open implementation-language decision (`PROJECT.md` once; `reuse-vs-build-analysis.md` twice). *Correction (2026-08-23, G1 hygiene, review H9; re-scanned at `3407ec9`): 5 `TBD` markers, not 3 — `AGENTS.md:5` and `evidence/panel/proposal-B-independent-layer.md:42` were missed; all five concerned the then-open implementation-language decision, so the PASS reading stands with the corrected count.* |
 | Secret-pattern scan | PASS — 0 candidate-route-key-shaped values and 0 private-key headers |
 | Patch hygiene | PASS — `git diff --check` exits 0 |
 

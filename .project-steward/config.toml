@@ -1,5 +1,8 @@
-# Project Steward configuration (flat TOML; see references/cross-platform.md
-# for the supported subset on Python < 3.11).
+# Project Steward configuration. Flat TOML only: on Python < 3.11 the steward
+# CLI parses a documented flat subset (sections, strings, ints, floats,
+# booleans, comments; no arrays, dates, or multiline values) —
+# see the Project Steward plugin's own references/cross-platform.md, which is
+# not part of this repository.
 
 [session]
 # auto_handoff_mode: "block" forces one auto-checkpoint before the agent

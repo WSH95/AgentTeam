@@ -8,7 +8,7 @@ depends_on: product-intent.md §4 (historical acceptance sketches plus current c
 
 # Minimal PoC plan
 
-> **Historical artifact.** Sections 2–8 preserve the detailed M0 PoC proposal for reference. The current, re-baselined proposal is `../plans/m1a-direct-harness-poc.md`; it is authoritative over conflicting detail here. That plan defines M1a (direct runner), commits PoC B to M1c and PoC C to M2, and still requires the planned multi-agent/owner review before product implementation.
+> **Historical artifact (banner confirmed 2026-08-23, G1 documentation hygiene — review H6).** This document is a dated M0 record and is not implementation authorization. Sections 2–8 preserve the detailed M0 PoC proposal for reference; §1–§1.1 summarise the direction as re-baselined on 2026-08-23 *before* M1a revision r3 and are likewise dated. The authoritative plan is the **approved** [`../plans/m1a-direct-harness-poc.md`](../plans/m1a-direct-harness-poc.md) (revision r3, ADR 0021): it defines M1a (direct runner), commits PoC B to M1c and PoC C to M2, and wins over any conflicting detail here — including the Claude isolation recipe (see the amendment in §1.1) and every `ats`/`Run 1/2/3`/CLI-over-ClawTeam mechanic below.
 
 ## 1. Purpose and the layer under test
 
@@ -19,7 +19,7 @@ Discovery proposed the smallest layer in `architecture-options.md` §5. The curr
 ### 1.1 Confirmed constraints for the next PoC plan
 
 - First-pass harnesses: Claude Code 2.1.241, Codex 0.149.0, and Grok Build 1.0.5. Hermes/OpenClaw are deferred.
-- Native/unattended live runs: subscription OAuth on the owner's persistent host. Claude uses `--safe-mode --no-session-persistence`; `--bare` disables OAuth. Hosted CI receives no live credentials.
+- Native/unattended live runs: subscription OAuth on the owner's persistent host. Claude uses `--safe-mode --no-session-persistence`; `--bare` disables OAuth. Hosted CI receives no live credentials. *Amendment 2026-08-23 (M1a r3, ADR 0020): `--safe-mode` is no longer part of the Claude recipe — it disables Skills, plugins, hooks, and MCP servers; isolation now rests on a fresh `CLAUDE_CONFIG_DIR` plus `--setting-sources user`, `--strict-mcp-config`, explicit tool restriction, and `--no-session-persistence` (approved plan §11). `--bare` stays excluded.*
 - API-test mode: separate, replaceable provider profile; no provider, endpoint,
   or model is selected. Store only the credential environment-variable name,
   never a key value. Do not fall back from native auth to this mode.

@@ -89,3 +89,10 @@ Missing/partial brief items: 18 (partial, F-10); 12 (partial by scope); 6/7 (par
 5. Mark Inconsistency #3 resolved (product-intent v3.1) and OQ8 answered (minimal-poc-plan §2); make "recon-appendix" resolvable (F-06, F-07, F-11).
 6. Narrow K9 so "four planes" (which include the demoted deployment plane) is not a keep verdict; de-ambiguate watch mode between K14 and X3; add an ATM platform disposition row (F-08, F-09, F-10).
 7. Apply the nine citation corrections F-12…F-20 and the three wording NITs F-21…F-23.
+
+
+---
+
+## Closure note (2026-08-23, G1 documentation hygiene — review H8)
+
+This file is a dated W3 critic record (2026-08-22) and is not re-verified here. The verdict above is the last recorded critic verdict for this document: the fix pass that followed applied decisions D1–D15 (`owner-decisions-fix-pass.md` — session-authored in the owner's voice and reclassified as historical fix-pass inputs by ADR 0018), and the PLAN/PROGRESS claim "re-checks all PASS" has no re-check artefact in the tree, so no re-check PASS is asserted for this document on that basis. Spot-checked at G1: the F-01 BLOCKER fix prescribed by D14 is present — `legacy-atm-disposition.md` §1 item 4 now reads "ATM's persistent objects are deployment objects; its portability principles survive" with the four distinctions treated as D14 states. What closes these findings today: the reviewed document was re-baselined on 2026-08-23 (Python/`uv` core, optional ClawTeam provider — ADR 0014/0015); the approved M1a plan (`docs/plans/m1a-direct-harness-poc.md`, ADR 0021) supersedes the M0 PoC design this critique targets; and the independent review of `3407ec9` (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`, ADR 0018) re-audited the whole package, with its open items tracked in the M1a plan, `QUESTIONS.md`, and ADR 0022. The findings below the verdict are historical evidence, not an open work list.

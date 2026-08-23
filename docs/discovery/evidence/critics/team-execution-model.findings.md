@@ -114,3 +114,10 @@ Citations checked: 36 · factual failures: 0 · mis-anchored: 5 (F-16, F-17 ×2,
 8. §8/§12: add inline citations (F-08); §9 vs §4: reconcile Hermes `--usage-file` with the `chat -q` Member form (F-09).
 9. §9 and §7 L6/§10: attribute "Surfaces present only visible Members" to TC-04 design, and the Hermes-gateway exclusion to G-MS-01/MS-01 rather than §1.6 (F-10, F-11).
 10. Mark the Claude mid-run-definition claim as inferred; state that `level: mechanical` fails closed on every substrate today; add the resident-piece mechanism for watcher supervision; re-anchor the five mis-cited findings (F-13 to F-20, F-22).
+
+
+---
+
+## Closure note (2026-08-23, G1 documentation hygiene — review H8)
+
+This file is a dated W3 critic record (2026-08-22) and is not re-verified here. The verdict above is the last recorded critic verdict for this document: the fix pass that followed applied decisions D1–D15 (`owner-decisions-fix-pass.md` — session-authored in the owner's voice and reclassified as historical fix-pass inputs by ADR 0018), and the PLAN/PROGRESS claim "re-checks all PASS" has no re-check artefact in the tree, so no re-check PASS is asserted for this document on that basis. What closes these findings today: the reviewed document was re-baselined on 2026-08-23 (Python/`uv` core, optional ClawTeam provider — ADR 0014/0015); the approved M1a plan (`docs/plans/m1a-direct-harness-poc.md`, ADR 0021) supersedes the M0 PoC design this critique targets; and the independent review of `3407ec9` (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`, ADR 0018) re-audited the whole package, with its open items tracked in the M1a plan, `QUESTIONS.md`, and ADR 0022. The findings below the verdict are historical evidence, not an open work list.

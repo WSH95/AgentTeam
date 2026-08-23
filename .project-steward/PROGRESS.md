@@ -2,6 +2,11 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
+
+### 2026-08-23T15:30:12Z — cli
+G1 commit 2 (documentation hygiene, plan §4 item 6; ADR 0022): PROJECT.md success criteria + volatile pins/scope moved out (H3); glossary adds HarnessAdapter, CoordinationSubstrate, Run/direct run, `atm`, legacy ATM, independence {declared, achieved} (H10/R10/R16); DECISIONS 0022 amendment markers for 0007/0009/0012 (R19); VERIFY counts corrected + PROGRESS re-sorted (H9); RISKS ID/Owner/Status columns R01–R33 (H12); closure notes on 10 critic files + fix-pass provenance note (H8); MPP banner/`--safe-mode` amendment (H6); READMEs link QUESTIONS, config.toml pointer (H11). HB-03 register amendment deferred to the owner's answer (R7). G1 closed; next gate G2 (first push = explicit approval moment). No code, no repository, no push.
+
 ### 2026-08-23T15:18:28Z — cli
 G1 commit 1: directory move verified (owner moved the repo to /home/wsh/Documents/AgentTeam between sessions; same HEAD 025d02a, clean, old path gone, no `atm` on PATH); root README (alpha), LICENSE (MIT, ShuhanWang), .gitattributes (`* text=auto eol=lf`, no renormalisation needed), implementation .gitignore added; identity amendments on the discovery landing page, product-intent title/status, and one legacy-atm-disposition note; dated M0 records untouched. No code, no repository, no push.
 
@@ -29,13 +34,13 @@ Prepared and validated the owner-requested commit of the proposed M1a planning b
 ### 2026-08-23T06:04:09Z — cli
 Committed M0.1 and drafted the detailed AgentTeam M1a direct-harness PoC plan for multi-agent review; no implementation started
 
+### 2026-08-23T04:30:00Z — M0 discovery complete; STOP for product/architecture review
+W3b fixers (8 docs) + re-checks all PASS; owner cross-document alignment (cells, carrier, stale notes), RISKS rows from ATM salvage merged, QUESTIONS numbered Q1–Q10, README answer + STOP, VERIFY updated. Final commit of the nine discovery documents + evidence. Session closed at the review gate.
+
 ### 2026-08-23T02:51:49Z — cli
 [auto-checkpoint] No material project change after the completed M0.1 documentation handoff; final scope check passed and nothing is staged.
 
 ### 2026-08-23T02:48:03Z — [auto-checkpoint] M0.1 documentation review applied and validated: current CLI/auth/Telegram evidence, confirmed constraints, targeted AD-07 correction, and 54×11/link/secret/diff checks PASS; no code, live calls, key, or commit
-
-### 2026-08-23T04:30:00Z — M0 discovery complete; STOP for product/architecture review
-W3b fixers (8 docs) + re-checks all PASS; owner cross-document alignment (cells, carrier, stale notes), RISKS rows from ATM salvage merged, QUESTIONS numbered Q1–Q10, README answer + STOP, VERIFY updated. Final commit of the nine discovery documents + evidence. Session closed at the review gate.
 
 ### 2026-08-23T00:40:00Z — [auto-checkpoint] owner fixes committed (c01b910); W3b fixers relaunched; AGENTS.md update proposed
 First fixer run hit a monthly spend limit with no edits; relaunched. Proposed a one-time AGENTS.md addition (discovery pointers + conventions) for user approval.
@@ -58,8 +63,8 @@ W1 evidence committed (189ea87); register frozen (AR-06). W2a-1 fit-gap: TC+TE a
 ### 2026-08-22T02:40:00Z — [auto-checkpoint] W1 cut by session limit; W1b re-running 4 agents
 W1 produced 6/10 evidence files (all complete); 8 agents reported "session limit" — 4 of them after writing their file. W1b launched for the 4 missing files. W2a/W2b/W3 workflow scripts pre-written in the scratchpad.
 
-### 2026-08-21T18:40:00Z — [auto-checkpoint] Phase 0 done, W1 running
-Plan approved; steward init committed (78272d8); glossary, requirement register (AD/TC/TE/HB/AR/EV/MS/LO/XC, 45 rows), PoC acceptance criteria and intent prose written; W1 evidence workflow (10 agents) launched; W2a scripts pre-written in scratchpad.
-
 ### 2026-08-22T01:42:57Z — project-steward init
 Project initialized as a Project Steward managed project.
+
+### 2026-08-21T18:40:00Z — [auto-checkpoint] Phase 0 done, W1 running
+Plan approved; steward init committed (78272d8); glossary, requirement register (AD/TC/TE/HB/AR/EV/MS/LO/XC, 45 rows), PoC acceptance criteria and intent prose written; W1 evidence workflow (10 agents) launched; W2a scripts pre-written in scratchpad.
