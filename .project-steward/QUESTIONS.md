@@ -13,13 +13,13 @@ must not guess. Answered items remain here for traceability.
 
 ## Current gate
 
-M1a r3 is **approved** (DECISIONS 0021). G1 is done (ADR 0022). **G2 local
-work is done** under the owner-approved 2026-08-23 G2 execution plan (commits
-`cc0cc5f`, `be5ce15`; AGENTS.md table per ADR 0023): scaffold, nine V1
-schemas, CI workflow, pre-first-push checklist. **Open right now: the owner's
-explicit approval to create public `WSH95/AgentTeam` and make the first
-push.** After that: scaffold smoke matrix green on three OSes closes G2; each
-later gate keeps its own approvals (live reruns; every further push).
+M1a r3 is **approved** (DECISIONS 0021). G1 done (ADR 0022); **G2 done and
+closed 2026-08-23** (ADR 0023/0024; VERIFY "G2 evidence": public
+https://github.com/WSH95/AgentTeam, six CI legs green at `d9440f8`). The next
+gate is **G3** — isolated Claude/Codex/Grok direct adapters, process runner,
+Skill channels, `decided_by`, the Windows `.cmd` fake — and per the owner's
+working agreement it starts with its own per-gate execution plan for approval.
+Every push and every live rerun stays its own gate.
 
 ## Answered in the 2026-08-22 product/architecture review
 

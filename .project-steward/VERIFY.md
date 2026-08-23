@@ -4,6 +4,24 @@ How to check the project is healthy. There is no build, product code, or
 automated product test suite yet; the M1a G2 scaffold introduces them (and the
 AGENTS.md command table changes only then, with its own shown diff).
 
+## G2 evidence — 2026-08-23 (gate closed)
+
+| Check | Result |
+| --- | --- |
+| Repository | PASS — https://github.com/WSH95/AgentTeam is PUBLIC with license `mit`, default branch `main` (`gh repo view --json visibility,licenseInfo,defaultBranchRef`); created and first pushed on the owner's explicit approvals (DECISIONS 0024) |
+| Pushed history | `main @ d9440f8`; first push was `8660e6a` (the secret-scanned SHA, 0 hits); `671c2d9` and `d9440f8` are CI fixes, each pushed on its own owner approval |
+| Scaffold smoke matrix | PASS — run 32667607711 (https://github.com/WSH95/AgentTeam/actions/runs/32667607711) at `d9440f8`: **all six legs green** — ubuntu-latest/windows-latest/macos-latest x Python 3.11/3.13 (lock check, frozen sync, interpreter assert, ruff, ruff format, mypy, pytest 91, uv build, schema check, export round-trip `git diff --exit-code -- schemas`, `atm --help/--version`) |
+| CI failure history (evidence, not hidden) | run 32667232109 at `8660e6a`: all legs failed at job setup — `astral-sh/setup-uv` has no floating `v10` tag → pinned to the v10.0.1 commit (`671c2d9`); run 32667352498 at `671c2d9`: macOS+Windows green, Ubuntu legs failed at the argument-less `uv python find` diagnostic (resolves `.python-version` 3.11; never auto-installs; image ships no 3.11/3.13) → explicit `uv python install <matrix>` + versioned `find` (`d9440f8`) |
+| Boundaries | PASS — CI ran with `contents: read` only; no credential, vendor login, or model call anywhere; no package published |
+
+G2 of the approved M1a plan is complete. Gate evidence per plan §3: frozen
+`uv.lock`; package builds; checked-in schemas reproduce (all six legs);
+`atm --help`/`--version` pass; pre-first-push checklist passed; public
+repository created with MIT and pushed after explicit approval; scaffold
+smoke matrix green on three OSes.
+
+Last verified: 2026-08-23 by Claude (Fable 5) session.
+
 ## G2 local verification — 2026-08-23 (pre-push)
 
 Execution followed the owner-approved G2 plan (drafted, independently reviewed

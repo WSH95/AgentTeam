@@ -44,14 +44,14 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
 - [x] Incorporate multi-agent review findings without starting implementation (r3, ADR 0020)
 - [x] Obtain explicit owner implementation approval, mark the reviewed plan `approved`, and commit any review resolutions (G0: DECISIONS 0021; status flipped)
 - [x] G1 — rename/re-baseline the local project as AgentTeam (owner moved the repo 2026-08-23; root README/LICENSE/.gitattributes/.gitignore + identity amendments in `chore(project): rename project to AgentTeam`); documentation-hygiene docs-only commit (M1a §4 item 6; ADR 0022) — HB-03 register amendment deferred until the owner answers the QUESTIONS item; AGENTS command table waits for the G2 scaffold
-- [ ] G2 — Python foundation and public repository (execution per the approved 2026-08-23 G2 plan; commits `cc0cc5f` + `be5ce15`)
+- [x] G2 — Python foundation and public repository (execution per the approved 2026-08-23 G2 plan; commits `cc0cc5f` + `be5ce15` + CI fixes `671c2d9`/`d9440f8`; closed 2026-08-23)
   - [x] `uv`/Hatchling scaffold: pyproject, frozen `uv.lock`, `src/agentteam/`, `atm --help/--version`, py.typed, CLI tests
   - [x] Nine V1 domain records + checked-in JSON Schemas with reproduction/parity tests; `schemas/README.md`
   - [x] CI scaffold smoke matrix workflow (3 OS x 3.11/3.13; uv 0.11.26 pinned; schema steps included)
   - [x] Pre-first-push checklist: LICENSE + notices, `docs/provenance.md`, name checks (GitHub/PyPI 404 2026-08-23; `atm` free); history secret scan at the final local HEAD
   - [x] AGENTS.md managed command table (owner-approved diff; DECISIONS 0023)
-  - [ ] Create public `WSH95/AgentTeam` (MIT) and push — ONLY on the owner's explicit approval at that moment
-  - [ ] Scaffold smoke matrix green on Ubuntu/Windows/macOS (evidence: run URL in VERIFY)
+  - [x] Public https://github.com/WSH95/AgentTeam (MIT) created and pushed on explicit approvals (DECISIONS 0024; first push `8660e6a`)
+  - [x] Scaffold smoke matrix green on Ubuntu/Windows/macOS x 3.11/3.13 (run 32667607711 at `d9440f8`; VERIFY "G2 evidence")
 - [ ] G3 — implement isolated Claude/Codex/Grok direct adapters (Skill channels, `decided_by`, Windows `.cmd` fake); adapter tests added to CI
 - [ ] G4 — pass the deterministic direct-runner PoC locally (incl. solo mode, selection precedence, three Skills per harness, example-package hash identity) and qualify the optional, exactly pinned ClawTeam import/coordination seam without using its subprocess backend; write its qualification report
 - [ ] G5 — complete owner-driven dedicated native-auth profile setup and the bounded day-one probes (verification levels recorded)

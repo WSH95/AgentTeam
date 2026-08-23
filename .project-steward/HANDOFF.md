@@ -1,107 +1,94 @@
 ---
-updated_at: 2026-08-23T21:17:14Z
+updated_at: 2026-08-23T21:30:22Z
 updated_by: cli
-session_status: active
+session_status: closed
 branch: main
-last_commit: be5ce15
+last_commit: d9440f8
 ---
 # Handoff
 
 ## Now
 
-**M1a G2 local work is DONE; the session is stopped at the push gate.** The
-approved plan is `docs/plans/m1a-direct-harness-poc.md` r3 (DECISIONS 0021);
-G2 ran under the owner-approved 2026-08-23 G2 execution plan (drafted, twice
-independently reviewed, critiqued, approved in-session; archived at
-`~/.claude/plans/continue-i-want-to-toasty-ladybug.md`).
+**M1a G2 is COMPLETE and closed (2026-08-23).** The approved plan is
+`docs/plans/m1a-direct-harness-poc.md` r3 (DECISIONS 0021). G2 ran under an
+owner-approved per-gate execution plan (the owner's standing working
+agreement: every coding gate gets its own reviewed plan first).
 
-Commits (all local; nothing ever pushed; no remote exists):
-- `edc14ff` / `0add982` — G1 (rename; documentation hygiene).
-- `cc0cc5f` — `chore(core): scaffold Python CLI package with uv`.
-- `be5ce15` — `feat(domain): add portable definition, run-record,
-  review/synthesis, and run schemas` (+ AGENTS.md command table, ADR 0023).
-- The commit carrying this handoff — `docs(steward): record G2 local
-  verification and pre-first-push checklist`.
+Public repository: **https://github.com/WSH95/AgentTeam** (PUBLIC, MIT,
+default `main`) — created and first pushed (`8660e6a`, secret-scanned, 0 hits)
+on the owner's explicit approval; two CI fixes (`671c2d9` setup-uv pin,
+`d9440f8` explicit matrix-Python install) each pushed on their own approval
+(DECISIONS 0024). **Scaffold smoke matrix: all six legs green** at `d9440f8`
+— ubuntu/windows/macos x Python 3.11/3.13, run
+https://github.com/WSH95/AgentTeam/actions/runs/32667607711 (VERIFY "G2
+evidence").
 
-State: 91 tests, ruff/format/mypy strict clean on 3.11 and a fresh 3.13 env;
-schemas reproduce; wheel/sdist contents verified; commit 3 verified standalone
-in a scratch worktree. Full results: VERIFY "G2 local verification".
+What exists in code: `pyproject.toml` (agentteam 0.1.0a0, Hatchling >=1.27,
+Typer/Pydantic v2/PyYAML, optional `clawteam` extra @0119833 + `mcp>=1,<2`),
+frozen `uv.lock`, `src/agentteam/` (`cli.py` with `--help`/`--version` only;
+`domain/` = nine closed V1 records per plan §7 incl. the review-contract
+fixes from the G2 plan; `schema/` exporter/check; `py.typed`), nine checked-in
+JSON Schemas + `schemas/README.md` (model-only invariants), 91 unit tests
+(red-first), CI workflow, `docs/provenance.md`. AGENTS.md command table is
+live (ADR 0023).
 
 ## In flight
 
-**Waiting on exactly one thing: the owner's explicit yes/no to create the
-public `WSH95/AgentTeam` repository (MIT) and push `main`.** The question was
-asked at the end of this session with the secret-scan result and the scanned
-HEAD SHA. If the answer is not on record, NOTHING may be pushed — ask again.
+Nothing. Tree clean; local == origin/main @ `d9440f8` after the wrap commit
+(that commit carries this handoff; ask before pushing it — see Next steps).
 
 ## Next steps
 
-1. **On the owner's explicit approval only** (B8 of the G2 execution plan):
-   re-run the name checks (`gh api repos/WSH95/AgentTeam` → 404; PyPI
-   `agentteam` → 404), confirm `git status --short` empty and HEAD equals the
-   scanned SHA, then:
-   `gh repo create WSH95/AgentTeam --public --source . --remote origin
-   --description "Portable, harness-independent Assistant definitions and
-   Team templates over existing coding-agent harnesses (alpha)"
-   --disable-wiki`; `git remote -v`; `git push -u origin main`. If creation
-   succeeds but the push fails: stop and ask; never retry with force.
-2. Watch CI: `gh run list --workflow ci --branch main -L1 --json databaseId`
-   → `gh run watch <id> --exit-status`. Six legs (ubuntu/windows/macos x
-   3.11/3.13). On a failure: fix locally test-first, commit, and ask again
-   before every further push.
-3. All legs green → VERIFY "G2 evidence" (run URL, per-leg results,
-   `gh repo view WSH95/AgentTeam --json visibility,licenseInfo`), tick the two
-   open G2 boxes in PLAN, DECISIONS entry for the repository creation (date,
-   URL, approval quote), HANDOFF for G3, `project-steward wrap`, final local
-   commit (ask before pushing it).
-4. **G3** (needs its own per-gate execution plan first — owner working
-   agreement): isolated Claude/Codex/Grok adapters (render/invoke/parse,
-   Skill channels, `decided_by`, launcher policy incl. the Windows `.cmd`
-   fake), process runner, exit codes, `claude` alias; adapter tests into CI.
+1. **G3 needs its own per-gate execution plan first** (owner working
+   agreement; use plan mode, review the draft, get approval). Scope per plan
+   §3/§9/§11: `HarnessAdapter` protocol + Claude/Codex/Grok adapters
+   (render/invoke/parse against deterministic fakes), the shared shell-free
+   process runner (asyncio, process-group termination, 15-min cap, single
+   transient retry), launcher policy incl. the Windows-only `.cmd` fake with
+   metacharacters, Skill-channel rendering per harness, selection algorithm
+   with `decided_by` + hard failure for forbidden/ineligible requests, exit
+   codes 0/1/2/3/130, `claude` alias, `atm assistant validate` + `atm
+   profile init/validate/doctor` (no probes until G5), YAML loaders
+   (aware-datetime rule), archive hash V1 implementation; adapter tests into
+   CI (commit 6 of §17; workflow grows).
+2. The wrap commit after this handoff is local; push it to origin only on an
+   explicit approval (every push its own gate).
+3. Optional later: AGENTS.md `Live PoC` row at G4 (own shown diff); HB-03
+   register amendment whenever the owner answers the QUESTIONS item.
 
 ## Blockers
 
-- The push gate (above). Nothing else blocks G2 completion except CI results.
-- Grok auth verification stays a G5/G6 matter; ClawTeam qualification is G4.
+- None for planning G3. Live-call work stays behind G5/G6 gates (probes <= 2
+  per harness; ceiling 30 calls; owner-attended).
 
 ## Key files
 
-- `pyproject.toml`, `uv.lock`, `.python-version`, `.github/workflows/ci.yml`.
-- `src/agentteam/` — `cli.py` (atm skeleton), `domain/` (nine V1 records),
-  `schema/` (`python -m agentteam.schema export|check`), `py.typed`.
-- `schemas/` — nine checked-in V1 JSON Schemas + README (model-only
-  invariants).
-- `tests/` — `conftest.py` (minimal payloads), `unit/` (91 tests).
-- `docs/provenance.md` — provenance/notices (pre-first-push artefact).
-- `.project-steward/VERIFY.md` — G2 local verification; DECISIONS 0023 —
-  AGENTS.md table approval; PLAN — G2 sub-bullets.
+- `src/agentteam/` + `schemas/` + `tests/` — the G2 code (see VERIFY for the
+  exact verification block; run everything as `env -u PYTHONPATH uv run ...`).
+- `.github/workflows/ci.yml` — scaffold matrix; grows at G3/G4/G7.
+- `.project-steward/VERIFY.md` — "G2 evidence" + "G2 local verification".
+- `.project-steward/DECISIONS.md` — 0023 (AGENTS table), 0024 (repo + push).
+- `docs/plans/m1a-direct-harness-poc.md` — §9/§11/§12/§15 are the G3 spec.
+- The archived G2 execution plan:
+  `~/.claude/plans/continue-i-want-to-toasty-ladybug.md` (session-local).
 
 ## Tried and rejected
 
-- Do not push or create the repository without the explicit approval quoted in
-  the session; every later push is again its own gate.
-- Do not run bare `ruff format` outside `src`/`tests` semantics: `*.md` is
-  excluded via pyproject on purpose — never remove that exclusion to "format"
-  docs.
-- Do not use `--all-extras` in CI or locally by default (it clones ClawTeam);
-  the extra is installed only for G4 qualification work.
-- Do not add `--safe-mode` to anything Claude (plan §11); do not parse
-  credential files; no API-mode fallback; no model calls in tests/CI.
-- Envelope (`schema_version`/`kind`) stays required on every record including
-  human-authored files; do not default it away.
+- Never push without an explicit owner approval; never force-push.
+- Do not remove the `*.md` ruff exclusion; never run a formatter over docs.
+- No `--all-extras` (clones ClawTeam); the extra is G4-only.
+- No `--safe-mode` in anything Claude; no credential parsing; no API-mode
+  fallback; no model calls in tests/CI.
+- `uv python find` without a version argument is a trap (resolves
+  `.python-version`, never auto-installs) — keep the explicit install+find.
 
 ## Warnings
 
-- This host's shell exports
-  `PYTHONPATH=/opt/ros/foxy/lib/python3.8/site-packages`; ALWAYS run
-  `env -u PYTHONPATH uv run …` locally (CI unaffected).
-- `.python-version` (3.11) steers local uv; CI must keep `UV_PYTHON` from the
-  matrix (already in the workflow) or 3.13 legs silently run 3.11.
-- The `clawteam` extra is a direct git reference: the distribution is not
-  PyPI-uploadable as is (fine — M1a publishes nothing).
-- Public-visibility facts accepted with ADR 0019 are listed in VERIFY (author
-  e-mail, session trailers, `/home/wsh/...` paths in dated docs, tracked
-  steward state files).
-- Vendor-facing schema envelope (`schema_version`/`kind` as single-value
-  enums) is probe-tested at G5; the planned fallback is a stripped vendor
-  copy stamped on parse — do not pre-implement it.
+- This host exports `PYTHONPATH=/opt/ros/foxy/...` — always
+  `env -u PYTHONPATH uv run ...` locally.
+- The repository is public: dated docs carry `/home/wsh/...` paths, commit
+  trailers carry session URLs (accepted, ADR 0019/0024 context).
+- Vendor-facing schema envelope is G5-probe-tested; the fallback (stripped
+  vendor copy, envelope stamped on parse) is planned but NOT pre-implemented.
+- Grok auth stays `unverified` until its first live leg; ClawTeam
+  qualification is G4 and must never contaminate the direct core.
