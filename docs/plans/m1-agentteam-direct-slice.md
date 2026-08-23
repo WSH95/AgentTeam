@@ -1,11 +1,24 @@
 ---
 title: M1 — AgentTeam direct-path slice (re-baselined PoC A) + the design contract — independent proposal
-status: independent proposal for comparison with the owner's M1a plan; NOT approved for implementation until a DECISIONS entry names this file and a commit SHA
+status: SUPERSEDED 2026-08-23 — merged into `docs/plans/m1a-direct-harness-poc.md` revision r2 (DECISIONS 0019); kept unchanged below as a dated record
 date: 2026-08-23
 author: Claude (Fable 5) session, as the second half of `docs/reviews/2026-08-23-m0-review-at-3407ec9.md`
 depends_on: the review above (findings R1–R22, H1–H14); `docs/discovery/product-intent.md` §3–§4 (register, PoC A acceptance sketch); `docs/discovery/architecture-options.md` §5 (the retained direction); `docs/discovery/minimal-poc-plan.md` §2–§3, §7 (historical PoC A mechanics and FAIL-HARD routing, re-baselined here); `.project-steward/DECISIONS.md` 0012 (the owner's 2026-08-23 decisions this plan builds on)
 relation_to_m1a: written without reading `docs/plans/m1a-direct-harness-poc.md`; the owner merges or selects
 ---
+
+> **Superseded (2026-08-23).** This independent proposal was compared with the
+> owner's M1a plan and merged into `docs/plans/m1a-direct-harness-poc.md`
+> revision r2 (see its section 22 "Merge record" and DECISIONS 0019).
+> Adopted from here: harness-selection precedence with `decided_by`, three
+> Skills rendered per harness, cross-OS hash identity, the forward-compatible
+> run record, probe verification levels, falsification routing, the
+> mechanical/semantic traceability, the ClawTeam exit-criterion inputs and M1b
+> provider order, the sanitized evidence bundle, the documentation-hygiene list,
+> and the approval convention. Not adopted: the early operational-mode slice,
+> the T-numbering and tier names, a `noop` harness kind, `--max-budget-usd`,
+> extra CLI verbs, live solo runs, and any TeamRun behaviour in M1a. The body
+> below is unchanged.
 
 # M1 — AgentTeam direct-path slice (PoC A) + the design contract
 

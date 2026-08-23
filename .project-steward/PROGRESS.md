@@ -2,6 +2,9 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-23T11:25:39Z — cli
+Merged the independent M1 proposal into docs/plans/m1a-direct-harness-poc.md revision r2 (single candidate; still proposed): selection precedence/decided_by, three Skills per harness, cross-OS hash identity, RunRecordV1, probe levels, falsification routing, evidence bundle, docs-hygiene list, overlay deferred to M3, public MIT repo at G2 after the G1 rename; cross-check gaps fixed; independent plan superseded; ADR 0019 + QUESTIONS/PLAN/RISKS/VERIFY updated. No code.
+
 ### 2026-08-23T10:13:36Z — cli
 Independent review of the M0/M0.1 package at 3407ec9 (22 substantive + 14 hygiene findings; three read-only audits reconciled) written to docs/reviews/; independent M1 proposal written to docs/plans/m1-agentteam-direct-slice.md; owner decisions recorded as ADR 0018; QUESTIONS/PLAN/RISKS appended. No code; no edits to discovery documents or the M1a plan.
 

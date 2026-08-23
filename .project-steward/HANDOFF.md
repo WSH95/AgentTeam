@@ -1,27 +1,31 @@
 ---
-updated_at: 2026-08-23T10:13:36Z
+updated_at: 2026-08-23T11:25:39Z
 updated_by: cli
 session_status: closed
 branch: main
-last_commit: 6e4ab00
+last_commit: 972aa95
 ---
 # Handoff
 
 ## Now
 
-An owner-requested **independent review of the M0/M0.1 baseline at `3407ec9`**
-is complete and recorded: `docs/reviews/2026-08-23-m0-review-at-3407ec9.md`
-(22 substantive + 14 hygiene findings, three read-only audits reconciled; valid
-for `3407ec9` only — ADRs 0012–0017 post-date it) and an independent M1 proposal
-for comparison, `docs/plans/m1-agentteam-direct-slice.md`. The owner's decisions
-on the review are ADR 0018: assumptions (a)–(l) are historical panel inputs;
-ClawTeam's fate is measured in PoC B under a written exit criterion with a local
-deterministic provider built first; first use is code/dev teams; plan approval
-is a DECISIONS entry naming file + SHA; all-three-harness gate, Python/`uv`,
-tier policy, English-only and AgentTeam/`atm` reaffirmed. The M1a plan was
-deliberately not read by that session; **two candidate M1 plans now exist and
-the owner merges or selects** before the approval step. No code, no edits to the
-discovery documents or the M1a plan.
+**The two M1 plans are merged.** `docs/plans/m1a-direct-harness-poc.md` is now
+revision **r2** (status still *proposed*) and the single candidate plan;
+`docs/plans/m1-agentteam-direct-slice.md` is superseded (banner; body kept as a
+dated record). ADR 0019 records the merge and the owner's decisions: three
+Skills rendered per harness in M1a; hard semantic bar with mechanical/semantic
+traceability; reviewed sanitized evidence bundle per live cycle; `OverlayV1`
+deferred to M3 with reserved fields; G1 renames the directory to
+`/home/wsh/Documents/AgentTeam` first, then G2 creates the **public**
+`WSH95/AgentTeam` (MIT) and pushes the scaffold after an explicit approval, so
+CI runs from the scaffold. r2 also fixes r1 gaps found by an independent
+cross-check (review/synthesis schemas in the vendors' dialect intersection,
+Codex instruction-channel ladder, Windows `.cmd` shims and environment
+baseline, CRLF/hash identity, oracle outside the workspace, local state layout,
+"call" definition and total budget, `attendance`/`auth_mode`). The earlier
+independent review (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`, ADR 0018)
+stands as the dated record behind these changes. `gh` is authenticated
+(account `WSH95`, `repo` scope) — the former G7 blocker is gone.
 
 The owner-requested provider-neutral documentation amendment is complete and
 validated. Current tracked documentation selects no prospective API-test
@@ -39,7 +43,7 @@ optional provider, exact-pinned and confined to one owned compatibility module;
 it never launches harnesses and initially claims namespace separation only.
 
 This handoff is included in the local commit
-`docs(review): independent review of M0/M0.1 at 3407ec9, M1 direct-slice plan, decisions recorded`;
+`docs(plan): merge independent proposal into M1a r2; record merge decisions`;
 `last_commit` above is its pre-change baseline because a commit cannot record its
 own final SHA.
 The M1a direct harness plan remains **proposed for multi-agent review and is not
@@ -48,47 +52,51 @@ approved for product implementation**. No product code exists.
 ## In flight
 
 Nothing is in flight. The expected documentation-only dirty set for this
-session consists of two new documents (`docs/reviews/…`, `docs/plans/m1-agentteam-direct-slice.md`)
-plus appended Project Steward decision (ADR 0018), question, plan, risk, progress
-and handoff records. No source scaffold, dependency install, repository move,
-credential operation, model invocation, CI workflow change, remote creation, or
-push occurred. The earlier provider-neutral amendment is already committed (`6e4ab00`).
+session consists of `docs/plans/m1a-direct-harness-poc.md` (r2), a banner on
+`docs/plans/m1-agentteam-direct-slice.md`, and appended Project Steward
+decision (ADR 0019), question, plan, risk, verification, progress and handoff
+records. No source scaffold, dependency install, repository move, credential
+operation, model invocation, CI workflow change, remote creation, or push
+occurred.
 
-Validation for this session: 52 tracked Markdown files; the two new documents'
-13 repo-path references all resolve except the future `docs/design/agentteam-m1-design.md`,
-which is named as a T1 deliverable, not linked; no code fences; zero key/private-key
-patterns in changed files; `git diff --check` clean. The earlier provider-neutral
-checks (zero candidate identifiers; one factual ClawTeam preset occurrence) were
-not re-run because no document they cover was touched. The 54×11 fit-gap matrix
-is untouched.
+Validation for this session: `git diff --check` clean; links in the touched
+documents resolve (future `schemas/`/`examples/` paths in r2 are named, not
+linked); no code fences unbalanced; zero key/private-key patterns in changed
+files; `project-steward doctor` reports no failures. The 54×11 fit-gap matrix
+and the discovery documents are untouched.
 
 ## Next steps
 
-1. Read `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and compare
-   `docs/plans/m1-agentteam-direct-slice.md` with `docs/plans/m1a-direct-harness-poc.md`;
-   merge or select, fold the agreed review findings (R/H lists) into the review
-   resolution, and record the outcome as a DECISIONS entry.
-2. Have the other agents review
-   `docs/plans/m1a-direct-harness-poc.md`, especially section 21, against the
-   original requirements and ADRs 0014–0017. Do not start G1 during review.
-3. Apply only agreed plan/document corrections, rerun the checks in
+1. Have the other agents review `docs/plans/m1a-direct-harness-poc.md` **r2**
+   against its section 21 checklist and section 22 merge record, the original
+   requirements, and ADRs 0014–0019. Do not start G1 during review.
+2. Apply only agreed plan/document corrections, rerun the checks in
    `.project-steward/VERIFY.md`, and commit the review resolution.
-4. After the owner explicitly approves the final reviewed plan, change its
-   status to `approved`, record G0/approval in Project Steward, and commit that
-   decision before product work.
-5. Execute G1 only under that approval: confirm a clean tree and absent target,
-   move the same repository to `/home/wsh/Documents/AgentTeam`, add root product
-   files, and preserve historical evidence. The future managed AGENTS command
-   table update requires its own shown diff/approval after the scaffold exists.
-6. Follow G2–G8 in order. Native login, live subscription calls, public GitHub
-   repository creation, and every push remain separate visible gates.
+3. After the owner explicitly approves the final reviewed plan, record a
+   DECISIONS entry naming the plan file and the commit SHA of the approved
+   text, flip the status line to `approved` in the following commit, and only
+   then begin product work.
+4. Execute G1 only under that approval and in a fresh, sole session (the move
+   changes the path that Claude Code project settings/memory and the steward
+   runtime are keyed on): confirm a clean tree and absent target, move the same
+   repository to `/home/wsh/Documents/AgentTeam`, add root product files
+   (`README.md`, `LICENSE`, `.gitattributes`, `.gitignore`), land the
+   documentation-hygiene docs-only commit (M1a §4 item 6), and preserve
+   historical evidence. The managed AGENTS command-table update requires its
+   own shown diff/approval after the scaffold exists.
+5. G2: Python/`uv` foundation, then create the public `WSH95/AgentTeam`
+   repository (MIT) and push the scaffold after explicit approval; core CI
+   matrix green on three OSes from the scaffold.
+6. Follow G3–G8 in order. Native login, live subscription calls, and every
+   further push remain separate visible gates.
 
 ## Blockers
 
-- Product implementation is blocked on multi-agent plan review resolution and
-  explicit owner approval; this documentation amendment does not satisfy G0.
-- GitHub CLI authentication was previously invalid. This matters only at G7
-  and must be repaired by the owner without sharing a token.
+- Product implementation is blocked on multi-agent review of M1a r2 and the
+  explicit owner approval entry; the merge does not satisfy G0.
+- (Resolved 2026-08-23) GitHub CLI authentication is in place (account
+  `WSH95`, `repo` scope, SSH protocol); repository creation at G2 still needs
+  its own explicit approval.
 - Grok Build 1.0.5 exposes login but no status command; dedicated-profile auth
   is proved by the first controlled live leg at G6, not by documentation.
 - The optional ClawTeam extra has not been installed or qualified in this
@@ -98,21 +106,22 @@ is untouched.
 
 ## Key files
 
+- `docs/plans/m1a-direct-harness-poc.md` — **r2**, the single candidate M1a
+  plan (merged; section 22 = merge record); proposed, not approved.
+- `docs/plans/m1-agentteam-direct-slice.md` — superseded independent proposal
+  (banner; dated record).
 - `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` — independent review of
   the `3407ec9` baseline (findings R1–R22, H1–H14; decisions in ADR 0018).
-- `docs/plans/m1-agentteam-direct-slice.md` — independent M1 proposal for
-  comparison with M1a; not approved.
 - `docs/discovery/architecture-options.md` — current architecture constraints;
   prospective API testing is explicitly unselected.
 - `docs/discovery/harness-broker-model.md` — provider-neutral execution-mode
   and profile contract.
 - `docs/discovery/minimal-poc-plan.md` — historical M0 proposal with the current
   provider-neutral constraint applied.
-- `docs/plans/m1a-direct-harness-poc.md` — exact proposed implementation plan
-  and review checklist; CI language is provider-neutral.
 - `.project-steward/PLAN.md` — M1a gates and the committed M1b–M4 roadmap.
-- `.project-steward/DECISIONS.md` — ADR 0017 defines the neutrality policy;
-  ADRs 0014–0016 retain the Python/optional-provider architecture and roadmap.
+- `.project-steward/DECISIONS.md` — ADR 0019 records the plan merge and its
+  owner decisions; ADR 0018 the independent review; ADR 0017 the neutrality
+  policy; ADRs 0014–0016 the Python/optional-provider architecture and roadmap.
 - `.project-steward/QUESTIONS.md` — records the undecided API-test timing and
   target without selecting a route.
 - `.project-steward/VERIFY.md` — current neutrality and documentation checks.
@@ -155,6 +164,7 @@ is untouched.
 - Full live evidence will be sensitive local state: gitignored, owner-only,
   and never automatically committed or uploaded.
 - The commit is local only. Never push without explicit approval.
-- The independent review is dated to `3407ec9`; it does not account for ADRs
-  0012–0017 or the M1a plan, which may already address some of its findings.
-  Treat overlaps as confirmation, not as new work.
+- The independent review is dated to `3407ec9`; its findings are now folded
+  into M1a r2 (section 22) — treat the review as a record, not an open list.
+- r2 names future paths (`schemas/…`, `examples/…`, `fixtures/…`,
+  `docs/evidence/…`) that do not exist yet; they are deliverables, not links.

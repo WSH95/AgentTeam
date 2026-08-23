@@ -40,16 +40,17 @@ The document is review-only until the owner explicitly approves it.
 - [x] Re-baseline the plan and current architecture documents for Python 3.11+/`uv`, a language-neutral edge, a built-in direct runner, and optional in-process coordination providers
 - [x] Keep prospective API-test provider/model/endpoint selection unspecified across tracked documentation; preserve generic profile and secret-handling contracts
 - [x] Independent review of the `3407ec9` baseline recorded (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`) with an independent M1 proposal for comparison (`docs/plans/m1-agentteam-direct-slice.md`); owner decisions in ADR 0018 — owner merges/selects before the approval step
+- [x] Merge the independent proposal into M1a revision r2 (ADR 0019): selection precedence/`decided_by`, three Skills per harness, cross-OS hash identity, run record, probe levels, falsification routing, evidence bundle, docs-hygiene list, overlay deferred to M3, public repo at G2
 - [ ] Incorporate multi-agent review findings without starting implementation
 - [ ] Obtain explicit owner implementation approval, mark the reviewed plan `approved`, and commit any review resolutions
-- [ ] G1 — rename/re-baseline the local project as AgentTeam
-- [ ] G2 — implement the Python 3.11+/`uv` foundation, Hatchling package, and checked-in V1 JSON Schemas
+- [ ] G1 — rename/re-baseline the local project as AgentTeam; documentation-hygiene docs-only commit (M1a §4 item 6)
+- [ ] G2 — implement the Python 3.11+/`uv` foundation, Hatchling package, and checked-in V1 JSON Schemas; create the public `WSH95/AgentTeam` repository (MIT) and push the scaffold after explicit approval; core CI matrix green on 3 OSes
 - [ ] G3 — implement isolated Claude/Codex/Grok direct adapters
-- [ ] G4 — pass the deterministic direct-runner PoC locally and qualify the optional, exactly pinned ClawTeam import/coordination seam without using its subprocess backend
-- [ ] G5 — complete owner-driven dedicated native-auth profile setup
+- [ ] G4 — pass the deterministic direct-runner PoC locally (incl. solo mode, selection precedence, three Skills per harness, example-package hash identity) and qualify the optional, exactly pinned ClawTeam import/coordination seam without using its subprocess backend; write its qualification report
+- [ ] G5 — complete owner-driven dedicated native-auth profile setup and the bounded day-one probes (verification levels recorded)
 - [ ] G6 — pass the Ubuntu subscription-backed live PoC
-- [ ] G7 — after separate public-repository/push approval, pass the credential-free core OS×Python matrix and optional ClawTeam compatibility matrix
-- [ ] G8 — close M1a and stop before TeamRun implementation
+- [ ] G7 — pass the credential-free core OS×Python matrix and optional ClawTeam compatibility matrix; pre-publication checks (history secret scan, notices, distribution-name availability)
+- [ ] G8 — close M1a (reviewed sanitized evidence bundle committed; M1b draft names the local deterministic provider first and the ClawTeam exit criterion) and stop before TeamRun implementation
 
 ## M1b Team foundation (committed roadmap; outside the M1a approval scope)
 

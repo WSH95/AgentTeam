@@ -14,9 +14,10 @@ must not guess. Answered items remain here for traceability.
 ## Current review gate
 
 This is not an unanswered architecture choice: the concrete M1a proposal is
-now in `docs/plans/m1a-direct-harness-poc.md`. Implementation remains blocked
-until multi-agent review comments are resolved and the owner explicitly
-approves that plan.
+now `docs/plans/m1a-direct-harness-poc.md` revision r2 (merged, ADR 0019).
+Implementation remains blocked until multi-agent review comments are resolved
+and the owner explicitly approves that plan with a DECISIONS entry naming the
+file and commit SHA.
 
 ## Answered in the 2026-08-22 product/architecture review
 
@@ -72,6 +73,15 @@ approves that plan.
 
 See `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and ADR 0018.
 
+- [x] Two candidate M1 plans → merged into `docs/plans/m1a-direct-harness-poc.md`
+  revision r2; the independent proposal is superseded (ADR 0019).
+- [x] Overlay (`OverlayV1`) in M1a → deferred to M3 with reserved fields
+  (ADR 0019). R15 (user-specific preferences in the Base vs overlay-only)
+  must be answered before M3 starts.
+- [x] Repository timing → public `WSH95/AgentTeam` (MIT) created and first
+  pushed at G2 after the G1 rename; that push is its own explicit approval
+  moment (ADR 0019). `gh` is authenticated (verified 2026-08-23).
+
 - [ ] Write the ClawTeam exit criterion before PoC B (review R2/R13): for example,
   the ClawTeam provider stays only if provider + workarounds are ≤ 1.5× the local
   deterministic provider's LOC and the two-roster / on-exit-noise caveats are
@@ -80,6 +90,8 @@ See `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and ADR 0018.
   living documents say user > Assistant > team > default. Amend the register
   (v3.4) or the glossary, and decide whether a team-level *constraint*
   (reviewer ≠ implementer harness) binds above an Assistant preference (review R7).
+  M1a r2 implements the register's three layers (user > assistant > default)
+  with `team` reserved; the amendment is applied in G1 only after this answer.
 - [ ] User-specific preferences in the Base definition vs User-Overlay-only
   (`assistant-domain-model.md` §13 Q1; review R15) — decide before overlay work.
 - [x] Tiebreak assumptions (a)–(l): historical, session-authored panel inputs,

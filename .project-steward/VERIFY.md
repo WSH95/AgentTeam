@@ -3,6 +3,20 @@
 How to check the project is healthy. This is a documentation-only discovery
 phase; there is no build, product code, or automated product test suite yet.
 
+
+## Current M1 plan-merge verification — 2026-08-23
+
+| Check | Result |
+| --- | --- |
+| Documentation-only scope | PASS — `docs/plans/m1a-direct-harness-poc.md` (r2), a banner on `docs/plans/m1-agentteam-direct-slice.md`, and Project Steward records only; no code, rename, dependency, credential, model call, CI, remote change, or push |
+| r2 edit coverage | PASS — every row of the approved edit list is present (header, §1–§4, §6–§19, §21, new §22); gate names G0–G8 unchanged; status still *proposed* |
+| Decision consistency | PASS — ADR 0019 ↔ QUESTIONS closures ↔ PLAN M1a lines ↔ HANDOFF next steps; ADRs 0012–0018 not reopened |
+| `gh` authentication | PASS — `gh auth status` read-only: account `WSH95`, `repo` scope, SSH; no token value recorded |
+| Local Markdown targets | see the session's checks recorded in HANDOFF (links in touched documents resolve; future `schemas/`/`examples/` paths are named, not linked) |
+| Patch hygiene | PASS — `git diff --check` exits 0 |
+
+Last verified: 2026-08-23 by Claude (Fable 5) session (documentation-only).
+
 ## Current provider-neutral documentation verification — 2026-08-23
 
 | Check | Result |

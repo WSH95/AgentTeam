@@ -201,3 +201,41 @@ or selects. Review hygiene items H1–H14 and findings R7/R19/R21/R22 are tracke
 as cleanup work in the next plan (T0), not fixed retroactively inside the dated
 review. The review is valid for `3407ec9` only; ADRs 0012–0017 post-date it and
 may already address some findings.
+
+## 0019 — 2026-08-23 — Merge the independent M1 proposal into M1a revision r2
+
+**Context**: Two candidate M1 plans existed after ADR 0018: the owner's
+`docs/plans/m1a-direct-harness-poc.md` (r1, `9aff78f`) and the independent
+`docs/plans/m1-agentteam-direct-slice.md`. The owner asked for one merged plan;
+the comparison was cross-checked by an independent plan agent, which also found
+internal gaps in r1 (vendor structured-output dialects, Codex instruction-channel
+semantics, Windows `.cmd` shims and environment baseline, CRLF/hash identity,
+oracle placement, CI-vs-live gate order, local state layout, budget wording).
+**Decision**: M1a is revised in place to **r2** and is the single candidate plan;
+the independent proposal is superseded and kept as a dated record with a banner.
+Owner decisions for the merge: (1) render the example Assistant's three Skills
+into every harness in M1a; (2) keep the hard semantic acceptance bar, with
+mechanical/semantic traceability labelling; (3) commit a reviewed sanitized
+evidence bundle per live cycle (the complete form of ADR 0013's reviewed
+summary); (4) defer `OverlayV1` to M3, keeping `overlay_refs` and
+`effective_definition_hash` reserved, and answer review item R15 before M3;
+(5) G1 renames the directory to `/home/wsh/Documents/AgentTeam` first, then G2
+creates the **public** `WSH95/AgentTeam` repository with the MIT licence and
+pushes the scaffold after an explicit approval at that moment, so the core CI
+matrix runs from the scaffold; G7 becomes "CI matrices green + pre-publication
+checks". Adopted from the independent proposal: harness-selection precedence
+with `decided_by` (HB-03/AD-04), cross-OS hash identity with `.gitattributes`
+(AR-03), `RunRecordV1` as the one-Member subset of the later TeamRun record,
+probe verification levels and day-one probes at G5, falsification routing, the
+ClawTeam exit-criterion inputs and M1b provider order (ADR 0018), the
+documentation-hygiene list in G1, and the approval artefact convention. Not
+adopted: the early operational-mode slice, a `noop` harness kind,
+`--max-budget-usd` control, extra CLI verbs, live solo runs, any TeamRun
+behaviour in M1a. `gh` authentication is in place (account `WSH95`, `repo`
+scope, SSH; verified read-only 2026-08-23), so the earlier G7 blocker is gone.
+**Consequences**: r2 remains *proposed*: multi-agent review against its
+section 21 and an explicit owner approval entry (naming the file and the
+commit SHA of the approved text) still precede G1. Review R4 (Grok as the
+HB-08 test rather than a gate) stays a recorded dissent. The documentation
+hygiene items (review H3, H6, H8–H12, R7, R19) are executed in G1 under the
+approved plan, not before.

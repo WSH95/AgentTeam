@@ -1,18 +1,25 @@
 # AgentTeam M1a direct-harness PoC implementation plan
 
 - Status: **proposed for review — not approved for product implementation**
-- Plan revision date: 2026-08-23
-- Revision baseline: `9aff78f` (`docs(plan): propose AgentTeam M1a direct harness PoC`)
+- Plan revision: **r2**, 2026-08-23 (merged with the independent proposal; see
+  section 22)
+- Revision baseline: `972aa95` (r1 was `9aff78f`,
+  `docs(plan): propose AgentTeam M1a direct harness PoC`)
+- Supersedes: `docs/plans/m1-agentteam-direct-slice.md` (independent proposal,
+  merged here; kept as a dated record)
 - Product name: **AgentTeam**
-- Planned repository: `WSH95/AgentTeam`
+- Planned repository: `WSH95/AgentTeam` (public, MIT; created at G2 after the
+  G1 rename)
 - CLI: `atm`
 
 This is the implementation plan to execute only after a separate explicit
 product-implementation approval. The 2026-08-23 documentation rebaseline
 changed the proposed core from TypeScript/Node to Python/uv and made ClawTeam
-an optional provider. It did not authorize the directory/repository rename,
-source code, dependency installation, credential setup, live harness calls,
-GitHub repository creation, or a push.
+an optional provider; revision r2 merges the independent review
+(`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`), the independent proposal,
+and the cross-check findings listed in section 22. It did not authorize the
+directory/repository rename, source code, dependency installation, credential
+setup, live harness calls, GitHub repository creation, or a push.
 
 ## 1. Outcome and milestone boundary
 
@@ -30,6 +37,12 @@ M1a ships the direct subprocess path. It also performs a bounded compatibility
 qualification of the optional, exactly pinned ClawTeam Python seam. That check
 does not expose TeamTemplate, TeamRun, dynamic-member, task, inbox, or nesting
 commands to users and does not make ClawTeam a core dependency.
+
+M1a also establishes harness-selection precedence (user > Assistant > profile
+default) with the deciding layer recorded on every invocation, renders the
+example Assistant's three Skills into every harness, and proves that the
+portable package hashes identically on the three CI operating systems. M1a
+live runs are owner-attended; unattended operation belongs to M4.
 
 ## 2. Product and architecture decisions
 
@@ -53,11 +66,27 @@ commands to users and does not make ClawTeam a core dependency.
   `shell=True`, discards output, and is not the AgentTeam harness boundary.
 - The final product name is AgentTeam; the future repository is
   `WSH95/AgentTeam`; the CLI is `atm`; and the eventual local directory is
-  `/home/wsh/Documents/AgentTeam`.
+  `/home/wsh/Documents/AgentTeam`. The repository is created public with the
+  MIT licence at G2, after the G1 directory rename; the first push is an
+  explicit approval moment inside G2.
+- Approval of this plan is recorded as a DECISIONS entry that names this file
+  and the commit SHA holding the approved text; the status line flips to
+  `approved` in the following commit because a commit cannot name its own SHA
+  (ADR 0018).
+- Harness identifiers in records and profiles are `claude-code`, `codex`, and
+  `grok`; the CLI accepts `claude` as an alias.
+- `run.json` is a `RunRecordV1`: a direct run is the one-Member case of the
+  later TeamRun record, so M1b extends it instead of adding a second record
+  kind. M1a implements no TeamTemplate or coordination behaviour.
+- Overlays are deferred to M3. M1a reserves `overlay_refs: []` and
+  `effective_definition_hash` (equal to the Base hash) in the bundle manifest
+  and RunRequest; user-level choices travel through the CLI, the RunRequest,
+  and the local HarnessProfile.
 - Canonical product documentation is English. The public license is MIT with
   `Copyright (c) 2026 ShuhanWang`. No package is published in M1a.
-- Native unattended runs use the owner's subscription login in each installed
-  vendor CLI. AgentTeam does not copy, read, export, broker, or upload
+- Native runs use the owner's subscription login in each installed vendor
+  CLI; M1a runs are owner-attended and record `attendance` and `auth_mode` on
+  every invocation. AgentTeam does not copy, read, export, broker, or upload
   credentials.
 - Windows and macOS evidence comes from credential-free GitHub-hosted CI.
   Live subscription-backed acceptance remains on the owner's Ubuntu host.
@@ -72,15 +101,15 @@ work named in its stop rule.
 
 | Gate | Work | Evidence required |
 | --- | --- | --- |
-| G0 | Approve this plan | Owner explicitly approves the final reviewed plan and that approval is committed before product source work |
-| G1 | Rename and re-baseline | Clean worktree; target absent; directory becomes `/home/wsh/Documents/AgentTeam`; historical evidence remains attributable; guarded instructions updated as approved |
-| G2 | Python foundation | Frozen `uv.lock`; Python package builds; checked-in schemas reproduce; `atm --help` and `atm --version` pass |
-| G3 | Direct harness core | Claude, Codex, and Grok adapters pass argv/env/parser tests against deterministic fake executables; no model call |
-| G4 | Deterministic PoC | Complete fan-out/synthesis state machine passes locally; optional ClawTeam seam passes its local compatibility suite |
-| G5 | Native-auth preflight | Owner completes one interactive login per dedicated vendor config home; `atm profile doctor` reports sanitized status only |
-| G6 | Ubuntu live PoC | Three subscription-backed legs plus fresh Claude synthesis meet section 14 without exceeding the call/time bounds |
-| G7 | Public CI | After separate repository/push approval, core jobs pass on Ubuntu/Windows/macOS with Python 3.11 and 3.13; optional ClawTeam jobs pass on all three OSes with Python 3.11 |
-| G8 | M1a close | Verification and sanitized summary are current; no secret/raw evidence is tracked; M1b remains separately planned |
+| G0 | Approve this plan | Owner explicitly approves the final reviewed plan; the approval is a DECISIONS entry naming this file and the commit SHA of the approved text, committed before product source work |
+| G1 | Rename, re-baseline, documentation hygiene | Clean worktree; target absent; directory becomes `/home/wsh/Documents/AgentTeam`; historical evidence remains attributable; guarded instructions updated as approved; the documentation-hygiene list of section 4 item 6 lands as one docs-only commit |
+| G2 | Python foundation and public repository | Frozen `uv.lock`; Python package builds; checked-in schemas reproduce; `atm --help` and `atm --version` pass; public `WSH95/AgentTeam` created with the MIT licence and the scaffold pushed after explicit approval; core CI matrix green on Ubuntu/Windows/macOS from this gate |
+| G3 | Direct harness core | Claude, Codex, and Grok adapters pass argv/env/parser tests against deterministic fake executables, including Skill-channel rendering and harness-selection resolution with `decided_by`; no model call |
+| G4 | Deterministic PoC | Complete fan-out/synthesis state machine passes locally, including solo mode, selection/exclusion precedence, three Skills rendered per harness, and example-package hash identity; optional ClawTeam seam passes its local compatibility suite and writes its qualification report |
+| G5 | Native-auth preflight and probes | Owner completes one interactive login per dedicated vendor config home; `atm profile doctor` reports sanitized status only; bounded day-one probes (at most two calls per harness, outside the acceptance cycle) write capability verification levels into the profile; Grok authentication stays `unverified` until its first live leg if no status command exists |
+| G6 | Ubuntu live PoC | Three subscription-backed legs plus fresh Claude synthesis meet section 14 — mechanical conditions (architecture gate) and semantic conditions (product-useful gate) recorded separately — within the call/time bounds |
+| G7 | CI matrices and pre-publication checks | Core jobs pass on Ubuntu/Windows/macOS with Python 3.11 and 3.13; optional ClawTeam jobs pass on all three OSes with Python 3.11; history secret scan, third-party notices, and distribution-name availability checked |
+| G8 | M1a close | Verification and the reviewed sanitized evidence bundle are current; no secret/raw evidence is tracked; the M1b draft names the local deterministic provider first and the ClawTeam exit criterion; M1b remains separately planned |
 
 An optional ClawTeam failure does not alter or contaminate direct execution.
 It blocks describing that provider as qualified and blocks M1b until the
@@ -99,10 +128,26 @@ G1 is one controlled semantic change from a clean committed tree:
    page, and new product docs. Preserve panel, critic, evidence, decision, and
    progress text as dated records; use amendment notes instead of global
    `ats`/`ATM` replacement.
-4. Add a root `README.md`, `LICENSE`, and implementation `.gitignore`.
+4. Add a root `README.md` (stating alpha status), `LICENSE` (MIT,
+   `Copyright (c) 2026 ShuhanWang`), `.gitattributes` (`* text=auto eol=lf`,
+   so hashes and schema reproduction agree on Windows checkouts), and an
+   implementation `.gitignore`.
 5. Keep `CLAUDE.md` as the thin `@AGENTS.md` adapter.
+6. Documentation hygiene, as one docs-only commit in this gate (review H3, H6,
+   H8–H12, R7, R19): PROJECT.md gains success criteria and loses volatile
+   version pins and scope decisions (moved to PLAN/VERIFY); the glossary
+   defines HarnessAdapter, CoordinationSubstrate, `atm`, "legacy ATM",
+   `independence {declared, achieved}`, and the run-vs-TeamRun wording; an
+   append-only DECISIONS entry adds amendment markers for 0007/0009/0012;
+   VERIFY counts are corrected; RISKS gains ID/owner/status columns; each
+   critic file gets a closure note; `minimal-poc-plan.md` carries a historical
+   banner; README links QUESTIONS; `config.toml` loses its dangling pointer;
+   the HB-03 register amendment is applied only after the owner answers the
+   QUESTIONS item.
 
-Once the Python scaffold exists, update the managed command table to:
+Once the Python scaffold exists, update the managed command table to (that
+managed-block edit requires its own shown `AGENTS.md` diff and explicit
+approval, ADR 0008/0014):
 
 | Task | Command |
 | --- | --- |
@@ -144,19 +189,30 @@ src/agentteam/
   harness/
   run/
   schema/
+  synthesis/instructions.md
   compat/clawteam.py
 schemas/
   assistant-definition-v1.schema.json
-  overlay-v1.schema.json
   harness-profile-set-v1.schema.json
   run-request-v1.schema.json
+  run-record-v1.schema.json
+  bundle-manifest-v1.schema.json
   harness-invocation-v1.schema.json
   ensemble-record-v1.schema.json
+  normalized-review-v1.schema.json
+  synthesis-report-v1.schema.json
 examples/
   assistants/code-reviewer/
+    skills/code-review/SKILL.md
+    skills/security-review/SKILL.md
+    skills/test-analysis/SKILL.md
+  profiles/ci-fake.yaml
   run-requests/direct-review.yaml
+  run-requests/live-review.yaml
 fixtures/
   review-target/
+  review-target.oracle.json
+  vendor-output/
   fake-harness/
 tests/
   unit/
@@ -165,13 +221,30 @@ tests/
   compatibility/
 docs/
   plans/
+  evidence/
   provenance.md
+.gitattributes
 .github/workflows/ci.yml
 ```
 
 Generated JSON Schemas are checked in and reproduced deterministically from
-Pydantic models. External consumers need neither Python nor AgentTeam to read
-or validate them.
+Pydantic models (written with `\n` newlines and compared after LF
+normalisation). External consumers need neither Python nor AgentTeam to read
+or validate them. `examples/profiles/ci-fake.yaml` points every adapter at the
+deterministic fakes so CI and local deterministic runs share one profile shape;
+`fixtures/review-target.oracle.json` lives outside the copied workspace;
+`fixtures/vendor-output/` holds sanitized vendor output samples for parser
+tests; `src/agentteam/synthesis/instructions.md` is the committed synthesis
+instruction whose hash the ensemble record carries.
+
+### 6.1 Local state layout
+
+The default state directory is `~/.agentteam/` (override with `AGENTTEAM_HOME`).
+It holds `profiles.yaml` (the local, gitignored `HarnessProfileSetV1`, the
+default target of `atm profile init`), one dedicated vendor config home per
+harness under `vendors/<harness>/` (the `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, and
+`GROK_HOME` the runs use), and the archive root `runs/<run-id>/` unless a
+RunRequest names an output path. Nothing under it is ever committed.
 
 ## 7. Data contracts
 
@@ -182,37 +255,75 @@ Unknown fields fail validation.
 
 `AssistantDefinitionV1` contains stable metadata, separate persona/principle/
 method instruction files, semantic capability requirements, explicit artifact
-references, portable permission intent, abstract harness hints, optional
-substrate-neutral collaboration guidance, and prohibited-content checks. It
-never contains a concrete project, session, credential, provider endpoint, or
-permanent harness binding.
+references (Skills are `agent-skill` artifacts with vendored sources; the
+example `code-reviewer` carries three — `code-review`, `security-review`,
+`test-analysis` — so Assistant ≠ Skill is visible in the definition itself),
+portable permission intent, a portable `harness_policy` (preferred, allowed,
+and forbidden harness identifiers, required capabilities, and abstract model
+hints — never a concrete model or provider), optional substrate-neutral
+collaboration guidance, and prohibited-content checks. It never contains a
+concrete project, session, credential, provider endpoint, or permanent
+harness binding.
 
-`OverlayV1` supports Base plus User Overlay with target/version constraints,
-an allowed patch surface, provenance, deterministic precedence, and a
-resolution report. Reviewed Evolution proposals remain a committed later
-milestone; M1a never silently persists run output into a definition.
+Overlays (Base plus User Overlay, later Reviewed Evolution) are deferred to M3
+(ADR 0016; recorded in DECISIONS 0019 after review item R15). M1a reserves
+`overlay_refs: []` and `effective_definition_hash` (equal to the Base hash) in
+the bundle manifest and RunRequest so the shape does not change later. M1a
+never silently persists run output into a definition.
 
 `HarnessProfileSetV1` is local and gitignored. Each Claude, Codex, and Grok
 entry records the executable, expected version/capabilities, dedicated vendor
 config home, native-subscription auth mode, optional local model/effort
 defaults and mappings, timeouts, proxy policy, and environment-variable names
-only. A later `api_test` profile kind remains structurally possible but is
-rejected by the M1a runner.
+only. Each capability row carries `verification: verified|observed|unverified`
+(verified = behaviour observed under the AgentTeam runner; observed = flag
+present in `--help` or documentation only) plus `cli_version` and
+`verified_at`; `atm profile doctor --probe` updates them. A later `api_test`
+profile kind remains structurally possible but is rejected by the M1a runner.
 
-`RunRequestV1` contains the Assistant/Overlay paths, workspace/task paths,
-`mode: direct`, unique harnesses, optional synthesis, local model/effort
-overrides, output path, timeout, evidence, and bounded retry settings. Runtime
-IDs, timestamps, results, and subprocess state belong only in the archive.
+`RunRequestV1` contains the Assistant path, the reserved `overlay_refs`,
+workspace/task paths, `mode: direct`, the requested harnesses (unique; when
+empty the Assistant's `harness_policy` decides and the run is solo), optional
+synthesis, local model/effort overrides, output path, evidence settings, and
+timeout/retry settings that may lower but never raise the section 9 caps.
+Runtime IDs, timestamps, results, and subprocess state belong only in the
+archive.
+
+`RunRecordV1` (`run.json`) is the archive manifest: run id, `mode: direct`, the
+single Member (Assistant reference, bundle hash, harness binding), references
+to the invocation and ensemble records, timing, and terminal status. It is the
+one-Member subset of the later TeamRun record; M1b extends it with coordination
+fields instead of introducing a second record kind.
 
 `HarnessInvocationV1` records run/ensemble/attempt IDs; requested and observed
-harness/model/effort; bundle hash; redacted argv; environment names and policy
-decisions; path placeholders; timing; artifact references and hashes; reported
-usage; retry classification; exit/signal; schema outcome; and terminal status.
-Cost is never fabricated. Codex remains `cost_source: unavailable`.
+harness/version/model/effort; `selection {decided_by: user|assistant|default,
+candidates}` (`team` and forced variants are reserved for M1b); bundle hash;
+`injection.render` mapping each definition part to the channel used, plus
+`degraded[]`; redacted argv; environment names and policy decisions; path
+placeholders; `attendance` and `auth_mode` (`native-subscription` in M1a);
+timing; artifact references and hashes; reported usage; retry classification;
+exit code and nullable signal; schema outcome; and terminal status. Cost is
+never fabricated. Codex remains `cost_source: unavailable`.
 
 `EnsembleRecordV1` names every leg and synthesis invocation, synthesis input
-IDs, attribution links, aggregate status, and separate mechanical and semantic
-acceptance results.
+IDs, the synthesis instruction hash, attribution links, aggregate status, and
+separate mechanical and semantic acceptance results.
+
+`NormalizedReviewV1` (per leg: `target_sha256`, `findings[]` with `id`,
+`severity`, `file`, `line`, `title`, `rationale`; `summary`; `verdict`) and
+`SynthesisReportV1` (`inputs[]`, `agreements[]` with `title` and `sources[]`,
+`disagreements[]` with `title`, `asserted_by[]`, `not_asserted_by[]`,
+`merged_findings[]`) are checked-in JSON Schemas consumed directly by Claude
+`--json-schema`, Codex `--output-schema`, and Grok `--json-schema`. They are
+authored in the intersection of the vendors' structured-output dialects (every
+property required, `additionalProperties: false`, nullable-required
+optionals), and the G5 probes confirm each vendor accepts them before any
+acceptance cycle.
+
+Canonical hashes cover sorted POSIX-relative paths and LF-normalised source
+bytes with file modes excluded, so the same package hashes identically on
+every operating system. Throughout this plan a "call" is one CLI invocation
+of a vendor harness.
 
 Before and after a run, AgentTeam hashes all resolved definition files and
 fails if any changed.
@@ -223,20 +334,32 @@ fails if any changed.
 atm assistant validate <package> [--strict-content] [--json]
 atm profile init [--config <path>] [--json]
 atm profile validate [--config <path>] [--json]
-atm profile doctor [--config <path>] [--json]
-atm run <request.yaml|request.json>
+atm profile doctor [--config <path>] [--probe] [--json]
+atm run [<request.yaml|request.json>]
   [--assistant <package>]
   [--workspace <path>]
   [--task-file <path>]
-  [--harness <claude|codex|grok>]...
+  [--harness <claude-code|codex|grok>]...
   [--model <harness>=<model>]...
   [--effort <harness>=<effort>]...
+  [--no-synthesis]
+  [--render-only]
   [--output-dir <path>]
   [--config <path>]
   [--json]
 atm --help
 atm --version
 ```
+
+The request file is optional when `--assistant`, `--workspace`, and
+`--task-file` are given; flags override request fields. When neither the flags
+nor the request name a harness, the Assistant's `harness_policy` decides and
+the run is solo (`decided_by: assistant`); otherwise the user's choice wins
+(`decided_by: user`). `claude` is accepted as an alias of `claude-code`.
+`assistant validate --json` includes the package hash. `profile doctor --probe`
+runs the bounded probes of section 11 and records verification levels; without
+it, doctor reports sanitized status and flag presence only. `--render-only`
+writes the rendered invocations for inspection without launching anything.
 
 Multiline/user-controlled content travels by file or stdin, never a shell
 command string. Stable exit codes are `0` success, `1` runtime/harness failure,
@@ -262,15 +385,30 @@ class HarnessAdapter(Protocol):
 
 `render` is pure with respect to portable definitions and writes only
 run-scoped files. `invoke` delegates to one shared process runner. `parse`
-validates vendor output into the same normalized review model.
+validates vendor output into the same normalized review model. `probe` returns
+a `HarnessCapabilityReportV1` whose rows carry the verification level that is
+written into the local profile.
 
 The process runner uses `asyncio.create_subprocess_exec`, never
 `create_subprocess_shell`; concurrently drains stdout/stderr; preserves raw
 bytes in access-restricted local evidence; creates a pending record before
 spawn; atomically finalizes it; enforces a 15-minute attempt limit; terminates
 the process tree on cancellation/timeout; and finalizes every started attempt.
-POSIX uses a new process session/group; Windows uses a new process group and
-`taskkill.exe` as an argv array when tree termination is needed.
+POSIX uses a new process session/group; Windows uses a new process group
+(`CREATE_NEW_PROCESS_GROUP`) and `taskkill.exe /T /F /PID <pid>` as an argv
+array when tree termination is needed. `signal` is nullable in records and exit
+130 is mapped explicitly. A RunRequest may lower but never raise the 15-minute
+attempt limit or the single transient retry.
+
+On Windows the vendor CLIs are npm `.cmd` shims, which `CreateProcess` runs
+through `cmd.exe` even with `shell=False`; the file/stdin rule for all
+user-controlled content is the mitigation. CI fakes are launched as
+`python -m …` and do not exercise that path, so the TE-08 claim from CI is
+deterministic Python/path/process/archive/schema plumbing, not vendor-shim
+behaviour. The minimal environment baseline is `SYSTEMROOT`, `COMSPEC`,
+`PATHEXT`, `USERPROFILE`, `APPDATA`, `LOCALAPPDATA`, and `TEMP`/`TMP` on
+Windows and `HOME`, `PATH`, `TMPDIR`, and `LANG` on POSIX, plus the selected
+vendor config-home variable.
 
 The later `CoordinationSubstrate` protocol retains create-space, member, task,
 wait, message, snapshot, stop, and cleanup operations. It is documented but
@@ -298,9 +436,22 @@ Qualification exercises team/member lifecycle, task dependency auto-unblock,
 mailbox send/receive, snapshot create/read/restore, cleanup, and two namespaces
 with no API-level task/message crossover. A hostile hook fixture proves no
 hook callback executes. Tests must not read or mutate the owner's actual
-`~/.clawteam` state.
+`~/.clawteam` state. Compatibility tests skip cleanly when the extra is absent,
+and mypy ignores the untyped alpha package.
+
+The qualification report records the compatibility module's LOC and test LOC,
+the containments applied, global-state hazards found, the hook-containment
+result, the two-namespace crossover result, and the per-OS outcome. These are
+the inputs to the written ClawTeam exit criterion that M1b drafts before PoC B
+(ADR 0018).
 
 ## 11. Model, authentication, and environment policy
+
+Harness selection precedence is CLI `--harness` / RunRequest harnesses (user)
+> Assistant `harness_policy` (assistant) > local HarnessProfile default
+(default). An exclusion stated at a higher layer binds every lower layer, and
+the deciding layer is recorded as `selection.decided_by` on every invocation.
+A `team` layer is reserved for M1b.
 
 Concrete model/effort precedence is CLI override, RunRequest override, local
 HarnessProfile mapping from a portable hint, local profile default, then vendor
@@ -318,41 +469,73 @@ sets the selected config-home variable, records names only, and fails closed
 when API-key/base-URL/alternate-provider or unapproved proxy variables could
 redirect subscription authentication. API mode is never an auth fallback.
 
+Skills are rendered from the bundle into each harness's discovery channel per
+the capability evidence: Claude `--plugin-dir` (verified) or
+`--add-dir <bundle>/.claude/skills` (observed) — the G5 probe picks the
+channel; Codex workspace `.agents/skills/` (observed); Grok `.agents/skills/`
+(verified). The channel used is recorded per definition part and `degraded[]`
+names any part that could not be delivered. Adapter-written injection
+directories are excluded from the target manifest so they never count as
+target mutation.
+
 Harness isolation remains:
 
 - Claude Code: `-p`, `--safe-mode`, `--no-session-persistence`, isolated
-  `CLAUDE_CONFIG_DIR`, file/stdin instructions, structured output, read-only
-  review tools; never `--bare`.
+  `CLAUDE_CONFIG_DIR`, instructions by file (`--append-system-prompt-file` —
+  present in the binary but not in `--help`, so verified by the G5 probe;
+  fallback `--append-system-prompt` with file-read text), structured output,
+  read-only review tools; never `--bare`.
 - Codex: `codex exec`, `--ephemeral`, `--ignore-user-config`, `--ignore-rules`,
-  isolated `CODEX_HOME`, `model_instructions_file`, read-only sandbox,
-  approval `never`, JSONL plus output schema.
-- Grok Build: isolated `GROK_HOME`, memory/subagents disabled, leader mode and
-  web search disabled, read-only sandbox, file-delivered definition, and
-  structured output.
+  isolated `CODEX_HOME`, read-only sandbox, approval `never`, JSONL plus output
+  schema. Instruction channel ladder, decided by the G5 probe and recorded in
+  `degraded[]`: `model_instructions_file` (replaces Codex's built-in
+  instructions — a quality risk), `developer_instructions` (appends, but is
+  argv-inline or config), then workspace `AGENTS.md` (whether `--ignore-rules`
+  suppresses it is unverified).
+- Grok Build: isolated `GROK_HOME`, memory and subagents disabled, read-only
+  sandbox, file-delivered definition (`--rules` appends;
+  `--system-prompt-override` replaces the default system prompt and is used
+  only if appending fails), `--json-schema` structured output; other controls
+  (for example leader mode or web search) are disabled only if the probe shows
+  they exist; active authentication stays `unverified` until the first live
+  leg because Grok has no status command.
+
+Day-one probes at G5: one trivial structured-output prompt per harness that
+verifies the instruction channel, the Skills channel, schema acceptance, and
+active authentication — at most two calls per harness, outside the acceptance
+cycle. Results are written into the profile's verification levels and the raw
+captures are sanitized into `fixtures/vendor-output/` for the parser tests.
 
 ## 12. Direct ensemble state machine
 
-1. Validate profile, Assistant, Overlay, and RunRequest.
-2. Resolve paths, overlays, portable hints, and local overrides.
+1. Validate profile, Assistant, and RunRequest (reserved overlay fields must
+   be empty in M1a).
+2. Resolve paths, harness selection (`decided_by`), portable hints, and local
+   overrides.
 3. Build one immutable definition bundle and canonical SHA-256 hash.
 4. Create a pending run archive before any harness side effect.
-5. Copy the fixture into three isolated leg workspaces; no leg receives another
-   leg's outputs; target hashes detect mutation.
-6. Render all three invocations from the same bundle.
-7. Start Claude, Codex, and Grok concurrently in fresh-session mode.
+5. Copy the fixture into one isolated workspace per requested leg; no leg
+   receives another leg's outputs; target hashes detect mutation.
+6. Render all requested invocations from the same bundle, including the three
+   Skills through each harness's skill channel.
+7. Start all requested legs concurrently in fresh-session mode (Claude, Codex,
+   and Grok in the acceptance cycle; one leg in solo mode, which skips
+   synthesis unless requested).
 8. Retry the same harness once only for network interruption, rate limit,
    service unavailability, or timeout.
 9. Never retry auth, permission, invalid input, schema, semantic, or unknown
    failures; never substitute another harness.
-10. Require all three normalized reports before synthesis.
-11. Give a fresh Claude invocation only the three labelled reports, not the
+10. Require every requested normalized report before synthesis.
+11. Give a fresh Claude invocation only the labelled leg reports, not the
     target or hidden oracle.
 12. Validate synthesis schema/attribution, evaluate semantic predicates,
     re-hash definitions, finalize the archive, and return the stable exit code.
 
-One acceptance cycle uses at most eight model calls: three legs, up to three
-one-time leg retries, synthesis, and at most one transient synthesis retry.
-AgentTeam never starts another cycle automatically.
+One acceptance cycle uses at most eight calls (a call is one CLI invocation):
+three legs, up to three one-time leg retries, synthesis, and at most one
+transient synthesis retry. Across M1a the live budget is at most two probe
+calls per harness plus three acceptance cycles. AgentTeam never starts another
+cycle automatically.
 
 ## 13. Evidence and privacy
 
@@ -367,7 +550,13 @@ placeholders; environment records contain names and policy outcomes only.
 Credential files and values are never read as evidence.
 
 M1a performs no automatic `git add`, publication, upload, or raw-evidence
-export. Only a separately reviewed sanitized summary may be committed.
+export. After owner review, a sanitized evidence bundle is committed under
+`docs/evidence/m1a-live-<date>/`: the ensemble record, the redacted invocation
+records (typed-placeholder argv, environment names only), the normalized
+reviews, and a summary — all produced by the same tested redaction function.
+Raw streams, workspace copies, absolute paths, and anything credential-shaped
+stay local. This is the reviewed sanitized summary of ADR 0013 in its complete
+form.
 
 ## 14. PoC fixture and live semantic acceptance
 
@@ -375,6 +564,13 @@ The committed review target is a small TypeScript module with three labelled,
 non-production defects: shell command injection, an off-by-one boundary error,
 and caller-input mutation. Using a TypeScript review target does not couple the
 Python runner to Node; it deliberately tests language-independent review.
+
+The labelled oracle (`fixtures/review-target.oracle.json`: file, line window,
+and category per defect) lives outside the leg workspace and is never given to
+a leg or to synthesis. A finding "identifies" a defect when file and category
+match and the line falls inside the window; a "critical finding outside the
+oracle" is any critical or high finding with no matching oracle entry. The
+matcher is deterministic and unit-tested.
 
 All conditions must pass in one live cycle:
 
@@ -392,6 +588,16 @@ All conditions must pass in one live cycle:
 9. Mechanical and semantic outcomes remain separate; semantically inadequate
    valid output exits `3`.
 
+Conditions 1, 6, 7, and 8 — together with bundle/target hash identity, valid
+attribution, and a recorded `decided_by` on every invocation — form the
+**mechanical** tier and establish the architecture claims (AD-04, AD-08, AD-09,
+HB-02, HB-03, HB-05, HB-07, TE-02, XC-04). Conditions 2–5 and 9 form the
+**semantic** tier and establish product usefulness (product-intent §1.7, "the
+same colleague"). The ensemble record stores both tiers separately. A semantic
+miss routes to definition or prompt work, never to an architecture review; G8
+closes only on semantic PASS or an owner-recorded waiver. Condition 1's "same
+bundle" includes the three Skills.
+
 ## 15. Deterministic test plan
 
 Normal tests never invoke a vendor model. Cross-platform fake harnesses are
@@ -399,7 +605,14 @@ Python modules launched through the same process runner and record argv,
 stdin, cwd, and environment names.
 
 Coverage includes schema parity; exclusion/path traversal; bundle immutability;
-overlay/model precedence; exact vendor rendering; spaces/Unicode/backslashes/
+harness-selection precedence and exclusion, including solo mode with
+`decided_by: assistant`; model precedence; reserved overlay fields round-trip;
+exact vendor rendering; Skill-channel rendering per harness and the
+target-manifest exclusion; cross-OS hash identity of the committed example
+package; `.gitattributes`/newline normalisation in schema reproduction;
+vendor-output parser fixtures (hand-authored from documentation before G5,
+replaced by sanitized G5 captures); compatibility-suite skip when the extra is
+absent; spaces/Unicode/backslashes/
 long paths/CRLF; concurrent and malformed streams; schema/vendor failures;
 retry classification; timeout/cancellation/process-tree cleanup; atomic
 archive recovery; redaction; solo mode; parallel fan-out then synthesis;
@@ -426,8 +639,13 @@ Core matrix:
 - OS: `ubuntu-latest`, `windows-latest`, `macos-latest`;
 - Python: 3.11 and 3.13;
 - install: official `uv` action followed by `uv sync --frozen --all-groups`;
-- checks: lock consistency, Ruff, mypy, pytest, build, schema reproduction, and
-  deterministic acceptance.
+- checks: lock consistency, Ruff, mypy, pytest, build, schema reproduction,
+  deterministic acceptance, and example-package hash identity across the
+  matrix.
+
+The repository is public with the MIT licence from G2 and the core matrix runs
+from the scaffold; `.gitattributes` keeps checkouts LF so hashes and schema
+reproduction agree on Windows.
 
 Optional provider matrix:
 
@@ -441,41 +659,61 @@ and optional-provider plumbing only.
 
 Before G7, run local deterministic and Ubuntu live gates, inspect history for
 secrets/raw evidence, verify MIT and third-party notices, recheck the remote
-name, ask for explicit repository/push approval, and have the owner repair
-`gh` authentication without sharing a token. No release, tag, package
-registry, installer, or signed artifact is in M1a.
+name, and check distribution-name availability for `agentteam`/`atm`. `gh`
+authentication is in place (verified 2026-08-23; account `WSH95`, `repo`
+scope); every push still needs its own explicit approval. No release, tag,
+package registry, installer, or signed artifact is in M1a.
 
 ## 17. Commit boundaries during product implementation
 
 1. `chore(project): rename project to AgentTeam`
-2. `chore(core): scaffold Python CLI package with uv`
-3. `feat(domain): add portable definition and run schemas`
-4. `test(substrate): qualify optional ClawTeam seam`
-5. `feat(harness): add isolated direct CLI adapters`
-6. `feat(run): add invocation ledger and parallel ensemble runner`
-7. `test(poc): add deterministic direct-harness acceptance`
-8. `docs(poc): record subscription-backed Ubuntu acceptance`
-9. `ci: verify direct and optional-provider plumbing`
+2. `docs(steward): documentation hygiene for the AgentTeam baseline`
+3. `chore(core): scaffold Python CLI package with uv`
+4. `feat(domain): add portable definition, run-record, review/synthesis, and run schemas`
+5. `test(substrate): qualify optional ClawTeam seam`
+6. `feat(harness): add isolated direct CLI adapters`
+7. `feat(run): add invocation ledger and parallel ensemble runner`
+8. `test(poc): add deterministic direct-harness acceptance`
+9. `docs(poc): record subscription-backed Ubuntu acceptance (sanitized evidence bundle)`
+10. `ci: verify direct and optional-provider plumbing`
 
-Include Project Steward state with its semantic change. Never push without the
-separate approval.
+Commit order inside G2–G4 may vary (commit 5 may follow 7). Include Project
+Steward state with its semantic change. Never push without the separate
+approval; the first push (the scaffold, at G2) is itself an approval moment.
 
 ## 18. Stop rules
 
 - Stop on any mutation of a portable Assistant package.
 - Stop rather than insert API mode if native subscription execution fails.
 - Stop if an adapter needs credential-file parsing or copying.
-- Fix deterministic Windows/macOS direct plumbing before live/product claims.
+- Fix deterministic Windows/macOS direct plumbing (green from G2) before
+  product/TE-08 claims.
 - A ClawTeam compatibility failure blocks provider qualification and M1b; do
   not silently fork, vendor, or make it mandatory.
 - Record vendor flag drift in dated profile data/tests rather than hidden
   branching.
-- Stop at the eight-call or 15-minute attempt bound.
+- Stop at the eight-call or 15-minute attempt bound, at two probe calls per
+  harness, and at three acceptance cycles in total.
 - If output exposes a secret, keep it local, rotate outside AgentTeam, and do
   not commit/upload it.
 - After two failures for the same live semantic reason, return to review rather
   than tune prompts indefinitely.
 - G8 ends M1a. Do not begin M1b in the same approval scope.
+
+Falsification routing (which register row a failure falsifies, and where it
+goes):
+
+- No Codex file or config injection channel works (neither
+  `model_instructions_file`, `developer_instructions`, nor workspace
+  `AGENTS.md`) → HB-02 is falsified for Codex → back to
+  `architecture-options.md`, not a workaround.
+- The definition hash changes → find the writer (symlinked Skills, harness
+  memory, adapter output) → injection fix, never an architecture change.
+- Synthesis cannot attribute → record/schema fix, layer-internal.
+- Grok channel or authentication fails → FAIL-HARD report; the owner revisits
+  the all-three gate (ADR 0018) rather than the plan silently shrinking.
+- Semantic miss with valid mechanics → definition or prompt work; after two
+  failures for the same reason, return to review (rule above).
 
 ## 19. Committed later milestones
 
@@ -483,16 +721,23 @@ These are product obligations from the original brief, not optional ideas.
 Each receives a separate detailed plan and approval:
 
 1. **M1b — Team foundation:** substrate-neutral TeamTemplate, TeamRun, Member,
-   and CoordinationSubstrate contracts; optional ClawTeam provider.
+   and CoordinationSubstrate contracts; a product-owned local deterministic
+   coordination provider first (file task store, mailbox, snapshot — used by
+   the deterministic tests), the optional ClawTeam provider second; a written
+   ClawTeam exit criterion, built from the section 10 qualification
+   measurements, before PoC B (ADR 0018).
 2. **M1c — dynamic-member PoC B:** reusable Lead/Implementer/Reviewer team,
    mixed harnesses, one hidden auditable temporary specialist, enforced policy
-   decision, and complete archive.
+   decision, and complete archive; the Lead is invoked fresh per decision point
+   with a RunStateSummary as the default hypothesis (review R6) unless evidence
+   requires a resident Lead.
 3. **M2 — nested-team PoC C:** temporary inner TeamRun, isolated namespace,
    result return, archive, outer continuation, explicit achieved isolation,
    recovery, and the `atm` MCP server.
-4. **M3 — evolution and artifacts:** Reviewed Evolution proposals/review,
-   artifact manifest/lock, per-host resolution, credential-free export/import,
-   and modification detection.
+4. **M3 — evolution and artifacts:** overlays (Base + User + Reviewed
+   Evolution) and their proposals/review, artifact manifest/lock, per-host
+   resolution, credential-free export/import (M1a already proves cross-OS hash
+   identity), and modification detection.
 5. **M4 — operations:** deterministic process/metric/checkpoint/log monitors,
    schedulers, triggers, health/restart policy, and fresh Assistant invocation
    for interpretation/decisions/escalation.
@@ -517,7 +762,12 @@ Review must confirm direct-first scope, Python/uv packaging, versioned schemas,
 optional-not-mandatory ClawTeam, namespace-only isolation claim, three-harness
 auth/evidence rules, semantic thresholds, retry/time/call limits, hosted-CI
 boundary, later milestone obligations, AgentTeam/`atm` identity, English docs,
-and MIT holder line.
+and MIT holder line; and, for r2: the approval artefact (DECISIONS entry naming
+file + SHA), harness-selection precedence with `decided_by`, three Skills in
+the example and their per-harness channels, cross-OS hash identity, probe
+verification levels, overlay deferral with reserved fields, the public
+repository at G2, the sanitized evidence bundle, falsification routing, and
+the documentation-hygiene list.
 
 Implementation begins only after review comments are resolved and the owner
 explicitly marks this plan approved.
@@ -527,3 +777,42 @@ architecture synthesis, historical PoC proposal, and product requirements.
 Volatile vendor CLI/auth facts must be rechecked at their execution gate.
 ClawTeam compatibility is anchored to the full Git revision above; uv behavior
 is anchored to the installed `uv 0.11.26` help captured during planning.
+
+## 22. Merge record (r2, 2026-08-23)
+
+r2 merges `docs/plans/m1-agentteam-direct-slice.md` (independent proposal,
+written against `3407ec9` without reading r1) and the findings of
+`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`, cross-checked by an
+independent plan agent; owner decisions are in DECISIONS 0019.
+
+Adopted into r2 (source → section):
+
+| Item | Source | Sections |
+| --- | --- | --- |
+| Harness-selection precedence with `decided_by`; solo mode | review R7/R16, proposal T4; HB-03/AD-04 | 1, 2, 3, 7, 8, 11, 12, 14, 15 |
+| Three Skills in the example Assistant, rendered per harness | review R12-i; AD-09/AD-02 | 6, 7, 11, 12, 14, 15 |
+| Cross-OS hash identity, `.gitattributes`, canonical hash spec | review R12-ii; AR-03; cross-check C9 | 4, 6, 7, 15, 16 |
+| `RunRecordV1` as the one-Member subset of the TeamRun record | review R16 | 2, 6, 7 |
+| Probe verification levels; day-one probes at G5 | review R22, proposal T8; cross-check C6/C11–C13 | 3, 7, 8, 9, 11 |
+| Falsification routing | proposal §4, M0 `minimal-poc-plan.md` §7 | 18 |
+| Mechanical vs semantic traceability of acceptance | review R12-iii | 3, 14 |
+| ClawTeam exit-criterion inputs; M1b provider order; Lead fresh per decision point | ADR 0018; review R2/R6 | 10, 19 |
+| Reviewed sanitized evidence bundle | review H13 | 3, 13, 17 |
+| Documentation hygiene list in G1 | review H3, H6, H8–H12, R7, R19 | 3, 4, 17 |
+| Approval artefact convention | review R20; ADR 0018 | 2, 3, 21 |
+| Review/synthesis schemas in the vendors' dialect intersection; CI artefacts; oracle outside workspace + matcher; Windows `.cmd`/env baseline; local state layout; "call" definition; total budget; `attendance`/`auth_mode`; harness ids | cross-check C1–C19 | 6, 7, 8, 9, 12, 14 |
+| Public MIT repository and first push at G2 after the G1 rename; CI from the scaffold; `gh` authenticated | owner decision 2026-08-23 | 2, 3, 16, 17 |
+
+Conflicts and resolutions: semantic conditions stay gating (owner), with the
+two-tier labelling; the three-concurrent-leg cycle stays (ADR 0013) and the
+proposal's solo runs are covered deterministically; the TypeScript fixture
+stays; `OverlayV1` is deferred to M3 with reserved fields (owner); export/import
+stays in M3; no separate design-spec document (this plan is the spec); the
+ClawTeam G4 qualification stays and now feeds the M1b exit criterion.
+
+Not adopted from the proposal: an early operational-mode slice (owner: code/dev
+teams first); its T-numbering and tier names (gate names G0–G8 are referenced
+by steward files); a `noop` harness kind (fakes run behind the real adapters);
+`--max-budget-usd` as the control (calls/time instead); extra CLI verbs
+(`harness list|check`, `ledger`, `ensemble show`, `assistant export|import`);
+live solo runs; any TeamTemplate/coordination behaviour in M1a.
