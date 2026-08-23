@@ -377,3 +377,23 @@ from ruff. Nothing outside the managed block changed; the stale
 "(implementation planned)" stack line stays until its own shown edit.
 **Consequences**: Agents use the real commands from G2 on. The table gains the
 `Live PoC` row at G4 via the same guarded procedure.
+
+## 0024 — 2026-08-23 — Public repository WSH95/AgentTeam created; first push executed on explicit approval (G2)
+
+**Context**: The approved M1a plan makes the first push its own approval
+moment inside G2 (§2/§16/§17); ADR 0019 fixed the repository as public with
+the MIT licence, created after the G1 rename and the pre-first-push checklist.
+**Decision**: After the checklist passed (VERIFY "G2 local verification":
+history secret scan 0 hits at `8660e6a`; GitHub/PyPI/`atm` name checks free
+2026-08-23; LICENSE + `docs/provenance.md`), the owner was asked "Create the
+public GitHub repository WSH95/AgentTeam (MIT) and push main (HEAD 8660e6a)
+now?" and answered **"Yes — create and push"** (2026-08-23). The repository
+https://github.com/WSH95/AgentTeam was created public with
+`gh repo create … --public --source . --remote origin --disable-wiki` and
+`main @ 8660e6a` pushed. A follow-up CI fix (`671c2d9`, setup-uv pinned to the
+v10.0.1 commit — no floating v10 tag exists) was pushed after its own separate
+approval the same day.
+**Consequences**: The scaffold smoke matrix must be green on
+Ubuntu/Windows/macOS to close G2 (evidence in VERIFY). Every further push
+remains its own visible gate; nothing is published to any package registry in
+M1a.

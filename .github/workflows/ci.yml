@@ -49,8 +49,10 @@ jobs:
           python-version: ${{ matrix.python }}
           enable-cache: true
           cache-dependency-glob: "**/uv.lock"
+      - name: Install matrix Python (managed; independent of the runner image)
+        run: uv python install ${{ matrix.python }}
       - name: Show selected interpreter
-        run: uv python find
+        run: uv python find ${{ matrix.python }}
       - name: Lock consistency
         run: uv lock --check
       - name: Sync (frozen, all groups; never --all-extras)

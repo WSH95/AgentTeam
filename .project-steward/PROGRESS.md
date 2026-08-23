@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-23T21:25:22Z — cli
+CI run 32667352498 after the setup-uv pin: macOS+Windows x 3.11/3.13 GREEN (proves UV_PYTHON beats .python-version for sync, the interpreter asserts passed, schemas reproduce cross-OS); both Ubuntu legs failed only at the diagnostic `uv python find` (no version argument -> reads .python-version 3.11; find never auto-installs and the Ubuntu image ships no 3.11/3.13). Fix: explicit `uv python install <matrix>` + `uv python find <matrix>`. DECISIONS 0024 records the repo creation/push approvals.
+
 ### 2026-08-23T21:22:24Z — cli
 First push done on owner approval (repo https://github.com/WSH95/AgentTeam created public/MIT, main @ 8660e6a). CI run 32667232109 failed on all 6 legs at job setup: astral-sh/setup-uv has no floating v10 tag; fixed by pinning the action to the v10.0.1 commit SHA (20cfd1bf). Fix committed locally; next push awaits its own approval.
 
