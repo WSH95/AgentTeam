@@ -2,6 +2,12 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-23T06:16:37Z — cli
+Prepared and validated the owner-requested commit of the proposed M1a planning baseline; implementation remains unapproved
+
+### 2026-08-23T06:04:09Z — cli
+Committed M0.1 and drafted the detailed AgentTeam M1a direct-harness PoC plan for multi-agent review; no implementation started
+
 ### 2026-08-23T02:51:49Z — cli
 [auto-checkpoint] No material project change after the completed M0.1 documentation handoff; final scope check passed and nothing is staged.
 

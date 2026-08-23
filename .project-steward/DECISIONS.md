@@ -65,3 +65,42 @@ canonical instruction file and CLAUDE.md as a thin Claude Code adapter.
 **Context**: Owner confirmations and current CLI/platform verification after M0.
 **Decision**: (1) Claude Code + Codex + Grok Build are required first-pass harnesses; Hermes/OpenClaw are deferred. (2) Native and unattended live runs use each CLI's subscription OAuth on the owner's persistent host; ATS does not broker third-party login, copy credential stores, or put live credentials in hosted CI. (3) API-test mode is separate/replaceable, stores credential environment-variable names only, and never substitutes for native auth; `stealth/ox-alpha` is temporary and unverified. (4) GitHub-hosted Windows/macOS CI proves deterministic direct/ClawTeam plumbing only. (5) Advisory PoC controls are acceptable only when bypass-visible/audited; production requires mechanical enforcement; hidden is UI projection. (6) ATM internal copy/adaptation is authorized with provenance and third-party obligations retained.
 **Consequences**: Current architecture/model/evidence documents use Claude `--safe-mode --no-session-persistence` for subscription mode, not `--bare`; open questions Q2/Q3/Q5/Q7 and the first-pass-harness question are closed; no API key is requested until a canary is explicitly approved.
+
+## 0012 — 2026-08-23 — Adopt the AgentTeam product identity and TypeScript baseline
+
+**Context**: The working name, implementation language, documentation language,
+repository target, CLI name, and publication license had to be fixed before a
+reviewable implementation plan could be exact.
+**Decision**: The product name is AgentTeam; the future repository is
+`WSH95/AgentTeam`; the new product CLI is `atm`; the eventual local directory
+is `/home/wsh/Documents/AgentTeam`. Implement in TypeScript on Node.js, keep
+English as the canonical product-documentation language, and use MIT with
+`Copyright (c) 2026 ShuhanWang`. Keep the package private and do not publish to
+npm during M1a.
+**Consequences**: The rename is G1 of the proposed M1a plan rather than part of
+this planning change. Historical ATM/M0 evidence remains dated history instead
+of receiving a blanket rename. Public repository creation and every push still
+require separate owner approval.
+
+## 0013 — 2026-08-23 — Make M1a a direct, three-harness ensemble PoC
+
+**Context**: The historical PoC A/B/C sequence was intentionally reopened, and
+the owner supplied the choices needed to define the first implementation
+slice.
+**Decision**: M1a uses direct CLI subprocess adapters for Claude Code, Codex,
+and Grok Build before ClawTeam or ACP. Run three fresh independent review legs
+in parallel, require all three, then use a separate fresh Claude invocation to
+synthesize with per-leg attribution. Allow one retry only for a classified
+transient failure. Use harness defaults when model/effort is unspecified;
+concrete overrides live in a local HarnessProfile or ephemeral RunRequest,
+while portable Assistants contain abstract hints only. Retain full local
+gitignored evidence with redacted argv/environment metadata and raw streams;
+commit only explicitly reviewed sanitized summaries. Hosted Windows/macOS CI
+is deterministic and credential-free; live subscription acceptance is on the
+owner's Ubuntu host.
+**Consequences**: The exact proposed scope, contracts, gates, fixture, call
+bound, and acceptance criteria live in
+`docs/plans/m1a-direct-harness-poc.md`. That plan must be reviewed and
+explicitly approved before implementation. ClawTeam, API-test mode, Hermes,
+OpenClaw, Telegram, TeamTemplates, dynamic Members, and nesting are outside
+M1a.

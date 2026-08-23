@@ -27,10 +27,34 @@ Detailed execution plan (approved 2026-08-21): `~/.claude/plans/i-am-starting-a-
 - [x] Mark the detailed M0 PoC proposal provisional and re-baselining-required; do not schedule a specific draft source or implementation
 - [x] Run documentation regression checks and close M0.1 handoff
 
-## M1 (placeholder — only after a detailed plan is reviewed and approved)
+## M1a AgentTeam direct-harness PoC (plan review gate)
 
-- [ ] Produce and review a re-baselined PoC plan consistent with the confirmed constraints; implementation language, run shapes, schemas, synthesis, sequence, and budget remain open
+Proposed implementation plan:
+[`docs/plans/m1a-direct-harness-poc.md`](../docs/plans/m1a-direct-harness-poc.md).
+The document is review-only until the owner explicitly approves it.
+
+- [x] Commit the completed M0.1 documentation review (`3407ec9`)
+- [x] Record the owner-confirmed product identity, stack, auth, first-pass harness, model-policy, evidence, and live-test boundaries
+- [x] Draft the exact direct-first implementation sequence, contracts, CLI, test matrix, live acceptance bar, publication gate, and stop rules
+- [x] Commit the proposed plan and steward records as the multi-agent review baseline
+- [ ] Incorporate multi-agent review findings without starting implementation
+- [ ] Obtain explicit owner implementation approval, mark the reviewed plan `approved`, and commit any review resolutions
+- [ ] G1 — rename/re-baseline the local project as AgentTeam
+- [ ] G2 — implement the strict TypeScript foundation and V1 schemas
+- [ ] G3 — implement isolated Claude/Codex/Grok direct adapters
+- [ ] G4 — pass the full deterministic fake-harness PoC locally
+- [ ] G5 — complete owner-driven dedicated native-auth profile setup
+- [ ] G6 — pass the Ubuntu subscription-backed live PoC
+- [ ] G7 — after separate public-repository/push approval, pass credential-free Ubuntu/Windows/macOS CI
+- [ ] G8 — close M1a and stop before ClawTeam work
+
+## M1b (placeholder — outside the M1a approval scope)
+
+- [ ] Prepare a separate reviewed plan for the ClawTeam-backed
+  `CoordinationSubstrate` milestone; do not begin it during M1a
 
 ## Later
 
-- [ ] Decide final project name and implementation language
+- [ ] Decide whether/when Hermes, OpenClaw, Telegram, API-test providers,
+  dynamic Members, nested TeamRuns, surfaces, and upstream ClawTeam changes
+  enter subsequent milestones

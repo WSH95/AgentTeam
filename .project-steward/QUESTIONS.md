@@ -5,16 +5,16 @@ must not guess. Answered items remain here for traceability.
 
 ## Open
 
-- [ ] Q1. Implementation language for M1+ (Python, TypeScript, or other).
 - [ ] Q4. Whether/when to file the bounded ClawTeam issues/PRs. Plan capability as if none merges.
 - [ ] Q6. Whether a later mixed-team expansion should include Hermes, and what evidence should gate that expansion. Hermes and OpenClaw are deferred from the first pass.
-- [ ] Q8. Live-run budget/accounts and whether the deterministic no-op tier is a precondition or a scored acceptance tier.
-- [ ] Q9. Ensemble/synthesis design, including synthesizer choice and Codex `cost_source: derived|unavailable` policy.
-- [ ] Q10. Whether Member coordination text may be ClawTeam-specific in the PoC or must be rendered per substrate immediately.
-- [ ] Final project name (working name "Assistant Team System"; do not assume "ATM").
-- [ ] English-only vs bilingual discovery/product documentation.
-- [ ] Detailed PoC choices: run count, schemas, acceptance evidence, sequence/gates, implementation slice, and LOC re-baseline.
 - [ ] Timing and target for the deferred API-test canary. The current OpenRouter `stealth/ox-alpha` route is temporary/replaceable and unverified; no key is needed until a canary is explicitly approved.
+
+## Current review gate
+
+This is not an unanswered architecture choice: the concrete M1a proposal is
+now in `docs/plans/m1a-direct-harness-poc.md`. Implementation remains blocked
+until multi-agent review comments are resolved and the owner explicitly
+approves that plan.
 
 ## Answered in the 2026-08-22 product/architecture review
 
@@ -26,3 +26,21 @@ must not guess. Answered items remain here for traceability.
 - [x] First-pass harnesses are Claude Code + Codex + Grok Build. Hermes/OpenClaw are deferred.
 - [x] The current API model is test-only and replaceable; no availability, price, behavior, or compatibility claim exists until a canary is run.
 - [x] Register-gap disposition: AR-06 added; isolation folded into TC-03; approval integrity into EV-05; export/import into AR-03; platform-vs-harness into XC-02; trust zones deferred.
+
+## Answered in the 2026-08-23 M1a planning pass
+
+- [x] Q1. Implement M1+ in TypeScript on Node.js.
+- [x] Q8. Deterministic fake-harness acceptance is a mandatory precondition;
+  Ubuntu live acceptance is a separate required gate. One acceptance cycle is
+  bounded to eight model calls and never repeats automatically.
+- [x] Q9. Use three independent Claude/Codex/Grok legs followed by a separate
+  Claude synthesis. Codex cost is `unavailable`; do not derive USD from token
+  tables. Treat vendor-reported cost as telemetry, not subscription billing.
+- [x] Q10. Portable coordination source text is substrate-neutral; render
+  substrate mechanics outside the Assistant definition.
+- [x] The final product name is AgentTeam; repository `WSH95/AgentTeam`, CLI
+  `atm`, and eventual local directory `/home/wsh/Documents/AgentTeam`.
+- [x] English is the canonical product-documentation language.
+- [x] M1a is the direct-first three-harness PoC in
+  `docs/plans/m1a-direct-harness-poc.md`; ClawTeam is a separately planned
+  later milestone.
