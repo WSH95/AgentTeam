@@ -4,6 +4,19 @@ How to check the project is healthy. This is a documentation-only discovery
 phase; there is no build, product code, or automated product test suite yet.
 
 
+
+## Current M1a r3 review-resolution verification — 2026-08-23
+
+| Check | Result |
+| --- | --- |
+| Documentation-only scope | PASS — `docs/plans/m1a-direct-harness-poc.md` (r3), one sentence in `docs/discovery/team-execution-model.md` §4 (v2.3), Project Steward records; no code, rename, dependency, credential, model call, CI, remote change, or push |
+| Review claims verified read-only | PASS — `claude --help` (2.1.241): `--safe-mode` disables skills/plugins/hooks/MCP, `--bare` never reads OAuth; `codex exec --help` (0.149.0): `--ignore-rules` = execpolicy `.rules` only; `grok inspect` (1.0.5) in a scratch dir lists `.grok/skills/` and `.agents/skills/` as project skill roots; scratch dir removed |
+| r3 edit coverage | PASS — header/§1/§2/§3/§6.1/§7/§9/§11/§12/§14/§15/§16/§17/§18/§19/§21/§22 updated; gate names unchanged; status still *proposed* |
+| Decision consistency | PASS — ADR 0020 ↔ QUESTIONS (budget, Claude channel) ↔ PLAN gate lines ↔ RISKS rows ↔ HANDOFF next steps |
+| Patch hygiene | PASS — `git diff --check` exits 0 |
+
+Last verified: 2026-08-23 by Claude (Fable 5) session (documentation-only).
+
 ## Current M1 plan-merge verification — 2026-08-23
 
 | Check | Result |

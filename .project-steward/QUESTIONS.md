@@ -14,7 +14,8 @@ must not guess. Answered items remain here for traceability.
 ## Current review gate
 
 This is not an unanswered architecture choice: the concrete M1a proposal is
-now `docs/plans/m1a-direct-harness-poc.md` revision r2 (merged, ADR 0019).
+now `docs/plans/m1a-direct-harness-poc.md` revision r3 (merged in r2, ADR 0019;
+review findings resolved in r3, ADR 0020).
 Implementation remains blocked until multi-agent review comments are resolved
 and the owner explicitly approves that plan with a DECISIONS entry naming the
 file and commit SHA.
@@ -81,6 +82,12 @@ See `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and ADR 0018.
 - [x] Repository timing → public `WSH95/AgentTeam` (MIT) created and first
   pushed at G2 after the G1 rename; that push is its own explicit approval
   moment (ADR 0019). `gh` is authenticated (verified 2026-08-23).
+- [x] Live-call budget ceiling → one initial acceptance cycle after G5, at most
+  two reruns each separately confirmed by the owner, probes ≤ 2 per harness,
+  hard ceiling 30 calls (ADR 0020).
+- [ ] Claude Skill channel under the isolated config home (`$CLAUDE_CONFIG_DIR/skills/`
+  vs `--plugin-dir` vs workspace `.claude/skills/`) — settled by the G5 probe,
+  not by documentation (ADR 0020).
 
 - [ ] Write the ClawTeam exit criterion before PoC B (review R2/R13): for example,
   the ClawTeam provider stays only if provider + workarounds are ≤ 1.5× the local

@@ -1,9 +1,9 @@
 # AgentTeam M1a direct-harness PoC implementation plan
 
 - Status: **proposed for review — not approved for product implementation**
-- Plan revision: **r2**, 2026-08-23 (merged with the independent proposal; see
-  section 22)
-- Revision baseline: `972aa95` (r1 was `9aff78f`,
+- Plan revision: **r3**, 2026-08-23 (r2 review findings resolved; r2 merged the
+  independent proposal; see section 22)
+- Revision baseline: `7ea1c0e` (r2 was `972aa95`; r1 was `9aff78f`,
   `docs(plan): propose AgentTeam M1a direct harness PoC`)
 - Supersedes: `docs/plans/m1-agentteam-direct-slice.md` (independent proposal,
   merged here; kept as a dated record)
@@ -15,9 +15,10 @@
 This is the implementation plan to execute only after a separate explicit
 product-implementation approval. The 2026-08-23 documentation rebaseline
 changed the proposed core from TypeScript/Node to Python/uv and made ClawTeam
-an optional provider; revision r2 merges the independent review
+an optional provider; revision r2 merged the independent review
 (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`), the independent proposal,
-and the cross-check findings listed in section 22. It did not authorize the
+and the cross-check findings listed in section 22; revision r3 resolves the
+multi-agent review findings on r2 (section 22). It did not authorize the
 directory/repository rename, source code, dependency installation, credential
 setup, live harness calls, GitHub repository creation, or a push.
 
@@ -42,7 +43,9 @@ M1a also establishes harness-selection precedence (user > Assistant > profile
 default) with the deciding layer recorded on every invocation, renders the
 example Assistant's three Skills into every harness, and proves that the
 portable package hashes identically on the three CI operating systems. M1a
-live runs are owner-attended; unattended operation belongs to M4.
+live runs are owner-attended as a milestone boundary; unattended native runs
+belong to M4 and use subscription OAuth on the owner-operated persistent host
+(Q5).
 
 ## 2. Product and architecture decisions
 
@@ -67,8 +70,9 @@ live runs are owner-attended; unattended operation belongs to M4.
 - The final product name is AgentTeam; the future repository is
   `WSH95/AgentTeam`; the CLI is `atm`; and the eventual local directory is
   `/home/wsh/Documents/AgentTeam`. The repository is created public with the
-  MIT licence at G2, after the G1 directory rename; the first push is an
-  explicit approval moment inside G2.
+  MIT licence at G2, after the G1 directory rename and after the pre-first-push
+  checklist of section 16; the first push is an explicit approval moment
+  inside G2.
 - Approval of this plan is recorded as a DECISIONS entry that names this file
   and the commit SHA holding the approved text; the status line flips to
   `approved` in the following commit because a commit cannot name its own SHA
@@ -78,10 +82,12 @@ live runs are owner-attended; unattended operation belongs to M4.
 - `run.json` is a `RunRecordV1`: a direct run is the one-Member case of the
   later TeamRun record, so M1b extends it instead of adding a second record
   kind. M1a implements no TeamTemplate or coordination behaviour.
-- Overlays are deferred to M3. M1a reserves `overlay_refs: []` and
-  `effective_definition_hash` (equal to the Base hash) in the bundle manifest
-  and RunRequest; user-level choices travel through the CLI, the RunRequest,
-  and the local HarnessProfile.
+- Overlays are deferred to M3. M1a reserves `overlay_refs: []` in the
+  RunRequest and bundle manifest; the computed `effective_definition_hash`
+  (equal to the Base hash in M1a) lives only in the bundle manifest, the run
+  record, and the invocation records — never as client-supplied input.
+  User-level choices travel through the CLI, the RunRequest, and the local
+  HarnessProfile.
 - Canonical product documentation is English. The public license is MIT with
   `Copyright (c) 2026 ShuhanWang`. No package is published in M1a.
 - Native runs use the owner's subscription login in each installed vendor
@@ -103,13 +109,13 @@ work named in its stop rule.
 | --- | --- | --- |
 | G0 | Approve this plan | Owner explicitly approves the final reviewed plan; the approval is a DECISIONS entry naming this file and the commit SHA of the approved text, committed before product source work |
 | G1 | Rename, re-baseline, documentation hygiene | Clean worktree; target absent; directory becomes `/home/wsh/Documents/AgentTeam`; historical evidence remains attributable; guarded instructions updated as approved; the documentation-hygiene list of section 4 item 6 lands as one docs-only commit |
-| G2 | Python foundation and public repository | Frozen `uv.lock`; Python package builds; checked-in schemas reproduce; `atm --help` and `atm --version` pass; public `WSH95/AgentTeam` created with the MIT licence and the scaffold pushed after explicit approval; core CI matrix green on Ubuntu/Windows/macOS from this gate |
-| G3 | Direct harness core | Claude, Codex, and Grok adapters pass argv/env/parser tests against deterministic fake executables, including Skill-channel rendering and harness-selection resolution with `decided_by`; no model call |
-| G4 | Deterministic PoC | Complete fan-out/synthesis state machine passes locally, including solo mode, selection/exclusion precedence, three Skills rendered per harness, and example-package hash identity; optional ClawTeam seam passes its local compatibility suite and writes its qualification report |
+| G2 | Python foundation and public repository | Frozen `uv.lock`; Python package builds; checked-in schemas reproduce; `atm --help` and `atm --version` pass; pre-first-push checklist passed (history secret scan, LICENSE and third-party notices, `docs/provenance.md`, repository/distribution-name checks); public `WSH95/AgentTeam` created with the MIT licence and the scaffold pushed after explicit approval; the **scaffold smoke matrix** (lock, Ruff, mypy, scaffold tests, build, schema reproduction, `--help`/`--version`) green on Ubuntu/Windows/macOS |
+| G3 | Direct harness core | Claude, Codex, and Grok adapters pass argv/env/parser tests against deterministic fake executables, including Skill-channel rendering, harness-selection resolution with `decided_by`, and the Windows-only `.cmd` shim fake; these tests are added to CI; no model call |
+| G4 | Deterministic PoC | Complete fan-out/synthesis state machine passes locally, including solo mode, selection/exclusion precedence, three Skills rendered per harness, and example-package hash identity; optional ClawTeam seam passes its local compatibility suite and writes its qualification report; the deterministic-acceptance, hash-identity, and optional ClawTeam jobs are added to CI |
 | G5 | Native-auth preflight and probes | Owner completes one interactive login per dedicated vendor config home; `atm profile doctor` reports sanitized status only; bounded day-one probes (at most two calls per harness, outside the acceptance cycle) write capability verification levels into the profile; Grok authentication stays `unverified` until its first live leg if no status command exists |
 | G6 | Ubuntu live PoC | Three subscription-backed legs plus fresh Claude synthesis meet section 14 — mechanical conditions (architecture gate) and semantic conditions (product-useful gate) recorded separately — within the call/time bounds |
-| G7 | CI matrices and pre-publication checks | Core jobs pass on Ubuntu/Windows/macOS with Python 3.11 and 3.13; optional ClawTeam jobs pass on all three OSes with Python 3.11; history secret scan, third-party notices, and distribution-name availability checked |
-| G8 | M1a close | Verification and the reviewed sanitized evidence bundle are current; no secret/raw evidence is tracked; the M1b draft names the local deterministic provider first and the ClawTeam exit criterion; M1b remains separately planned |
+| G7 | Final CI matrices | Core jobs pass on Ubuntu/Windows/macOS with Python 3.11 and 3.13; optional ClawTeam jobs pass on all three OSes with Python 3.11; the vendor-smoke job (npm-installed Claude Code and Codex `--version`/`--help` through the real launchers, no credentials) passes; the history secret scan is repeated |
+| G8 | M1a close | Verification and the reviewed sanitized evidence bundle are current; no secret/raw evidence is tracked; semantic PASS recorded — or an owner-recorded waiver that closes M1a as failed/abandoned, never as PASS; the M1b draft names the local deterministic provider first and the ClawTeam exit criterion; M1b remains separately planned |
 
 An optional ClawTeam failure does not alter or contaminate direct execution.
 It blocks describing that provider as qualified and blocks M1b until the
@@ -243,8 +249,9 @@ The default state directory is `~/.agentteam/` (override with `AGENTTEAM_HOME`).
 It holds `profiles.yaml` (the local, gitignored `HarnessProfileSetV1`, the
 default target of `atm profile init`), one dedicated vendor config home per
 harness under `vendors/<harness>/` (the `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, and
-`GROK_HOME` the runs use), and the archive root `runs/<run-id>/` unless a
-RunRequest names an output path. Nothing under it is ever committed.
+`GROK_HOME` the runs use), the archive root `runs/<run-id>/` unless a
+RunRequest names an output path, and `probes/<date>/` for raw G5 probe
+captures. Nothing under it is ever committed.
 
 ## 7. Data contracts
 
@@ -267,9 +274,11 @@ harness binding.
 
 Overlays (Base plus User Overlay, later Reviewed Evolution) are deferred to M3
 (ADR 0016; recorded in DECISIONS 0019 after review item R15). M1a reserves
-`overlay_refs: []` and `effective_definition_hash` (equal to the Base hash) in
-the bundle manifest and RunRequest so the shape does not change later. M1a
-never silently persists run output into a definition.
+`overlay_refs: []` in the RunRequest and bundle manifest so the shape does not
+change later; `effective_definition_hash` is computed state (equal to the Base
+hash in M1a) recorded in the bundle manifest, `RunRecordV1`, and every
+`HarnessInvocationV1`, never accepted from a request. M1a never silently
+persists run output into a definition.
 
 `HarnessProfileSetV1` is local and gitignored. Each Claude, Codex, and Grok
 entry records the executable, expected version/capabilities, dedicated vendor
@@ -290,10 +299,14 @@ Runtime IDs, timestamps, results, and subprocess state belong only in the
 archive.
 
 `RunRecordV1` (`run.json`) is the archive manifest: run id, `mode: direct`, the
-single Member (Assistant reference, bundle hash, harness binding), references
-to the invocation and ensemble records, timing, and terminal status. It is the
-one-Member subset of the later TeamRun record; M1b extends it with coordination
-fields instead of introducing a second record kind.
+single Member (Assistant reference, bundle hash, and one `execution` binding
+`{kind: invocation | ensemble, ref}`), timing, and terminal status. In the
+acceptance cycle the Member is bound to one `EnsembleRecordV1` that holds its
+leg invocations and the synthesis invocation; in solo mode it is bound to one
+`HarnessInvocationV1`. A Member is therefore bound to one *execution* at a time
+(`team-execution-model.md` §4, amended for r3). `RunRecordV1` is the one-Member
+subset of the later TeamRun record; M1b extends it with coordination fields
+instead of introducing a second record kind.
 
 `HarnessInvocationV1` records run/ensemble/attempt IDs; requested and observed
 harness/version/model/effort; `selection {decided_by: user|assistant|default,
@@ -320,10 +333,16 @@ property required, `additionalProperties: false`, nullable-required
 optionals), and the G5 probes confirm each vendor accepts them before any
 acceptance cycle.
 
-Canonical hashes cover sorted POSIX-relative paths and LF-normalised source
-bytes with file modes excluded, so the same package hashes identically on
-every operating system. Throughout this plan a "call" is one CLI invocation
-of a vendor harness.
+The V1 portable-archive contract that every canonical hash is computed over: a
+package is a tree of regular files only (symlinks, devices, and empty
+directories are rejected); every file must be valid UTF-8 text (binary
+artifacts are outside V1); paths are relative, `/`-separated, UTF-8,
+NFC-normalised, and sorted by code point; two paths that differ only by case
+are rejected; file modes are excluded; CRLF and lone CR are normalised to LF;
+the hash is SHA-256 over the ordered sequence of `(path, NUL, size, NUL,
+bytes)` records. The same package therefore hashes identically on every
+operating system, and every rejection names the offending path. Throughout
+this plan a "call" is one CLI invocation of a vendor harness.
 
 Before and after a run, AgentTeam hashes all resolved definition files and
 fails if any changed.
@@ -400,15 +419,26 @@ array when tree termination is needed. `signal` is nullable in records and exit
 130 is mapped explicitly. A RunRequest may lower but never raise the 15-minute
 attempt limit or the single transient retry.
 
-On Windows the vendor CLIs are npm `.cmd` shims, which `CreateProcess` runs
-through `cmd.exe` even with `shell=False`; the file/stdin rule for all
-user-controlled content is the mitigation. CI fakes are launched as
-`python -m …` and do not exercise that path, so the TE-08 claim from CI is
-deterministic Python/path/process/archive/schema plumbing, not vendor-shim
-behaviour. The minimal environment baseline is `SYSTEMROOT`, `COMSPEC`,
-`PATHEXT`, `USERPROFILE`, `APPDATA`, `LOCALAPPDATA`, and `TEMP`/`TMP` on
-Windows and `HOME`, `PATH`, `TMPDIR`, and `LANG` on POSIX, plus the selected
-vendor config-home variable.
+Launcher policy. Python's `subprocess` documents that Windows batch files
+(`.bat`/`.cmd`) may be launched through the system shell regardless of
+`shell=False`, with no escaping added by Python. AgentTeam therefore never
+hands user-controlled content to a batch file and applies one explicit policy:
+a native `.exe` is launched directly; an npm `.cmd` shim (Claude Code, Codex)
+is **resolved to its target** — the `node` entry script the shim wraps — and
+`node.exe` is launched with that script as argv, so `cmd.exe` never parses
+anything; if resolution fails, the `.cmd` is launched only when every argv
+element matches a strict safe-character allowlist (no `&`, `|`, `<`, `>`, `^`,
+`%`, `!`, `(`, `)`, or `"`; spaces are allowed and quoted), otherwise the
+invocation exits `2` with the reason. All multi-line and user-controlled
+content still travels by file or stdin. The resolved launcher and the policy
+branch taken are recorded on the invocation.
+
+Tests cover both branches with a Windows-only `.cmd` fake shim that receives
+arguments containing spaces and metacharacters; CI fakes launched as
+`python -m …` cover the rest. The minimal environment baseline is `PATH`,
+`SystemRoot`, `SystemDrive`, `COMSPEC`, `PATHEXT`, `USERPROFILE`, `APPDATA`,
+`LOCALAPPDATA`, and `TEMP`/`TMP` on Windows and `HOME`, `PATH`, `TMPDIR`, and
+`LANG` on POSIX, plus the selected vendor config-home variable.
 
 The later `CoordinationSubstrate` protocol retains create-space, member, task,
 wait, message, snapshot, stop, and cleanup operations. It is documented but
@@ -449,9 +479,17 @@ the inputs to the written ClawTeam exit criterion that M1b drafts before PoC B
 
 Harness selection precedence is CLI `--harness` / RunRequest harnesses (user)
 > Assistant `harness_policy` (assistant) > local HarnessProfile default
-(default). An exclusion stated at a higher layer binds every lower layer, and
-the deciding layer is recorded as `selection.decided_by` on every invocation.
-A `team` layer is reserved for M1b.
+(default). The complete algorithm: (1) candidates are the harnesses with a
+local profile and an installed executable; (2) harnesses forbidden by the user
+request or by the Assistant's `forbidden` list are removed; (3) if the user
+requested harnesses, every requested harness must be a candidate, allowed by
+the Assistant, and eligible for the required capabilities — otherwise the run
+fails before any launch (exit `2`); there is no implicit force mode in M1a;
+`decided_by: user`; (4) otherwise the first entry of the Assistant's
+`preferred` list that is a candidate and eligible is chosen, `decided_by:
+assistant`; (5) if the Assistant expresses no preference, the profile default
+is chosen, `decided_by: default`; (6) if nothing is eligible the run fails
+with the reason recorded. A `team` layer is reserved for M1b.
 
 Concrete model/effort precedence is CLI override, RunRequest override, local
 HarnessProfile mapping from a portable hint, local profile default, then vendor
@@ -469,29 +507,41 @@ sets the selected config-home variable, records names only, and fails closed
 when API-key/base-URL/alternate-provider or unapproved proxy variables could
 redirect subscription authentication. API mode is never an auth fallback.
 
-Skills are rendered from the bundle into each harness's discovery channel per
-the capability evidence: Claude `--plugin-dir` (verified) or
-`--add-dir <bundle>/.claude/skills` (observed) — the G5 probe picks the
-channel; Codex workspace `.agents/skills/` (observed); Grok `.agents/skills/`
-(verified). The channel used is recorded per definition part and `degraded[]`
-names any part that could not be delivered. Adapter-written injection
-directories are excluded from the target manifest so they never count as
-target mutation.
+Skills are rendered from the bundle into each harness's discovery channel.
+Claude Code: `$CLAUDE_CONFIG_DIR/skills/<name>/SKILL.md` inside the isolated
+config home (keeps the workspace clean), then `--plugin-dir <bundle-plugin>`
+(verified in `--help`), then workspace `.claude/skills/` — the G5 probe picks
+the first channel that demonstrably loads. Codex: workspace `.agents/skills/`.
+Grok Build: workspace `.grok/skills/` (the documented project path) with
+`.agents/skills/` as a fallback that `grok inspect` on 1.0.5 also lists as a
+project root (verified locally 2026-08-23). Skills are **required** parts: if
+a harness channel cannot deliver a required Skill, `render` fails before any
+launch (exit `2`, `undeliverable_required_parts[]` recorded); `degraded[]`
+covers optional parts only. The channel used is recorded per definition part.
+Adapter-written injection directories are excluded from the target manifest so
+they never count as target mutation.
 
 Harness isolation remains:
 
-- Claude Code: `-p`, `--safe-mode`, `--no-session-persistence`, isolated
-  `CLAUDE_CONFIG_DIR`, instructions by file (`--append-system-prompt-file` —
-  present in the binary but not in `--help`, so verified by the G5 probe;
-  fallback `--append-system-prompt` with file-read text), structured output,
-  read-only review tools; never `--bare`.
-- Codex: `codex exec`, `--ephemeral`, `--ignore-user-config`, `--ignore-rules`,
-  isolated `CODEX_HOME`, read-only sandbox, approval `never`, JSONL plus output
-  schema. Instruction channel ladder, decided by the G5 probe and recorded in
+- Claude Code: `-p`, `--no-session-persistence`, an isolated `CLAUDE_CONFIG_DIR`
+  that contains only what AgentTeam writes, `--setting-sources user` (that
+  isolated home only — no workspace settings), `--strict-mcp-config` with an
+  AgentTeam-written empty `--mcp-config`, explicit tool restriction
+  (`--tools`/`--allowedTools`/`--disallowedTools` with `--permission-mode`),
+  instructions by file (`--append-system-prompt-file` — present in the binary
+  but not in `--help`, so verified by the G5 probe; fallback
+  `--append-system-prompt` with file-read text), structured output, read-only
+  review tools. **Not** `--safe-mode`: it disables Skills, plugins, hooks, and
+  MCP servers and would contradict the required Skill rendering; isolation
+  rests on the fresh config home plus setting-sources and strict MCP instead.
+  Never `--bare` (it never reads OAuth).
+- Codex: `codex exec`, `--ephemeral`, `--ignore-user-config`, `--ignore-rules`
+  (execpolicy `.rules` only; `AGENTS.md` discovery is unaffected), isolated
+  `CODEX_HOME`, read-only sandbox, approval `never`, JSONL plus output schema.
+  Instruction channel ladder, decided by the G5 probe and recorded in
   `degraded[]`: `model_instructions_file` (replaces Codex's built-in
   instructions — a quality risk), `developer_instructions` (appends, but is
-  argv-inline or config), then workspace `AGENTS.md` (whether `--ignore-rules`
-  suppresses it is unverified).
+  argv-inline or config), then workspace `AGENTS.md` (a valid fallback channel).
 - Grok Build: isolated `GROK_HOME`, memory and subagents disabled, read-only
   sandbox, file-delivered definition (`--rules` appends;
   `--system-prompt-override` replaces the default system prompt and is used
@@ -503,13 +553,17 @@ Harness isolation remains:
 Day-one probes at G5: one trivial structured-output prompt per harness that
 verifies the instruction channel, the Skills channel, schema acceptance, and
 active authentication — at most two calls per harness, outside the acceptance
-cycle. Results are written into the profile's verification levels and the raw
-captures are sanitized into `fixtures/vendor-output/` for the parser tests.
+cycle. Results are written into the profile's verification levels; raw
+captures land in the gitignored `~/.agentteam/probes/<date>/`. Tracked parser
+fixtures under `fixtures/vendor-output/` change only through explicit,
+reviewed promotion — a commit that names the probe and the sanitisation
+applied — never by automatic replacement.
 
 ## 12. Direct ensemble state machine
 
 1. Validate profile, Assistant, and RunRequest (reserved overlay fields must
-   be empty in M1a).
+   be empty in M1a); rendering fails before any launch if a required part —
+   including each Skill — cannot be delivered to a selected harness.
 2. Resolve paths, harness selection (`decided_by`), portable hints, and local
    overrides.
 3. Build one immutable definition bundle and canonical SHA-256 hash.
@@ -534,8 +588,10 @@ captures are sanitized into `fixtures/vendor-output/` for the parser tests.
 One acceptance cycle uses at most eight calls (a call is one CLI invocation):
 three legs, up to three one-time leg retries, synthesis, and at most one
 transient synthesis retry. Across M1a the live budget is at most two probe
-calls per harness plus three acceptance cycles. AgentTeam never starts another
-cycle automatically.
+calls per harness, one initial acceptance cycle after G5, and at most two
+reruns, each separately confirmed by the owner — a hard ceiling of 30 calls
+(owner-approved 2026-08-23). AgentTeam never starts another cycle
+automatically.
 
 ## 13. Evidence and privacy
 
@@ -594,9 +650,11 @@ attribution, and a recorded `decided_by` on every invocation — form the
 HB-02, HB-03, HB-05, HB-07, TE-02, XC-04). Conditions 2–5 and 9 form the
 **semantic** tier and establish product usefulness (product-intent §1.7, "the
 same colleague"). The ensemble record stores both tiers separately. A semantic
-miss routes to definition or prompt work, never to an architecture review; G8
-closes only on semantic PASS or an owner-recorded waiver. Condition 1's "same
-bundle" includes the three Skills.
+miss routes to definition or prompt work, never to an architecture review. G8
+closes on semantic PASS; an owner-recorded waiver may close M1a as
+failed/abandoned — recorded as such in the evidence bundle, PLAN, and
+DECISIONS — but never counts as semantic PASS. Condition 1's "same bundle"
+includes the three Skills.
 
 ## 15. Deterministic test plan
 
@@ -611,8 +669,13 @@ exact vendor rendering; Skill-channel rendering per harness and the
 target-manifest exclusion; cross-OS hash identity of the committed example
 package; `.gitattributes`/newline normalisation in schema reproduction;
 vendor-output parser fixtures (hand-authored from documentation before G5,
-replaced by sanitized G5 captures); compatibility-suite skip when the extra is
-absent; spaces/Unicode/backslashes/
+updated only by reviewed promotion of sanitized G5 captures); the Windows-only
+`.cmd` fake shim with adversarial spaces and metacharacters on both the
+resolved-launcher and fail-closed branches; selection-algorithm cases including
+hard failure for a user-requested forbidden or ineligible harness; an
+undeliverable required Skill failing before launch; archive-contract
+rejections (symlink, binary file, case-colliding paths); compatibility-suite
+skip when the extra is absent; spaces/Unicode/backslashes/
 long paths/CRLF; concurrent and malformed streams; schema/vendor failures;
 retry classification; timeout/cancellation/process-tree cleanup; atomic
 archive recovery; redaction; solo mode; parallel fan-out then synthesis;
@@ -643,9 +706,19 @@ Core matrix:
   deterministic acceptance, and example-package hash identity across the
   matrix.
 
-The repository is public with the MIT licence from G2 and the core matrix runs
-from the scaffold; `.gitattributes` keeps checkouts LF so hashes and schema
-reproduction agree on Windows.
+The repository is public with the MIT licence from G2, created only after the
+pre-first-push checklist passes: history secret scan, LICENSE and third-party
+notices, `docs/provenance.md` (ATM provenance), and repository/distribution
+name checks. CI grows with the gates: at G2 the scaffold smoke matrix (lock,
+Ruff, mypy, scaffold tests, build, schema reproduction, `--help`/`--version`);
+G3 adds the adapter tests and the Windows `.cmd` fake; G4 adds deterministic
+acceptance, example-package hash identity, and the optional ClawTeam jobs; G7
+runs the final matrices. A **vendor-smoke** job installs Claude Code and Codex
+through `npm` on the three runners and runs `atm profile doctor` (flag
+presence, `--version`/`--help`) through the real launchers without any
+credential or model call; Grok is best-effort until its non-interactive
+installer is verified. `.gitattributes` keeps checkouts LF so hashes and
+schema reproduction agree on Windows.
 
 Optional provider matrix:
 
@@ -657,12 +730,11 @@ CI has no vendor login, model call, API key, API-test route, or secret
 permission. Passing proves deterministic Python/path/process/archive/schema
 and optional-provider plumbing only.
 
-Before G7, run local deterministic and Ubuntu live gates, inspect history for
-secrets/raw evidence, verify MIT and third-party notices, recheck the remote
-name, and check distribution-name availability for `agentteam`/`atm`. `gh`
-authentication is in place (verified 2026-08-23; account `WSH95`, `repo`
-scope); every push still needs its own explicit approval. No release, tag,
-package registry, installer, or signed artifact is in M1a.
+Before G7, run local deterministic and Ubuntu live gates and repeat the
+history secret scan. `gh` authentication is in place (verified 2026-08-23;
+account `WSH95`, `repo` scope); every push still needs its own explicit
+approval. No release, tag, package registry, installer, or signed artifact is
+in M1a.
 
 ## 17. Commit boundaries during product implementation
 
@@ -675,7 +747,8 @@ package registry, installer, or signed artifact is in M1a.
 7. `feat(run): add invocation ledger and parallel ensemble runner`
 8. `test(poc): add deterministic direct-harness acceptance`
 9. `docs(poc): record subscription-backed Ubuntu acceptance (sanitized evidence bundle)`
-10. `ci: verify direct and optional-provider plumbing`
+10. `ci: verify direct and optional-provider plumbing` (the workflow grows at
+    G2, G3, and G4; this commit closes it at G7)
 
 Commit order inside G2–G4 may vary (commit 5 may follow 7). Include Project
 Steward state with its semantic change. Never push without the separate
@@ -684,6 +757,9 @@ approval; the first push (the scaffold, at G2) is itself an approval moment.
 ## 18. Stop rules
 
 - Stop on any mutation of a portable Assistant package.
+- Stop before launch when a required part — including any Skill — cannot be
+  delivered to the selected harness; `degraded[]` never excuses a required
+  part.
 - Stop rather than insert API mode if native subscription execution fails.
 - Stop if an adapter needs credential-file parsing or copying.
 - Fix deterministic Windows/macOS direct plumbing (green from G2) before
@@ -693,7 +769,8 @@ approval; the first push (the scaffold, at G2) is itself an approval moment.
 - Record vendor flag drift in dated profile data/tests rather than hidden
   branching.
 - Stop at the eight-call or 15-minute attempt bound, at two probe calls per
-  harness, and at three acceptance cycles in total.
+  harness, and after the initial acceptance cycle unless the owner separately
+  confirms a rerun (at most two); the hard ceiling is 30 calls.
 - If output exposes a secret, keep it local, rotate outside AgentTeam, and do
   not commit/upload it.
 - After two failures for the same live semantic reason, return to review rather
@@ -740,7 +817,9 @@ Each receives a separate detailed plan and approval:
    identity), and modification detection.
 5. **M4 — operations:** deterministic process/metric/checkpoint/log monitors,
    schedulers, triggers, health/restart policy, and fresh Assistant invocation
-   for interpretation/decisions/escalation.
+   for interpretation/decisions/escalation; unattended native runs use
+   subscription OAuth on the owner-operated persistent host (Q5), which is why
+   M1a is attended-only as a milestone boundary.
 6. **Optional adapters/surfaces:** native DSH package, OpenClaw, Hermes,
    Telegram/Discord, and replaceable API-test profiles enter only through the
    stable schema/CLI/MCP boundaries.
@@ -767,7 +846,12 @@ file + SHA), harness-selection precedence with `decided_by`, three Skills in
 the example and their per-harness channels, cross-OS hash identity, probe
 verification levels, overlay deferral with reserved fields, the public
 repository at G2, the sanitized evidence bundle, falsification routing, and
-the documentation-hygiene list.
+the documentation-hygiene list; and, for r3: the Claude recipe without
+`--safe-mode`, the Grok `.grok/skills/` and Codex channels, the pre-first-push
+checklist and gate-by-gate CI growth, the Member execution binding (one
+invocation or one ensemble), the launcher policy, the V1 archive contract, the
+complete selection algorithm, the required-Skill rule, promotion-only parser
+fixtures, the failed/abandoned waiver semantics, and the 30-call ceiling.
 
 Implementation begins only after review comments are resolved and the owner
 explicitly marks this plan approved.
@@ -816,3 +900,17 @@ by steward files); a `noop` harness kind (fakes run behind the real adapters);
 `--max-budget-usd` as the control (calls/time instead); extra CLI verbs
 (`harness list|check`, `ledger`, `ensemble show`, `assistant export|import`);
 live solo runs; any TeamTemplate/coordination behaviour in M1a.
+
+### r3 (2026-08-23) — review findings on r2 resolved
+
+Multi-agent review verdict on r2: "do not approve yet" — five blocking findings
+and required corrections; architecture choices confirmed. Resolved in r3:
+
+| Finding | Resolution | Sections |
+| --- | --- | --- |
+| `--safe-mode` disables Skills/plugins (verified: `claude --help` 2.1.241) | Claude recipe without `--safe-mode`: isolated config home, `--setting-sources user`, `--strict-mcp-config` + empty MCP config, explicit tool restriction, `--no-session-persistence`; Skill channel candidates probe-selected | 2, 11 |
+| Grok Skill path; Codex `--ignore-rules` | Grok `.grok/skills/` primary, `.agents/skills/` fallback (both listed by `grok inspect` 1.0.5, verified locally); Codex `--ignore-rules` is `.rules`-only (verified: `codex exec --help`), `AGENTS.md` fallback valid | 11 |
+| G2 required the full CI matrix before G3/G4; publication before secret/notice/name checks | Pre-first-push checklist at G2; CI grows by gate (G2 smoke → G3 adapters → G4 acceptance/ClawTeam/hash → G7 final); G7 renamed "Final CI matrices" | 3, 16, 17 |
+| One Member with one harness binding vs three legs + synthesis | `execution {kind: invocation \| ensemble, ref}`; one `EnsembleRecordV1` per Member in the cycle; `team-execution-model.md` §4 amended ("one execution at a time") | 7, 12 |
+| Windows launcher coverage; `PATH` missing | Explicit launcher policy (resolve `.cmd` shims to `node` + script; fail-closed allowlist otherwise); Windows-only `.cmd` fake; `PATH`/`SystemDrive` in the baseline; vendor-smoke CI job | 9, 15, 16 |
+| Other: `effective_definition_hash` computed, not client-supplied; required Skills fail before launch; probe captures gitignored + reviewed promotion; waiver closes as failed/abandoned, never PASS; complete selection algorithm; V1 archive contract; Q5 in M4; budget = 1 cycle + ≤2 owner-confirmed reruns, ceiling 30 | as listed | 2, 7, 11, 12, 14, 15, 18, 19 |

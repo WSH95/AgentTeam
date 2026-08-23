@@ -1,6 +1,6 @@
 ---
 title: Team execution model — TeamTemplate, TeamRun, hidden members, nested runs, long-running operations
-status: draft v2.2 — Python core and optional-provider decision applied
+status: draft v2.3 — Python core and optional-provider decision applied; execution-binding amendment (M1a r3)
 date: 2026-08-22
 owns: TeamTemplate content model (TC-01..TC-06); TeamRun lifecycle and temporary state (TE-01, TE-02, TE-07); TEMPORARY HIDDEN MEMBERS pressure test; NESTED TEAMRUN pressure test; LONG-RUNNING OPERATIONAL RUN pressure test (run semantics); run archive/audit; mapping to substrates
 depends_on: product-intent.md, evidence/glossary.md, existing-systems-fit-gap.md, assistant-domain-model.md (Assistant content, Ephemeral Assistant, overlays), harness-broker-model.md (HarnessProfile, SelectionPolicy, Invocation record, deterministic backends as invocation targets), architecture-options.md §3/§5/§8 (adapter mechanism, broker location, scheduler), minimal-poc-plan.md §4–§5 (PoC B/C criteria), evidence/panel/{judge-1,judge-2,owner-tiebreak}.md (independence vocabulary)
@@ -93,7 +93,7 @@ team_run:
 
 ## 4. Mixed harnesses in one run (TE-03)
 
-A Member is bound to one HarnessInvocation at a time; Members may differ in harness because binding happens per Member at instantiate or dynamic creation. The run layer hands the broker the resolved Assistant and receives a rendered invocation plus an injection record. AgentTeam's HarnessAdapter and process runner launch each harness directly from a shell-free argv; this path is independent of the coordination provider. A later ClawTeam provider may coordinate members, tasks and messages in-process, but it never launches the harness through ClawTeam's `SubprocessBackend`. Current native renderings include Claude `claude -p --safe-mode --no-session-persistence --append-system-prompt-file …`, Codex `codex exec -c developer_instructions=…`, and a dedicated Grok headless/definition rendering. Hermes/OpenClaw renderings remain deferred. Single-harness substrates cannot host a mixed run [ev:m0-product-architecture-review-2026-08-22#F3].
+A Member is bound to one *execution* at a time — a HarnessInvocation, or an Ensemble (N concurrent leg invocations plus a synthesis invocation, `harness-broker-model.md` §8) *(amended 2026-08-23 for the M1a r3 plan: a direct ensemble run binds its single Member to one Ensemble record)*; Members may differ in harness because binding happens per Member at instantiate or dynamic creation. The run layer hands the broker the resolved Assistant and receives a rendered invocation plus an injection record. AgentTeam's HarnessAdapter and process runner launch each harness directly from a shell-free argv; this path is independent of the coordination provider. A later ClawTeam provider may coordinate members, tasks and messages in-process, but it never launches the harness through ClawTeam's `SubprocessBackend`. Current native renderings include Claude `claude -p --safe-mode --no-session-persistence --append-system-prompt-file …`, Codex `codex exec -c developer_instructions=…`, and a dedicated Grok headless/definition rendering. Hermes/OpenClaw renderings remain deferred. Single-harness substrates cannot host a mixed run [ev:m0-product-architecture-review-2026-08-22#F3].
 
 ## 5. Pressure test — temporary hidden member (TE-04, AD-07, TC-05, TE-07)
 

@@ -1,13 +1,30 @@
 ---
-updated_at: 2026-08-23T11:25:39Z
+updated_at: 2026-08-23T14:18:06Z
 updated_by: cli
 session_status: closed
 branch: main
-last_commit: 972aa95
+last_commit: 7ea1c0e
 ---
 # Handoff
 
 ## Now
+
+**M1a r3 is ready for re-review.** The multi-agent review of r2 returned "do
+not approve yet" (five blocking findings + corrections; architecture confirmed).
+All are resolved in `docs/plans/m1a-direct-harness-poc.md` **r3** (ADR 0020):
+Claude recipe without `--safe-mode` (verified: it disables Skills/plugins) —
+fresh config home + `--setting-sources user` + strict MCP + tool restriction,
+Skill channel probe-selected at G5; Grok `.grok/skills/` primary with
+`.agents/skills/` fallback (both listed by `grok inspect` 1.0.5); Codex
+`--ignore-rules` is `.rules`-only; pre-first-push checklist at G2 and CI that
+grows gate by gate (G7 = final matrices + vendor-smoke job); Member bound to one
+execution (invocation or ensemble) with `team-execution-model.md` §4 amended;
+Windows launcher policy (resolve `.cmd` shims to `node` + script; fail-closed
+allowlist) with a `.cmd` fake test and `PATH` in the baseline; computed-only
+`effective_definition_hash`; required Skills fail before launch; promotion-only
+parser fixtures; waiver closes as failed/abandoned, never PASS; complete
+selection algorithm; V1 archive contract; Q5 kept for M4; **budget ceiling
+approved by the owner: one cycle + ≤ 2 owner-confirmed reruns, ≤ 30 calls**.
 
 **The two M1 plans are merged.** `docs/plans/m1a-direct-harness-poc.md` is now
 revision **r2** (status still *proposed*) and the single candidate plan;
@@ -43,7 +60,7 @@ optional provider, exact-pinned and confined to one owned compatibility module;
 it never launches harnesses and initially claims namespace separation only.
 
 This handoff is included in the local commit
-`docs(plan): merge independent proposal into M1a r2; record merge decisions`;
+`docs(plan): M1a r3 — resolve review findings (Claude recipe, Grok/Codex channels, CI growth, execution binding, launcher policy, hash contract, selection algorithm)`;
 `last_commit` above is its pre-change baseline because a commit cannot record its
 own final SHA.
 The M1a direct harness plan remains **proposed for multi-agent review and is not
@@ -52,24 +69,21 @@ approved for product implementation**. No product code exists.
 ## In flight
 
 Nothing is in flight. The expected documentation-only dirty set for this
-session consists of `docs/plans/m1a-direct-harness-poc.md` (r2), a banner on
-`docs/plans/m1-agentteam-direct-slice.md`, and appended Project Steward
-decision (ADR 0019), question, plan, risk, verification, progress and handoff
-records. No source scaffold, dependency install, repository move, credential
-operation, model invocation, CI workflow change, remote creation, or push
-occurred.
-
-Validation for this session: `git diff --check` clean; links in the touched
-documents resolve (future `schemas/`/`examples/` paths in r2 are named, not
-linked); no code fences unbalanced; zero key/private-key patterns in changed
-files; `project-steward doctor` reports no failures. The 54×11 fit-gap matrix
-and the discovery documents are untouched.
+session consists of `docs/plans/m1a-direct-harness-poc.md` (r3), one amended
+sentence in `docs/discovery/team-execution-model.md` §4 (v2.3), and appended
+Project Steward decision (ADR 0020), question, plan, risk, verification,
+progress and handoff records. No source scaffold, dependency install,
+repository move, credential operation, model invocation, CI workflow change,
+remote creation, or push occurred. Verification commands used for the review
+claims were credential-free `--help` reads and one `grok inspect` in a removed
+scratch directory.
 
 ## Next steps
 
-1. Have the other agents review `docs/plans/m1a-direct-harness-poc.md` **r2**
-   against its section 21 checklist and section 22 merge record, the original
-   requirements, and ADRs 0014–0019. Do not start G1 during review.
+1. Have the other agents re-review `docs/plans/m1a-direct-harness-poc.md`
+   **r3** against its section 21 checklist and section 22 (merge record and r3
+   resolutions), the original requirements, and ADRs 0014–0020; confirm the
+   five r2 blockers are closed. Do not start G1 during review.
 2. Apply only agreed plan/document corrections, rerun the checks in
    `.project-steward/VERIFY.md`, and commit the review resolution.
 3. After the owner explicitly approves the final reviewed plan, record a
@@ -84,16 +98,18 @@ and the discovery documents are untouched.
    documentation-hygiene docs-only commit (M1a §4 item 6), and preserve
    historical evidence. The managed AGENTS command-table update requires its
    own shown diff/approval after the scaffold exists.
-5. G2: Python/`uv` foundation, then create the public `WSH95/AgentTeam`
-   repository (MIT) and push the scaffold after explicit approval; core CI
-   matrix green on three OSes from the scaffold.
+5. G2: Python/`uv` foundation, then the pre-first-push checklist (history
+   secret scan, licence/notices, provenance, name checks), then create the
+   public `WSH95/AgentTeam` repository (MIT) and push the scaffold after
+   explicit approval; scaffold smoke matrix green on three OSes; CI grows at
+   G3/G4 and is final at G7.
 6. Follow G3–G8 in order. Native login, live subscription calls, and every
    further push remain separate visible gates.
 
 ## Blockers
 
-- Product implementation is blocked on multi-agent review of M1a r2 and the
-  explicit owner approval entry; the merge does not satisfy G0.
+- Product implementation is blocked on multi-agent re-review of M1a r3 and the
+  explicit owner approval entry; r3 does not satisfy G0 by itself.
 - (Resolved 2026-08-23) GitHub CLI authentication is in place (account
   `WSH95`, `repo` scope, SSH protocol); repository creation at G2 still needs
   its own explicit approval.
@@ -106,8 +122,10 @@ and the discovery documents are untouched.
 
 ## Key files
 
-- `docs/plans/m1a-direct-harness-poc.md` — **r2**, the single candidate M1a
-  plan (merged; section 22 = merge record); proposed, not approved.
+- `docs/plans/m1a-direct-harness-poc.md` — **r3**, the single candidate M1a
+  plan (section 22 = merge record + r3 resolutions); proposed, not approved.
+- `docs/discovery/team-execution-model.md` — v2.3; §4 execution-binding
+  amendment (one invocation or one ensemble per Member at a time).
 - `docs/plans/m1-agentteam-direct-slice.md` — superseded independent proposal
   (banner; dated record).
 - `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` — independent review of
@@ -119,9 +137,10 @@ and the discovery documents are untouched.
 - `docs/discovery/minimal-poc-plan.md` — historical M0 proposal with the current
   provider-neutral constraint applied.
 - `.project-steward/PLAN.md` — M1a gates and the committed M1b–M4 roadmap.
-- `.project-steward/DECISIONS.md` — ADR 0019 records the plan merge and its
-  owner decisions; ADR 0018 the independent review; ADR 0017 the neutrality
-  policy; ADRs 0014–0016 the Python/optional-provider architecture and roadmap.
+- `.project-steward/DECISIONS.md` — ADR 0020 records the r3 review
+  resolutions and the budget ceiling; ADR 0019 the plan merge; ADR 0018 the
+  independent review; ADR 0017 the neutrality policy; ADRs 0014–0016 the
+  Python/optional-provider architecture and roadmap.
 - `.project-steward/QUESTIONS.md` — records the undecided API-test timing and
   target without selecting a route.
 - `.project-steward/VERIFY.md` — current neutrality and documentation checks.
@@ -168,3 +187,7 @@ and the discovery documents are untouched.
   into M1a r2 (section 22) — treat the review as a record, not an open list.
 - r2 names future paths (`schemas/…`, `examples/…`, `fixtures/…`,
   `docs/evidence/…`) that do not exist yet; they are deliverables, not links.
+- `--safe-mode` must not return to the Claude recipe: it disables Skills,
+  plugins, hooks, and MCP servers (verified in 2.1.241 `--help`); the
+  subscription-compatible isolation is the fresh config home plus
+  `--setting-sources user` and strict MCP.

@@ -41,15 +41,16 @@ The document is review-only until the owner explicitly approves it.
 - [x] Keep prospective API-test provider/model/endpoint selection unspecified across tracked documentation; preserve generic profile and secret-handling contracts
 - [x] Independent review of the `3407ec9` baseline recorded (`docs/reviews/2026-08-23-m0-review-at-3407ec9.md`) with an independent M1 proposal for comparison (`docs/plans/m1-agentteam-direct-slice.md`); owner decisions in ADR 0018 — owner merges/selects before the approval step
 - [x] Merge the independent proposal into M1a revision r2 (ADR 0019): selection precedence/`decided_by`, three Skills per harness, cross-OS hash identity, run record, probe levels, falsification routing, evidence bundle, docs-hygiene list, overlay deferred to M3, public repo at G2
+- [x] Resolve the multi-agent review findings on r2 → revision r3 (ADR 0020): Claude recipe without `--safe-mode`, Grok `.grok/skills/`, pre-first-push checklist + gate-by-gate CI growth, Member execution binding (TEM §4 amended), Windows launcher policy + `.cmd` fake, computed hash only, required-Skill rule, promotion-only fixtures, waiver semantics, selection algorithm, V1 archive contract, budget ceiling 30
 - [ ] Incorporate multi-agent review findings without starting implementation
 - [ ] Obtain explicit owner implementation approval, mark the reviewed plan `approved`, and commit any review resolutions
 - [ ] G1 — rename/re-baseline the local project as AgentTeam; documentation-hygiene docs-only commit (M1a §4 item 6)
-- [ ] G2 — implement the Python 3.11+/`uv` foundation, Hatchling package, and checked-in V1 JSON Schemas; create the public `WSH95/AgentTeam` repository (MIT) and push the scaffold after explicit approval; core CI matrix green on 3 OSes
-- [ ] G3 — implement isolated Claude/Codex/Grok direct adapters
+- [ ] G2 — implement the Python 3.11+/`uv` foundation, Hatchling package, and checked-in V1 JSON Schemas; pass the pre-first-push checklist; create the public `WSH95/AgentTeam` repository (MIT) and push the scaffold after explicit approval; scaffold smoke matrix green on 3 OSes
+- [ ] G3 — implement isolated Claude/Codex/Grok direct adapters (Skill channels, `decided_by`, Windows `.cmd` fake); adapter tests added to CI
 - [ ] G4 — pass the deterministic direct-runner PoC locally (incl. solo mode, selection precedence, three Skills per harness, example-package hash identity) and qualify the optional, exactly pinned ClawTeam import/coordination seam without using its subprocess backend; write its qualification report
 - [ ] G5 — complete owner-driven dedicated native-auth profile setup and the bounded day-one probes (verification levels recorded)
 - [ ] G6 — pass the Ubuntu subscription-backed live PoC
-- [ ] G7 — pass the credential-free core OS×Python matrix and optional ClawTeam compatibility matrix; pre-publication checks (history secret scan, notices, distribution-name availability)
+- [ ] G7 — final CI matrices: credential-free core OS×Python matrix, optional ClawTeam compatibility matrix, and the vendor-smoke job; history secret scan repeated
 - [ ] G8 — close M1a (reviewed sanitized evidence bundle committed; M1b draft names the local deterministic provider first and the ClawTeam exit criterion) and stop before TeamRun implementation
 
 ## M1b Team foundation (committed roadmap; outside the M1a approval scope)

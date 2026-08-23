@@ -239,3 +239,50 @@ commit SHA of the approved text) still precede G1. Review R4 (Grok as the
 HB-08 test rather than a gate) stays a recorded dissent. The documentation
 hygiene items (review H3, H6, H8–H12, R7, R19) are executed in G1 under the
 approved plan, not before.
+
+## 0020 — 2026-08-23 — M1a revision r3 resolves the multi-agent review findings on r2
+
+**Context**: The multi-agent review of M1a r2 returned "do not approve yet" with
+five blocking findings and required corrections while confirming the
+architecture choices. Claims were verified read-only before resolving:
+`claude --help` (2.1.241) shows `--safe-mode` disables Skills, plugins, hooks,
+and MCP servers and `--bare` never reads OAuth; `codex exec --help` (0.149.0)
+shows `--ignore-rules` covers execpolicy `.rules` only; `grok inspect` (1.0.5)
+lists both `.grok/skills/` and `.agents/skills/` as project skill roots; Python's
+`subprocess` documentation warns that batch files may be shell-parsed despite
+`shell=False`.
+**Decision**: `docs/plans/m1a-direct-harness-poc.md` is revised to **r3** (still
+*proposed*): (1) the Claude recipe drops `--safe-mode`; isolation rests on a
+fresh `CLAUDE_CONFIG_DIR`, `--setting-sources user`, `--strict-mcp-config` with
+an empty MCP config, explicit tool restriction, and `--no-session-persistence`;
+Skill channels are probe-selected at G5 (isolated-home `skills/`, `--plugin-dir`,
+workspace `.claude/skills/`); (2) Grok uses workspace `.grok/skills/` first with
+`.agents/skills/` as a verified fallback; Codex keeps `.agents/skills/` and the
+`AGENTS.md` fallback is valid under `--ignore-rules`; (3) a pre-first-push
+checklist (history secret scan, licence/notices, provenance, name checks) runs
+at G2 before the public repository exists; CI grows gate by gate (G2 scaffold
+smoke → G3 adapters and the Windows `.cmd` fake → G4 acceptance, hash identity,
+optional ClawTeam → G7 final matrices plus a credential-free vendor-smoke job);
+(4) a Member is bound to one execution at a time — one HarnessInvocation or one
+Ensemble holding its legs and synthesis — `RunRecordV1.members[].execution`
+carries that binding and `team-execution-model.md` §4 is amended accordingly;
+(5) an explicit Windows launcher policy (resolve npm `.cmd` shims to `node` plus
+script; fail-closed safe-character allowlist otherwise; `PATH`/`SystemDrive` in
+the environment baseline) with a Windows-only `.cmd` fake test. Further
+corrections: `effective_definition_hash` is computed state, never
+client-supplied; required Skills that cannot be delivered fail before launch
+(`degraded[]` covers optional parts only); G5 probe captures stay in gitignored
+probe storage and tracked fixtures change only by reviewed promotion; an owner
+waiver may close M1a as failed/abandoned, never as semantic PASS; the complete
+harness-selection algorithm (hard failure for a forbidden/ineligible user
+request; no implicit force); the V1 portable-archive contract (regular UTF-8
+text files only, NFC paths sorted by code point, case collisions rejected, modes
+excluded, CR/CRLF→LF, SHA-256 over `(path, NUL, size, NUL, bytes)`); Q5 wording
+preserved for M4. **Budget ceiling approved by the owner**: one initial
+acceptance cycle after G5, at most two reruns each separately confirmed, probes
+≤ 2 per harness, hard ceiling 30 calls.
+**Consequences**: r3 goes back to the reviewers; approval still requires a
+DECISIONS entry naming the file and commit SHA (ADR 0018/0019). The only
+discovery-document change is the one-sentence execution-binding amendment in
+`team-execution-model.md` §4 (v2.3). Review R4 (Grok as HB-08 test) remains a
+recorded dissent.

@@ -2,6 +2,9 @@
 
 Newest first. One short entry per semantic checkpoint — not per edit.
 
+### 2026-08-23T14:18:06Z — cli
+M1a r3: resolved the multi-agent review findings on r2 (Claude recipe without --safe-mode, Grok .grok/skills primary, Codex --ignore-rules clarified, pre-first-push checklist + gate-by-gate CI growth, Member execution binding with TEM §4 amended, Windows launcher policy + .cmd fake, computed-only effective hash, required-Skill rule, promotion-only fixtures, waiver semantics, selection algorithm, V1 archive contract, Q5 in M4); owner approved the 30-call ceiling (1 cycle + ≤2 confirmed reruns); ADR 0020 + steward records. No code.
+
 ### 2026-08-23T11:25:39Z — cli
 Merged the independent M1 proposal into docs/plans/m1a-direct-harness-poc.md revision r2 (single candidate; still proposed): selection precedence/decided_by, three Skills per harness, cross-OS hash identity, RunRecordV1, probe levels, falsification routing, evidence bundle, docs-hygiene list, overlay deferred to M3, public MIT repo at G2 after the G1 rename; cross-check gaps fixed; independent plan superseded; ADR 0019 + QUESTIONS/PLAN/RISKS/VERIFY updated. No code.
 
