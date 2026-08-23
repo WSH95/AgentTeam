@@ -24,3 +24,6 @@ htmlcov/
 .agentteam/
 .env
 .env.*
+
+# Local vendor config homes created next to checked-in fake profiles
+.agentteam-local/

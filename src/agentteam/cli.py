@@ -1,9 +1,9 @@
 """`atm` - the AgentTeam command-line interface.
 
-M1a plan section 8 defines the public contract. At gate G2 only the
-product-level options exist; `assistant`, `profile`, and `run` commands arrive
-with the gates that implement them (G3-G4) so `--help` never lists a command
-that does nothing.
+M1a plan section 8 defines the public contract. G3 provides the deterministic
+surface (`assistant validate`, `profile init/validate/doctor`, and
+`atm run --render-only`); launching arrives with G4 and probing with G5, so
+`--help` never lists behaviour that does not exist yet.
 """
 
 from __future__ import annotations
@@ -11,6 +11,9 @@ from __future__ import annotations
 import typer
 
 from agentteam import __version__
+from agentteam.commands.assistant import assistant_app
+from agentteam.commands.profile import profile_app
+from agentteam.commands.run import register_run
 
 HELP = (
     "AgentTeam - portable, harness-independent Assistant definitions executed as "
@@ -47,6 +50,11 @@ def root(
     if ctx.invoked_subcommand is None:
         typer.echo(ctx.get_help())
         raise typer.Exit(code=0)
+
+
+app.add_typer(assistant_app)
+app.add_typer(profile_app)
+register_run(app)
 
 
 def main() -> None:

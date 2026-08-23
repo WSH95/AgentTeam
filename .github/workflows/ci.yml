@@ -79,3 +79,11 @@ jobs:
         run: |
           uv run --no-sync atm --help
           uv run --no-sync atm --version
+      - name: CLI deterministic smoke (validate + render-only, fakes only)
+        run: |
+          uv run --no-sync atm assistant validate examples/assistants/code-reviewer --strict-content
+          uv run --no-sync atm run --assistant examples/assistants/code-reviewer \
+            --workspace fixtures/fake-harness --task-file README.md \
+            --config examples/profiles/ci-fake.yaml \
+            --harness claude-code --harness codex --harness grok \
+            --render-only --output-dir "$RUNNER_TEMP/render-smoke"
