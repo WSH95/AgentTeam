@@ -158,6 +158,13 @@ def check_all(directory: Path) -> list[str]:
     return problems
 
 
+def vendor_schema_min(name: str) -> str:
+    """One-line minified text of a vendor-facing schema (argv-safe constant)."""
+    if name not in VENDOR_FACING:
+        raise ValueError(f"not a vendor-facing schema: {name}")
+    return json.dumps(generate(name), separators=(",", ":"), ensure_ascii=False)
+
+
 __all__ = [
     "DEFAULT_SCHEMA_DIR",
     "SCHEMA_FILES",
@@ -167,5 +174,6 @@ __all__ = [
     "export_all",
     "generate",
     "render",
+    "vendor_schema_min",
     "write_all",
 ]

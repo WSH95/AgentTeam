@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-23T22:33:31Z — cli
+G3 commit 6 (feat(harness), per the approved G3 execution plan, steps 1-10, strict red->green): PYTHON_SCRIPT launcher enum + schema regen; V1 archive hasher (NFC/case-fold/CRLF/code-point sort, pinned byte-layout vector); package loader + prohibited-content heuristics; example code-reviewer package (3 skills); §11 selection with decided_by + hard failures; model/effort precedence; env builder (baseline allowlist, conflicts fail closed, proxy policy); npm .cmd shim parser + allowlist launcher; async process runner (tree kill incl. grandchild, cancel, signal/130, output-file); adapter protocol + Claude/Codex/Grok render/invoke/parse with golden-argv tests; skills writer (managed marker); hand-authored vendor-output fixtures + parser tests; deterministic fakes + ci-fake.yaml + round-trip integration; Windows-only .cmd tests (run on CI win legs). 191 tests green, ruff/mypy strict clean, build OK. No model call, no push.
+
 ### 2026-08-23T21:34:14Z — cli
 [auto-checkpoint] G2 closure commit 46823a2 pushed on explicit approval; docs-only CI run 32667838910 green (all six legs). Memory updated. Session remains wrapped; next = G3 per-gate execution plan.
 

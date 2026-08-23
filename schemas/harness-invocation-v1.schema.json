@@ -230,6 +230,7 @@
       "enum": [
         "posix-direct",
         "native-exe",
+        "python-script",
         "resolved-cmd-shim",
         "allowlisted-cmd",
         "refused"

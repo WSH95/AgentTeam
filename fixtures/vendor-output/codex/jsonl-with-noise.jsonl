@@ -1,0 +1,5 @@
+warning: something
+{"type": "thread.started", "thread_id": "t1"}
+{"type": "turn.started"}
+{"type": "item.completed", "item": {"type": "agent_message", "text": "{\"schema_version\": 1, \"kind\": \"normalized-review\", \"target_sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"findings\": [{\"id\": \"f1\", \"severity\": \"critical\", \"category\": \"command-injection\", \"file\": \"src/run.ts\", \"line\": 12, \"title\": \"Shell command built from user input\", \"rationale\": \"The task string reaches exec() unescaped.\"}], \"summary\": \"One critical finding.\", \"verdict\": \"request-changes\"}"}}
+{"type": "turn.completed", "usage": {"input_tokens": 900, "cached_input_tokens": 100, "output_tokens": 250, "reasoning_output_tokens": 80}}

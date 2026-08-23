@@ -153,6 +153,7 @@ class LauncherPolicy(StrEnum):
 
     POSIX_DIRECT = "posix-direct"
     NATIVE_EXE = "native-exe"
+    PYTHON_SCRIPT = "python-script"
     RESOLVED_CMD_SHIM = "resolved-cmd-shim"
     ALLOWLISTED_CMD = "allowlisted-cmd"
     REFUSED = "refused"

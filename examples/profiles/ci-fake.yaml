@@ -1,0 +1,38 @@
+# The deterministic fake profile: every adapter points at the stdlib-only fake
+# harnesses so CI and local deterministic runs share one profile shape
+# (plan section 6). Relative executable/config_home values resolve against
+# this file's directory.
+schema_version: 1
+kind: harness-profile-set
+default_harness: claude-code
+profiles:
+  - harness: claude-code
+    executable: ../../fixtures/fake-harness/fake_claude.py
+    config_home: .agentteam-local/vendors/claude-code
+    environment:
+      config_home_variable: CLAUDE_CONFIG_DIR
+      passthrough: [FAKE_OBSERVE, FAKE_MODE]
+      conflicts: [FAKE_CONFLICT]
+    capabilities:
+      - {name: headless-json, verification: verified}
+      - {name: structured-output, verification: verified}
+  - harness: codex
+    executable: ../../fixtures/fake-harness/fake_codex.py
+    config_home: .agentteam-local/vendors/codex
+    environment:
+      config_home_variable: CODEX_HOME
+      passthrough: [FAKE_OBSERVE, FAKE_MODE]
+      conflicts: [FAKE_CONFLICT]
+    capabilities:
+      - {name: headless-jsonl, verification: verified}
+      - {name: structured-output, verification: verified}
+  - harness: grok
+    executable: ../../fixtures/fake-harness/fake_grok.py
+    config_home: .agentteam-local/vendors/grok
+    environment:
+      config_home_variable: GROK_HOME
+      passthrough: [FAKE_OBSERVE, FAKE_MODE]
+      conflicts: [FAKE_CONFLICT]
+    capabilities:
+      - {name: headless-json, verification: verified}
+      - {name: structured-output, verification: verified}

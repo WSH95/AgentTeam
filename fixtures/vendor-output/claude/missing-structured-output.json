@@ -1,0 +1,13 @@
+{
+  "type": "result",
+  "result": "Review complete.",
+  "session_id": "sess-1",
+  "num_turns": 3,
+  "total_cost_usd": 0.042,
+  "modelUsage": {
+    "claude-fable-5": {
+      "inputTokens": 1200,
+      "outputTokens": 300
+    }
+  }
+}

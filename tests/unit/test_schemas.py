@@ -355,6 +355,7 @@ def test_harness_invocation_records_what_section_7_lists() -> None:
     assert _enum(schema, defs["UsageV1"]["properties"]["cost_source"]) == ["vendor", "unavailable"]
     launcher_policies = _enum(schema, defs["CommandV1"]["properties"]["launcher_policy"])
     assert "refused" in launcher_policies
+    assert "python-script" in launcher_policies  # deterministic fakes are honest records
 
 
 def test_harness_identifiers_are_the_three_first_pass_harnesses() -> None:

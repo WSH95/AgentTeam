@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Protocol
 
 import pytest
+
+if TYPE_CHECKING:
+    from agentteam.harness.types import RenderContext
 
 H64 = "a" * 64
 NOW = datetime(2026, 8, 23, 12, 0, 0, tzinfo=UTC)
@@ -143,3 +147,71 @@ def minimal_payloads() -> dict[str, dict[str, Any]]:
 @pytest.fixture()
 def payloads() -> dict[str, dict[str, Any]]:
     return minimal_payloads()
+
+
+# --- render-context builder for adapter tests -------------------------------
+
+
+def make_render_context(
+    harness_value: str, tmp_path: Path, **overrides: object
+) -> RenderContext:  # imported lazily
+    """A ready RenderContext against the example package and a seeded profile."""
+    from agentteam.domain.common import HarnessId
+    from agentteam.domain.run import DecidedBy, RequestedV1, SelectionV1
+    from agentteam.harness.types import RenderContext
+    from agentteam.resolution.archive import build_bundle_manifest, hash_package
+    from agentteam.resolution.package import load_package
+    from agentteam.resolution.profiles import seed_default_profiles
+
+    repo_root = Path(__file__).resolve().parents[1]
+    package_root = repo_root / "examples" / "assistants" / "code-reviewer"
+    loaded = load_package(package_root)
+    digest = hash_package(package_root)
+    from agentteam.domain.bundle import AssistantRefV1
+
+    bundle = build_bundle_manifest(
+        assistant=AssistantRefV1(
+            id=loaded.definition.id,
+            version=loaded.definition.version,
+            package_hash=digest.package_hash,
+        ),
+        digest=digest,
+        created_at=NOW,
+    )
+    profiles = {p.harness.value: p for p in seed_default_profiles().profiles}
+    workspace = tmp_path / "workspace"
+    workspace.mkdir(exist_ok=True)
+    (workspace / "target.ts").write_text("export const x = 1\n", encoding="utf-8")
+    task_file = tmp_path / "task.md"
+    task_file.write_text("Review the change in target.ts.\n", encoding="utf-8")
+    values: dict[str, object] = {
+        "profile": profiles[harness_value],
+        "definition": loaded.definition,
+        "package_root": package_root,
+        "bundle": bundle,
+        "selection": SelectionV1(decided_by=DecidedBy.USER, candidates=[]),
+        "requested": RequestedV1(harness=HarnessId(harness_value)),
+        "task_file": task_file,
+        "workspace": workspace,
+        "workspace_root": tmp_path / "write" / "workspace",
+        "config_root": tmp_path / "write" / "config-home",
+        "scratch_dir": tmp_path / "write" / "scratch",
+        "parent_env": {"HOME": "/home/u", "PATH": "/usr/bin", "LANG": "C.UTF-8"},
+        "platform": "linux",
+        "run_id": "run-test",
+        "invocation_id": "inv-test",
+        "timeout_seconds": 900,
+    }
+    values.update(overrides)
+    return RenderContext.model_validate(values)
+
+
+class RenderContextBuilder(Protocol):
+    def __call__(
+        self, harness_value: str, tmp_path: Path, **overrides: object
+    ) -> RenderContext: ...
+
+
+@pytest.fixture()
+def render_context_builder() -> RenderContextBuilder:
+    return make_render_context

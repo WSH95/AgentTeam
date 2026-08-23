@@ -1,0 +1,54 @@
+# The M1a example Assistant: one portable definition, three vendored Skills,
+# no project facts, no credentials, no harness binding (plan sections 7, 14).
+schema_version: 1
+kind: assistant-definition
+id: code-reviewer
+version: 1
+summary: Reviews code changes for correctness, security, and test adequacy.
+persona: persona.md
+purpose:
+  - produce a review with findings ranked by severity
+  - identify seeded or real defects with actionable explanations
+  - never approve a change whose tests you could not see pass
+principles: principles.md
+methods: methods.md
+preferences:
+  - name: output-style
+    value: findings first, grouped by severity, then a short narrative summary
+capabilities:
+  - capability: read-source-tree
+    level: required
+artifacts:
+  - ref: code-review
+    kind: agent-skill
+    source: {vendored: skills/code-review}
+    level: required
+  - ref: security-review
+    kind: agent-skill
+    source: {vendored: skills/security-review}
+    level: required
+  - ref: test-analysis
+    kind: agent-skill
+    source: {vendored: skills/test-analysis}
+    level: required
+permissions:
+  filesystem: read-only
+  network: deny
+  shell: deny
+collaboration:
+  handoff: structured findings to the requesting run
+  review: independent-of-author
+  escalate_when:
+    - a security finding of high or critical severity
+harness_policy:
+  preferred: [claude-code, codex, grok]
+  allowed: []
+  forbidden: []
+  required_capabilities: []
+  model_hints:
+    tier: strong
+    reasoning: high
+presentation_defaults:
+  display_name: Code Reviewer
+evolution:
+  accepts_proposals_for: [principles, preferences, collaboration, harness_policy]
