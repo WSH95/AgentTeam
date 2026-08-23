@@ -1,9 +1,9 @@
 ---
-updated_at: 2026-08-23T21:30:22Z
+updated_at: 2026-08-23T21:34:14Z
 updated_by: cli
 session_status: closed
 branch: main
-last_commit: d9440f8
+last_commit: 46823a2
 ---
 # Handoff
 
@@ -34,8 +34,10 @@ live (ADR 0023).
 
 ## In flight
 
-Nothing. Tree clean; local == origin/main @ `d9440f8` after the wrap commit
-(that commit carries this handoff; ask before pushing it — see Next steps).
+Nothing. The closure commit `46823a2` was pushed on the owner's explicit
+approval and its docs-only CI run is green (32667838910). This final
+checkpoint edit is committed locally on top and travels with the next
+approved push.
 
 ## Next steps
 
@@ -51,9 +53,7 @@ Nothing. Tree clean; local == origin/main @ `d9440f8` after the wrap commit
    profile init/validate/doctor` (no probes until G5), YAML loaders
    (aware-datetime rule), archive hash V1 implementation; adapter tests into
    CI (commit 6 of §17; workflow grows).
-2. The wrap commit after this handoff is local; push it to origin only on an
-   explicit approval (every push its own gate).
-3. Optional later: AGENTS.md `Live PoC` row at G4 (own shown diff); HB-03
+2. Optional later: AGENTS.md `Live PoC` row at G4 (own shown diff); HB-03
    register amendment whenever the owner answers the QUESTIONS item.
 
 ## Blockers
