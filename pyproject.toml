@@ -101,6 +101,18 @@ strict = true
 plugins = ["pydantic.mypy"]
 warn_unreachable = true
 files = ["src", "tests"]
+# Two pytest conftest.py files (tests/ and tests/compatibility/) must not
+# collide as one module name; package bases keep them distinct.
+explicit_package_bases = true
+mypy_path = ["src"]
+
+# The optional pinned ClawTeam package is an untyped alpha; the seam and its
+# qualification tests treat it as Any whether or not the extra is installed
+# (plan section 10).
+[[tool.mypy.overrides]]
+module = ["clawteam", "clawteam.*"]
+ignore_missing_imports = true
+follow_imports = "skip"
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

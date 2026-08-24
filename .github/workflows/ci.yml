@@ -115,3 +115,43 @@ jobs:
           assert ensemble['acceptance']['semantic']['passed'] is True, ensemble
           print('deterministic acceptance: both tiers PASS')
           "
+
+  # Optional provider matrix (plan sections 10 and 16): the exactly pinned
+  # ClawTeam extra, compatibility tests only, temporary data/config fixtures.
+  # A failure here never contaminates the direct core; the core legs above
+  # never install the extra and prove the suite skips cleanly without it.
+  clawteam:
+    name: clawteam (${{ matrix.os }}, py3.11)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: utf-8
+      UV_NO_PROGRESS: "1"
+      NO_COLOR: "1"
+      TERM: dumb
+      UV_PYTHON: "3.11"
+    steps:
+      - name: Force LF-authoritative checkout
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.11.26"
+          python-version: "3.11"
+          enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
+      - name: Install matrix Python (managed; independent of the runner image)
+        run: uv python install 3.11
+      - name: Sync with the optional provider extra
+        run: uv sync --frozen --all-groups --extra clawteam
+      - name: ClawTeam compatibility suite only (temp data/config fixtures)
+        run: uv run --no-sync pytest tests/compatibility

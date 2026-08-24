@@ -30,3 +30,4 @@ htmlcov/
 
 # Editor-local configuration
 .vscode/
+.VSCodeCounter/
