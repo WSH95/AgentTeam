@@ -4,6 +4,18 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G6 fourth live cycle — 2026-08-24 (FAIL exit 1; `--max-turns` hypothesis falsified)
+
+| Check | Result |
+| --- | --- |
+| Pre-run gate | PASS — doctor exit 0 (three ready at the exact probe versions, zero conflicts, zero calls); package `fd54eae7…` + target `25f03027…` matched; proxy inherited; clean tree at `f2b8cb6`; fresh explicit owner final go under the ADR 0035 beyond-allowance authorization |
+| Cycle | **FAIL, exit 1** — `run-20260824-165045-d353`, exactly three calls, zero retries, no synthesis. Claude 93.532s and Codex 69.566s both `schema_outcome: valid` with empty problems (their **third consecutive** clean live legs); Grok failed in 23.647s. 22 of 30 calls spent; **8 remain** |
+| Grok falsification | `--max-turns 40` was verified present in the recorded argv — and the outcome is identical to cycles 1 and 3: `stopReason: cancelled` at `num_turns: 2`, `structuredOutput: null`, two concatenated empty per-turn snapshots in `text`, empty stderr. The turn-2 cancellation is NOT governed by `--max-turns`; the cause lives inside vendor CLI/model behavior unreachable from the recipe. Grok's live-review record: four cycles, zero real reviews (three cancelled@2, one single-turn empty snapshot). Dated capability evidence at grok 1.0.5 / grok-4.6-build (R33) |
+| Boundary | PASS — the single ADR 0035 beyond-allowance cycle only; no retry, no API fallback, no push, hashes unchanged, raw evidence local-only. As committed, the Grok gate question returns to the owner; any further cycle is a new explicit owner ceiling decision |
+
+Last verified: 2026-08-24 by Claude (owner-confirmed fourth cycle; the
+turn-budget hypothesis is falsified; Claude/Codex 3/3 consecutive valid).
+
 ## G6.R6 Grok turn budget — 2026-08-24 (implemented locally; §18 ruling ADR 0035)
 
 | Check | Result |

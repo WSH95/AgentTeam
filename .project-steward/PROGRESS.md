@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T16:52:31Z — claude
+Fourth G6 cycle (ADR 0035 beyond-allowance; `run-20260824-165045-d353`, 3 calls) failed exit 1 on the Grok leg only — with `--max-turns 40` verified in the recorded argv and a byte-identical outcome (`cancelled` at `num_turns: 2`, null field, empty per-turn snapshots): the turn-budget hypothesis is falsified and the cancellation cause is unreachable from the recipe. Claude (93.5s) and Codex (69.6s) delivered their third consecutive valid legs. 8 of 30 calls remain; per the ADR 0035 commitment the Grok gate question returns to the owner (amend to Claude+Codex for PoC A at 3 calls per cycle, or stop with G6 open).
+
 ### 2026-08-24T16:44:31Z — claude
 §18 ruling recorded (ADR 0035): the owner keeps the all-three gate, G6.R6 lands test-first (`GROK_MAX_TURNS = 40` in the live recipe only; probe recipe untouched; render regression pins the flag), and ONE beyond-allowance cycle is authorized with the final go at the gate. The owner's channel question (probe-verified `structured-output-field` vs unverified `structured-output-text`) was answered and recorded: fail-hard worked as designed; no channel can deliver a review the cancelled agent loop never produced. Core 447+4, extra 459+3, compat 12; no live call. Next: no-call gate, then the final go.
 
