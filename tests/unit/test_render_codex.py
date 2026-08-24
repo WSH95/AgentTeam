@@ -122,3 +122,30 @@ def test_model_and_effort_use_codex_forms(render_context_builder: Builder, tmp_p
     argv = rendered.argv
     assert argv >= ["-m", "m-1"]
     assert argv >= ["-c", 'model_reasoning_effort="high"']
+
+
+def test_redaction_covers_json_escaped_windows_paths(
+    render_context_builder: Builder, tmp_path: Path
+) -> None:
+    """A path embedded via json.dumps carries doubled backslashes on Windows;
+    the redaction must catch that spelling too (CI run 32723369374)."""
+    import json
+
+    from agentteam.domain.run import LauncherPolicy
+    from agentteam.harness.rendering import build_command_record
+
+    ctx = render_context_builder("codex", tmp_path)
+    scratch = "C:\\Users\\owner\\scratch"
+    element = "model_instructions_file=" + json.dumps(scratch + "\\model-instructions.md")
+    assert "\\\\" in element  # the JSON spelling the raw needle used to miss
+    command, _ = build_command_record(
+        ctx=ctx,
+        profile=ctx.profile,
+        argv=["codex", "exec", "-c", element],
+        policy=LauncherPolicy.POSIX_DIRECT,
+        substitutions={scratch: "<SCRATCH>"},
+        launcher_prefix=1,
+    )
+    joined = " ".join(command.argv_redacted)
+    assert "<SCRATCH>" in joined
+    assert "C:" not in joined and "Users" not in joined and "owner" not in joined

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from agentteam.domain.assistant import ArtifactKind, RequirementLevel
@@ -130,8 +131,14 @@ def build_command_record(
             continue
         replaced = element
         for concrete, token in ordered:
-            if concrete and concrete in replaced:
-                replaced = replaced.replace(concrete, token)
+            if not concrete:
+                continue
+            # A path embedded through json.dumps (Codex `-c key="..."`) carries
+            # escaped backslashes on Windows, so the raw needle misses it;
+            # replace the JSON-escaped spelling too (identical on POSIX).
+            for needle in (concrete, json.dumps(concrete)[1:-1]):
+                if needle in replaced:
+                    replaced = replaced.replace(needle, token)
         redacted.append(replaced)
     tokens = list(dict.fromkeys(substitutions.values()))
     if launcher_prefix > 0:

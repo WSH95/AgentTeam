@@ -14,12 +14,20 @@ from agentteam.resolution.profiles import ProfileError
 
 def test_init_is_owner_only_and_prints_platform_safe_commands(tmp_path: Path) -> None:
     result = initialize_profiles(tmp_path / "profiles.yaml")
-    assert result.login_commands[0].endswith("claude auth login")
-    assert result.login_commands[1].endswith("codex login")
-    assert result.login_commands[2].endswith("grok login --oauth")
-    assert all(
-        "_HOME=" in command or "CLAUDE_CONFIG_DIR=" in command for command in result.login_commands
-    )
+    if sys.platform == "win32":
+        # PowerShell form: $env:VAR = '<home>'; & '<exe>' '<arg>' ...
+        assert result.login_commands[0].endswith("& 'claude' 'auth' 'login'")
+        assert result.login_commands[1].endswith("& 'codex' 'login'")
+        assert result.login_commands[2].endswith("& 'grok' 'login' '--oauth'")
+        assert all(command.startswith("$env:") for command in result.login_commands)
+    else:
+        assert result.login_commands[0].endswith("claude auth login")
+        assert result.login_commands[1].endswith("codex login")
+        assert result.login_commands[2].endswith("grok login --oauth")
+        assert all(
+            "_HOME=" in command or "CLAUDE_CONFIG_DIR=" in command
+            for command in result.login_commands
+        )
     if sys.platform != "win32":
         assert stat.S_IMODE(result.profile_file.stat().st_mode) == 0o600
         assert stat.S_IMODE((tmp_path / "vendors").stat().st_mode) == 0o700

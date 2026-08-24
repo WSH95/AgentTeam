@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -46,9 +47,15 @@ def test_init_writes_profiles_and_config_homes(tmp_path: Path) -> None:
     assert grok.count("= false") == 12
     assert (tmp_path / "vendors/claude-code/skills/.agentteam-managed").is_file()
     assert "login" in result.output.lower()
-    assert "claude auth login" in result.output
-    assert "codex login" in result.output
-    assert "grok login --oauth" in result.output
+    if sys.platform == "win32":
+        # PowerShell-quoted commands: & 'claude' 'auth' 'login' ...
+        assert "& 'claude' 'auth' 'login'" in result.output
+        assert "& 'codex' 'login'" in result.output
+        assert "& 'grok' 'login' '--oauth'" in result.output
+    else:
+        assert "claude auth login" in result.output
+        assert "codex login" in result.output
+        assert "grok login --oauth" in result.output
     assert "never" in result.output.lower()  # never automates a browser / copies credentials
     assert "inherit standard proxy variables" in result.output
     assert all(
