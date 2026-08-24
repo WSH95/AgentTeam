@@ -4,6 +4,12 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T17:13:59Z — cli
+G6 closed: live PoC two-tier PASS under the ADR 0036 amended gate (Claude+Codex legs) after five owner-gated cycles and R1-R6 remediations; 25 of 30 calls spent; 12 commits pushed; hosted CI 9/9 at 58775a9
+
+### 2026-08-24T17:14:30Z — claude
+[auto-checkpoint] Post-closure boundary: all 12 session commits pushed to origin (`e722c15..58775a9`) on explicit owner approval; hosted 9-job CI run 32755012269 at `58775a9` in progress and watched; auto-memory updated to the closed-G6 state; wrap (with the CI result recorded in VERIFY) follows on the owner's approval already given.
+
 ### 2026-08-24T17:08:49Z — claude
 **G6 CLOSED — the live PoC passed both acceptance tiers.** Fifth cycle `run-20260824-170359-58d9` (first under the ADR 0036 amended gate, owner final go): Claude leg 119.9s + Codex leg 69.7s + Claude synthesis 40.1s, all valid on attempt 1 with zero problems and zero retries; mechanical cond-1/6/7/8 and semantic cond-2/3/4/5/9 all TRUE — the synthesis attributed six merged findings (five agreements, one disagreement) with valid `invocation_id:finding_id` pairs, proving the G6.R4 steering live. Manifest reconstructs, recursive owner-only modes hold (second in-vivo proof), sanitizer bundle scanned CLEAN and is held in the session scratchpad for owner review (promotion stays G8). 25 of 30 calls spent, 5 remain. RISKS R15/R22/R35 updated; QUESTIONS current-gate records the closure. Next: G7 (separate approval); pushes still held on the owner's decision.
 

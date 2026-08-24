@@ -15,9 +15,17 @@ owner-attended gates.
 | Archive/privacy | PASS — manifest reconstructs with zero problems; recursive owner-only modes hold with zero violations (G6.R3's second in-vivo proof); the sanitizer bundle was produced and scanned CLEAN (held in the session scratchpad for owner review; promotion to `docs/evidence/m1a-live-<date>/` remains the G8 step); raw archive local-only and gitignored |
 | Boundary | PASS — one owner-confirmed cycle under the amended gate; no retry, no API-mode fallback, no push. Every G6 remediation (R1–R6) and the ADR 0034–0036 amendments are now live-validated |
 
+Hosted CI after the closure push: **PASS, 9/9** — run
+[32755012269](https://github.com/WSH95/AgentTeam/actions/runs/32755012269)
+at `58775a9` (`e722c15..58775a9` fast-forward pushed on explicit approval):
+all six scaffold jobs (Ubuntu/Windows/macOS × Python 3.11/3.13) and all
+three OS ClawTeam jobs green, covering the G6.R product changes, the
+re-pinned `fd54eae7…` hash step, and deterministic acceptance in both tiers.
+
 Last verified: 2026-08-24 by Claude — **G6 is closed**: the Ubuntu
 subscription-backed live PoC passed both acceptance tiers under the
-ADR 0036 amended gate (Claude + Codex legs + Claude synthesis).
+ADR 0036 amended gate (Claude + Codex legs + Claude synthesis), and the
+closure push is hosted-CI green 9/9.
 
 ## G6 fourth live cycle — 2026-08-24 (FAIL exit 1; `--max-turns` hypothesis falsified)
 
