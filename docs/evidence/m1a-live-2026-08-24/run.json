@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "run-record",
+  "run_id": "run-20260824-170359-58d9",
+  "mode": "direct",
+  "member": {
+    "name": "code-reviewer",
+    "assistant": {
+      "id": "code-reviewer",
+      "version": 1,
+      "package_hash": "fd54eae7dbaa570aed693332e10c7260e8974c5354026b2c087a0f8395c9c0fe"
+    },
+    "effective_definition_hash": "fd54eae7dbaa570aed693332e10c7260e8974c5354026b2c087a0f8395c9c0fe",
+    "execution": {
+      "kind": "ensemble",
+      "ref": "ens-1"
+    }
+  },
+  "timing": {
+    "started_at": "2026-08-24T17:03:59.570138Z",
+    "finished_at": "2026-08-24T17:06:39.581763Z",
+    "duration_ms": 160011
+  },
+  "status": "succeeded",
+  "failure_reason": null
+}

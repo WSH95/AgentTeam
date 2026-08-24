@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "kind": "harness-invocation",
+  "invocation_id": "inv-claude-code",
+  "run_id": "run-20260824-170359-58d9",
+  "ensemble_id": "ens-1",
+  "requested": {
+    "harness": "claude-code",
+    "version": null,
+    "model": null,
+    "effort": null
+  },
+  "observed": {
+    "harness": null,
+    "version": null,
+    "model": "claude-haiku-4-5-20251001",
+    "effort": null
+  },
+  "selection": {
+    "decided_by": "user",
+    "candidates": [
+      "claude-code",
+      "codex",
+      "grok"
+    ]
+  },
+  "effective_definition_hash": "fd54eae7dbaa570aed693332e10c7260e8974c5354026b2c087a0f8395c9c0fe",
+  "target": {
+    "before": "25f03027edd1083ac0b4d29c4c9a4a8137e268497173c8ef98a8681253b86ec4",
+    "after": "25f03027edd1083ac0b4d29c4c9a4a8137e268497173c8ef98a8681253b86ec4"
+  },
+  "injection": {
+    "render": [
+      {
+        "part": "persona",
+        "channel": "append-system-prompt-file"
+      },
+      {
+        "part": "principles",
+        "channel": "append-system-prompt-file"
+      },
+      {
+        "part": "methods",
+        "channel": "append-system-prompt-file"
+      },
+      {
+        "part": "task",
+        "channel": "stdin"
+      },
+      {
+        "part": "output-schema",
+        "channel": "argv-inline"
+      },
+      {
+        "part": "skill:code-review",
+        "channel": "config-home-skills"
+      },
+      {
+        "part": "skill:security-review",
+        "channel": "config-home-skills"
+      },
+      {
+        "part": "skill:test-analysis",
+        "channel": "config-home-skills"
+      }
+    ],
+    "degraded": [],
+    "undeliverable_required_parts": []
+  },
+  "command": {
+    "argv_redacted": [
+      "<CLAUDE_CODE>",
+      "-p",
+      "--output-format",
+      "json",
+      "--no-session-persistence",
+      "--setting-sources",
+      "user",
+      "--mcp-config",
+      "{\"mcpServers\": {}}",
+      "--strict-mcp-config",
+      "--permission-mode",
+      "dontAsk",
+      "--allowedTools",
+      "Read,Grep,Glob,LS,Skill",
+      "--disallowedTools",
+      "Write,Edit,NotebookEdit,Bash,WebFetch,WebSearch",
+      "--append-system-prompt-file",
+      "<INSTRUCTIONS_FILE>",
+      "--json-schema",
+      "<SCHEMA_JSON>"
+    ],
+    "launcher": "<CLAUDE_CODE>",
+    "launcher_policy": "posix-direct",
+    "cwd": "<WORKSPACE>"
+  },
+  "environment": {
+    "names": [
+      "CLAUDE_CONFIG_DIR",
+      "HOME",
+      "HTTPS_PROXY",
+      "HTTP_PROXY",
+      "LANG",
+      "NO_PROXY",
+      "PATH",
+      "http_proxy",
+      "https_proxy",
+      "no_proxy"
+    ],
+    "config_home_variable": "CLAUDE_CONFIG_DIR",
+    "conflicts_detected": []
+  },
+  "placeholders": [
+    {
+      "token": "<INSTRUCTIONS_TEXT>",
+      "role": "instructions-text"
+    },
+    {
+      "token": "<SCHEMA_JSON>",
+      "role": "schema-json"
+    },
+    {
+      "token": "<INSTRUCTIONS_FILE>",
+      "role": "instructions-file"
+    },
+    {
+      "token": "<WORKSPACE>",
+      "role": "workspace"
+    },
+    {
+      "token": "<CONFIG_HOME>",
+      "role": "config-home"
+    },
+    {
+      "token": "<TASK_FILE>",
+      "role": "task-file"
+    },
+    {
+      "token": "<CLAUDE_CODE>",
+      "role": "claude-code"
+    }
+  ],
+  "attendance": "attended",
+  "auth_mode": "native-subscription",
+  "timing": {
+    "started_at": "2026-08-24T17:03:59.578082Z",
+    "finished_at": "2026-08-24T17:05:59.506352Z",
+    "duration_ms": 119928
+  },
+  "artifacts": [
+    {
+      "role": "stdout",
+      "path": "legs/inv-claude-code/stdout.raw",
+      "sha256": "e4a9480b202b58d8963972658137c9c1baae452a3be11bef0d348d6514ee7ae8"
+    },
+    {
+      "role": "stderr",
+      "path": "legs/inv-claude-code/stderr.raw",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "normalized-review",
+      "path": "legs/inv-claude-code/review.normalized.json",
+      "sha256": "37c7df276ea687a9d87212a4fd4cd23f07a80d8856861dc0704d969ccba0d90f"
+    }
+  ],
+  "usage": {
+    "input_tokens": 1085,
+    "output_tokens": 8698,
+    "cost_amount": 0.45771850000000003,
+    "cost_currency": "USD",
+    "cost_source": "vendor"
+  },
+  "retry": {
+    "classification": "none",
+    "attempt": 1,
+    "max_attempts": 2
+  },
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "schema_outcome": "valid",
+  "problems": [],
+  "status": "succeeded"
+}

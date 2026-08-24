@@ -1,0 +1,48 @@
+{
+  "files": [
+    {
+      "path": "ensemble.json",
+      "sha256": "314e46c32583a83d82d8cb9c8d64e6c6ce1bf9a261f09083a43d2ae6b50a4419"
+    },
+    {
+      "path": "events.jsonl",
+      "sha256": "decc837bd79b3a1bc5c9907f360e276094f6a7dc45d1522f086a92704290a6cb"
+    },
+    {
+      "path": "invocations/inv-claude-code.json",
+      "sha256": "99e50b74ee1ebf353452591fab378a338594ed8b8e5901975325b57cb6aacb66"
+    },
+    {
+      "path": "invocations/inv-codex.json",
+      "sha256": "37f77bf8c24145fa7c5850fcdf6e9b2e785b8d98a321d6ee737dbdf9fd226eef"
+    },
+    {
+      "path": "invocations/inv-synthesis.json",
+      "sha256": "b1dd98a18ae5321d10e90db34b5b36439d7ba0c9b85181931bb682e96d38be66"
+    },
+    {
+      "path": "request.sanitized.json",
+      "sha256": "804393d522acab15ccdbc40142a013e9834d031670d42d64dbf62d94700ccc33"
+    },
+    {
+      "path": "reviews/inv-claude-code.json",
+      "sha256": "37c7df276ea687a9d87212a4fd4cd23f07a80d8856861dc0704d969ccba0d90f"
+    },
+    {
+      "path": "reviews/inv-codex.json",
+      "sha256": "0ebed9581f569cccc144eafe7fd7d48c0e097c38073951034c645ca21ef710ac"
+    },
+    {
+      "path": "run.json",
+      "sha256": "33fa978c17b36b0998a9657a60193626cb72dabd99ad8151e847b1fea4a328ad"
+    },
+    {
+      "path": "summary.md",
+      "sha256": "3cf73132c059b11b3e43500ca1bcb2e8055891348ef072b7770f765770964543"
+    },
+    {
+      "path": "synthesis-report.json",
+      "sha256": "8a6b4809a8d42110d2165265336286696e8c136092daa1b0163857b1a7d7211f"
+    }
+  ]
+}

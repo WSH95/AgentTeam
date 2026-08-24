@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "kind": "ensemble-record",
+  "ensemble_id": "ens-1",
+  "run_id": "run-20260824-170359-58d9",
+  "legs": [
+    "inv-claude-code",
+    "inv-codex"
+  ],
+  "synthesis": {
+    "invocation_id": "inv-synthesis",
+    "inputs": [
+      "inv-claude-code",
+      "inv-codex"
+    ],
+    "instruction_hash": "a2b6d9ef0a16717c10eabec7675cac07bf4eda638f0454d4999886d7500aae68"
+  },
+  "attribution": [
+    {
+      "merged_finding_id": "S-001",
+      "sources": [
+        "inv-claude-code:CR-001",
+        "inv-codex:REL-001"
+      ]
+    },
+    {
+      "merged_finding_id": "S-002",
+      "sources": [
+        "inv-claude-code:CR-002",
+        "inv-codex:REL-002"
+      ]
+    },
+    {
+      "merged_finding_id": "S-003",
+      "sources": [
+        "inv-claude-code:CR-003",
+        "inv-codex:REL-003"
+      ]
+    },
+    {
+      "merged_finding_id": "S-004",
+      "sources": [
+        "inv-claude-code:CR-004",
+        "inv-codex:REL-002"
+      ]
+    },
+    {
+      "merged_finding_id": "S-005",
+      "sources": [
+        "inv-claude-code:CR-005",
+        "inv-codex:REL-004"
+      ]
+    },
+    {
+      "merged_finding_id": "S-006",
+      "sources": [
+        "inv-claude-code:CR-006"
+      ]
+    }
+  ],
+  "status": "succeeded",
+  "acceptance": {
+    "mechanical": {
+      "passed": true,
+      "conditions": [
+        {
+          "id": "cond-1",
+          "passed": true,
+          "detail": "independent fresh legs, one bundle, target unmutated"
+        },
+        {
+          "id": "cond-6",
+          "passed": true,
+          "detail": "package re-hash equals the bundle hash"
+        },
+        {
+          "id": "cond-7",
+          "passed": true,
+          "detail": "archive manifest reconstructs"
+        },
+        {
+          "id": "cond-8",
+          "passed": true,
+          "detail": "records carry environment names only; raw evidence stays in the local archive"
+        }
+      ]
+    },
+    "semantic": {
+      "passed": true,
+      "conditions": [
+        {
+          "id": "cond-2",
+          "passed": true,
+          "detail": "every leg identified command injection plus another seeded defect"
+        },
+        {
+          "id": "cond-3",
+          "passed": true,
+          "detail": "union covers all defects"
+        },
+        {
+          "id": "cond-4",
+          "passed": true,
+          "detail": "no critical finding outside the oracle"
+        },
+        {
+          "id": "cond-5",
+          "passed": true,
+          "detail": "synthesis lists all defects with valid attribution and both agreement kinds"
+        },
+        {
+          "id": "cond-9",
+          "passed": true,
+          "detail": "tiers evaluated and stored separately; a semantic miss exits 3"
+        }
+      ]
+    }
+  }
+}

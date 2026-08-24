@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "kind": "harness-invocation",
+  "invocation_id": "inv-codex",
+  "run_id": "run-20260824-170359-58d9",
+  "ensemble_id": "ens-1",
+  "requested": {
+    "harness": "codex",
+    "version": null,
+    "model": null,
+    "effort": null
+  },
+  "observed": {
+    "harness": null,
+    "version": null,
+    "model": null,
+    "effort": null
+  },
+  "selection": {
+    "decided_by": "user",
+    "candidates": [
+      "claude-code",
+      "codex",
+      "grok"
+    ]
+  },
+  "effective_definition_hash": "fd54eae7dbaa570aed693332e10c7260e8974c5354026b2c087a0f8395c9c0fe",
+  "target": {
+    "before": "25f03027edd1083ac0b4d29c4c9a4a8137e268497173c8ef98a8681253b86ec4",
+    "after": "25f03027edd1083ac0b4d29c4c9a4a8137e268497173c8ef98a8681253b86ec4"
+  },
+  "injection": {
+    "render": [
+      {
+        "part": "persona",
+        "channel": "model-instructions-file"
+      },
+      {
+        "part": "principles",
+        "channel": "model-instructions-file"
+      },
+      {
+        "part": "methods",
+        "channel": "model-instructions-file"
+      },
+      {
+        "part": "task",
+        "channel": "stdin"
+      },
+      {
+        "part": "output-schema",
+        "channel": "file"
+      },
+      {
+        "part": "skill:code-review",
+        "channel": "workspace-agents-skills"
+      },
+      {
+        "part": "skill:security-review",
+        "channel": "workspace-agents-skills"
+      },
+      {
+        "part": "skill:test-analysis",
+        "channel": "workspace-agents-skills"
+      }
+    ],
+    "degraded": [],
+    "undeliverable_required_parts": []
+  },
+  "command": {
+    "argv_redacted": [
+      "<CODEX>",
+      "exec",
+      "--ephemeral",
+      "--ignore-user-config",
+      "--ignore-rules",
+      "--skip-git-repo-check",
+      "-C",
+      "<WORKSPACE>",
+      "-s",
+      "read-only",
+      "-c",
+      "approval_policy=\"never\"",
+      "-c",
+      "model_instructions_file=\"<INSTRUCTIONS_FILE>\"",
+      "--output-schema",
+      "<SCHEMA_FILE>",
+      "-o",
+      "<OUT_FILE>",
+      "--json",
+      "--color",
+      "never"
+    ],
+    "launcher": "<CODEX>",
+    "launcher_policy": "posix-direct",
+    "cwd": "<WORKSPACE>"
+  },
+  "environment": {
+    "names": [
+      "CODEX_HOME",
+      "HOME",
+      "HTTPS_PROXY",
+      "HTTP_PROXY",
+      "LANG",
+      "NO_PROXY",
+      "PATH",
+      "http_proxy",
+      "https_proxy",
+      "no_proxy"
+    ],
+    "config_home_variable": "CODEX_HOME",
+    "conflicts_detected": []
+  },
+  "placeholders": [
+    {
+      "token": "<WORKSPACE>",
+      "role": "workspace"
+    },
+    {
+      "token": "<SCHEMA_FILE>",
+      "role": "schema-file"
+    },
+    {
+      "token": "<OUT_FILE>",
+      "role": "out-file"
+    },
+    {
+      "token": "<CONFIG_HOME>",
+      "role": "config-home"
+    },
+    {
+      "token": "<TASK_FILE>",
+      "role": "task-file"
+    },
+    {
+      "token": "<INSTRUCTIONS_FILE>",
+      "role": "instructions-file"
+    },
+    {
+      "token": "<CODEX>",
+      "role": "codex"
+    }
+  ],
+  "attendance": "attended",
+  "auth_mode": "native-subscription",
+  "timing": {
+    "started_at": "2026-08-24T17:03:59.584275Z",
+    "finished_at": "2026-08-24T17:05:09.295307Z",
+    "duration_ms": 69711
+  },
+  "artifacts": [
+    {
+      "role": "stdout",
+      "path": "legs/inv-codex/stdout.raw",
+      "sha256": "d4f45b65058147197b47553c74b5a23f19751686ca6c70e814d7a18abf039e49"
+    },
+    {
+      "role": "stderr",
+      "path": "legs/inv-codex/stderr.raw",
+      "sha256": "3e75d28a6681c31400a3f0fcb564c7613fd42796fb83294e4d53fea86bcbd401"
+    },
+    {
+      "role": "output-file",
+      "path": "legs/inv-codex/output-file.json",
+      "sha256": "f30d5524e6e96347b0098ae21df2bb76f9001f910744fe31ba280ab01e32bed3"
+    },
+    {
+      "role": "normalized-review",
+      "path": "legs/inv-codex/review.normalized.json",
+      "sha256": "0ebed9581f569cccc144eafe7fd7d48c0e097c38073951034c645ca21ef710ac"
+    }
+  ],
+  "usage": {
+    "input_tokens": 79879,
+    "output_tokens": 2030,
+    "cost_amount": null,
+    "cost_currency": null,
+    "cost_source": "unavailable"
+  },
+  "retry": {
+    "classification": "none",
+    "attempt": 1,
+    "max_attempts": 2
+  },
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "schema_outcome": "valid",
+  "problems": [],
+  "status": "succeeded"
+}

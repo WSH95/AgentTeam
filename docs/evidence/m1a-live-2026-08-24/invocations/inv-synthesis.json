@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "kind": "harness-invocation",
+  "invocation_id": "inv-synthesis",
+  "run_id": "run-20260824-170359-58d9",
+  "ensemble_id": "ens-1",
+  "requested": {
+    "harness": "claude-code",
+    "version": null,
+    "model": null,
+    "effort": null
+  },
+  "observed": {
+    "harness": null,
+    "version": null,
+    "model": "claude-haiku-4-5-20251001",
+    "effort": null
+  },
+  "selection": {
+    "decided_by": "user",
+    "candidates": [
+      "claude-code",
+      "codex",
+      "grok"
+    ]
+  },
+  "effective_definition_hash": "fd54eae7dbaa570aed693332e10c7260e8974c5354026b2c087a0f8395c9c0fe",
+  "target": {
+    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "injection": {
+    "render": [
+      {
+        "part": "synthesis-instructions",
+        "channel": "append-system-prompt-file"
+      },
+      {
+        "part": "task",
+        "channel": "stdin"
+      },
+      {
+        "part": "output-schema",
+        "channel": "argv-inline"
+      }
+    ],
+    "degraded": [],
+    "undeliverable_required_parts": []
+  },
+  "command": {
+    "argv_redacted": [
+      "<CLAUDE_CODE>",
+      "-p",
+      "--output-format",
+      "json",
+      "--no-session-persistence",
+      "--setting-sources",
+      "user",
+      "--mcp-config",
+      "{\"mcpServers\": {}}",
+      "--strict-mcp-config",
+      "--permission-mode",
+      "dontAsk",
+      "--allowedTools",
+      "Read,Grep,Glob,LS,Skill",
+      "--disallowedTools",
+      "Write,Edit,NotebookEdit,Bash,WebFetch,WebSearch",
+      "--append-system-prompt-file",
+      "<INSTRUCTIONS_FILE>",
+      "--json-schema",
+      "<SCHEMA_JSON>"
+    ],
+    "launcher": "<CLAUDE_CODE>",
+    "launcher_policy": "posix-direct",
+    "cwd": "<WORKSPACE>"
+  },
+  "environment": {
+    "names": [
+      "CLAUDE_CONFIG_DIR",
+      "HOME",
+      "HTTPS_PROXY",
+      "HTTP_PROXY",
+      "LANG",
+      "NO_PROXY",
+      "PATH",
+      "http_proxy",
+      "https_proxy",
+      "no_proxy"
+    ],
+    "config_home_variable": "CLAUDE_CONFIG_DIR",
+    "conflicts_detected": []
+  },
+  "placeholders": [
+    {
+      "token": "<INSTRUCTIONS_TEXT>",
+      "role": "instructions-text"
+    },
+    {
+      "token": "<SCHEMA_JSON>",
+      "role": "schema-json"
+    },
+    {
+      "token": "<INSTRUCTIONS_FILE>",
+      "role": "instructions-file"
+    },
+    {
+      "token": "<WORKSPACE>",
+      "role": "workspace"
+    },
+    {
+      "token": "<CONFIG_HOME>",
+      "role": "config-home"
+    },
+    {
+      "token": "<TASK_FILE>",
+      "role": "task-file"
+    },
+    {
+      "token": "<CLAUDE_CODE>",
+      "role": "claude-code"
+    }
+  ],
+  "attendance": "attended",
+  "auth_mode": "native-subscription",
+  "timing": {
+    "started_at": "2026-08-24T17:05:59.513153Z",
+    "finished_at": "2026-08-24T17:06:39.577735Z",
+    "duration_ms": 40064
+  },
+  "artifacts": [
+    {
+      "role": "stdout",
+      "path": "synthesis/inv-synthesis/stdout.raw",
+      "sha256": "fc85816806b8f1ec859dc049363d447cb1d55019dc21e7cf467ca8386debade9"
+    },
+    {
+      "role": "stderr",
+      "path": "synthesis/inv-synthesis/stderr.raw",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "task",
+      "path": "synthesis/inv-synthesis/task.md",
+      "sha256": "a8f1c4690685eceef091cdd340052813df65ad6a936b07b9b35913f168ad8a2a"
+    }
+  ],
+  "usage": {
+    "input_tokens": 3887,
+    "output_tokens": 3457,
+    "cost_amount": 0.36193000000000003,
+    "cost_currency": "USD",
+    "cost_source": "vendor"
+  },
+  "retry": {
+    "classification": "none",
+    "attempt": 1,
+    "max_attempts": 2
+  },
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "schema_outcome": "valid",
+  "problems": [],
+  "status": "succeeded"
+}

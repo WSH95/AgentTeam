@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "run-request",
+  "assistant": "<ASSISTANT>",
+  "overlay_refs": [],
+  "workspace": "<WORKSPACE>",
+  "task_file": "<TASK_FILE>",
+  "mode": "direct",
+  "harnesses": [
+    "claude-code",
+    "codex"
+  ],
+  "synthesis": {
+    "enabled": true,
+    "harness": "claude-code"
+  },
+  "model_overrides": [],
+  "effort_overrides": [],
+  "output_dir": null,
+  "evidence": {
+    "retain_raw_streams": true
+  },
+  "acceptance": {
+    "oracle": "<ORACLE>"
+  },
+  "limits": {
+    "attempt_seconds": null,
+    "transient_retries": null
+  }
+}

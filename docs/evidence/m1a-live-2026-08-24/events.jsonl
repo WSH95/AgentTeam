@@ -1,0 +1,8 @@
+{"ts":"2026-08-24T17:03:59.571119Z","event":"run-created","run_id":"run-20260824-170359-58d9"}
+{"ts":"2026-08-24T17:03:59.584693Z","event":"leg-started","run_id":"run-20260824-170359-58d9","invocation_id":"inv-claude-code","detail":"attempt 1"}
+{"ts":"2026-08-24T17:03:59.585479Z","event":"leg-started","run_id":"run-20260824-170359-58d9","invocation_id":"inv-codex","detail":"attempt 1"}
+{"ts":"2026-08-24T17:05:09.300473Z","event":"leg-finished","run_id":"run-20260824-170359-58d9","invocation_id":"inv-codex","detail":"succeeded"}
+{"ts":"2026-08-24T17:05:59.508249Z","event":"leg-finished","run_id":"run-20260824-170359-58d9","invocation_id":"inv-claude-code","detail":"succeeded"}
+{"ts":"2026-08-24T17:05:59.513445Z","event":"leg-started","run_id":"run-20260824-170359-58d9","invocation_id":"inv-synthesis","detail":"attempt 1"}
+{"ts":"2026-08-24T17:06:39.579485Z","event":"leg-finished","run_id":"run-20260824-170359-58d9","invocation_id":"inv-synthesis","detail":"succeeded"}
+{"ts":"2026-08-24T17:06:39.581999Z","event":"run-finished","run_id":"run-20260824-170359-58d9","detail":"exit 0"}

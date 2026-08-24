@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "normalized-review",
+  "target_sha256": "25f03027edd1083ac0b4d29c4c9a4a8137e268497173c8ef98a8681253b86ec4",
+  "findings": [
+    {
+      "id": "REL-001",
+      "severity": "critical",
+      "category": "command-injection",
+      "file": "src/publish.ts",
+      "line": 5,
+      "title": "Tag and remote values allow arbitrary shell execution",
+      "rationale": "Both caller-controlled values are interpolated into a command executed through a shell. `remote` is completely unquoted, and double quotes around the tag still permit shell expansions such as `$(...)` and backticks. A malicious value can therefore execute arbitrary commands with the release process's privileges. Replace `execSync` with `execFileSync(\"git\", [\"push\", \"--\", remote, `refs/tags/${tag}`])` (and validate that the tag is an acceptable Git ref) so no shell parses either value."
+    },
+    {
+      "id": "REL-002",
+      "severity": "medium",
+      "category": "off-by-one",
+      "file": "src/changelog.ts",
+      "line": 4,
+      "title": "firstEntries returns count plus one elements",
+      "rationale": "The loop includes `i === count`, so `firstEntries(lines, 0)` returns one item and every positive count returns one too many. If `count` reaches or exceeds `lines.length`, it also inserts `undefined` despite the declared `string[]` return type. Use an exclusive bound (`i < count`) while also bounding to the available entries, or simply return `lines.slice(0, count)`."
+    },
+    {
+      "id": "REL-003",
+      "severity": "medium",
+      "category": "input-mutation",
+      "file": "src/notes.ts",
+      "line": 8,
+      "title": "withFooter mutates the caller-owned release note",
+      "rationale": "Despite promising a copy, the function pushes into the original `highlights` array and returns the same note object. Callers retaining the original observe an unexpected footer, and repeated use accumulates mutations. Return a new object with a new array, for example `{ ...note, highlights: [...note.highlights, footer] }`."
+    },
+    {
+      "id": "REL-004",
+      "severity": "medium",
+      "category": "output-stream-mismatch",
+      "file": "src/publish.ts",
+      "line": 5,
+      "title": "Successful Git response is discarded from the return value",
+      "rationale": "`execSync` returns only the child's stdout, while `git push` writes its normal remote/status response to stderr. Consequently this function commonly returns an empty string even after a successful push, contrary to its contract. Capture both streams explicitly using a spawn API, or redefine the API to return structured status rather than treating stdout as the server response."
+    }
+  ],
+  "summary": "The module contains a directly exploitable shell-command injection plus deterministic boundary, mutation, and output-stream defects. No test files or runnable test configuration were present, so no tests could be observed passing; the documented behaviors are not backed by visible tests.",
+  "verdict": "request-changes"
+}

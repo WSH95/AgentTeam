@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "kind": "synthesis-report",
+  "inputs": [
+    "inv-claude-code",
+    "inv-codex"
+  ],
+  "agreements": [
+    {
+      "title": "publishTag interpolates untrusted tag and remote into a shell command (arbitrary code execution)",
+      "sources": [
+        "inv-claude-code:CR-001",
+        "inv-codex:REL-001"
+      ]
+    },
+    {
+      "title": "firstEntries loop condition `i <= count` returns count + 1 entries",
+      "sources": [
+        "inv-claude-code:CR-002",
+        "inv-codex:REL-002"
+      ]
+    },
+    {
+      "title": "withFooter mutates the caller's note instead of returning a copy",
+      "sources": [
+        "inv-claude-code:CR-003",
+        "inv-codex:REL-003"
+      ]
+    },
+    {
+      "title": "firstEntries pushes undefined into a declared string[] when count exceeds lines.length",
+      "sources": [
+        "inv-claude-code:CR-004",
+        "inv-codex:REL-002"
+      ]
+    },
+    {
+      "title": "publishTag returns empty string because git push writes status to stderr, which execSync does not capture",
+      "sources": [
+        "inv-claude-code:CR-005",
+        "inv-codex:REL-004"
+      ]
+    }
+  ],
+  "disagreements": [
+    {
+      "title": "Module ships no tests at all, leaving every defect unguarded (raised as a distinct finding only by one leg; the other notes the absence only in its summary)",
+      "asserted_by": [
+        "inv-claude-code"
+      ],
+      "not_asserted_by": [
+        "inv-codex"
+      ]
+    }
+  ],
+  "merged_findings": [
+    {
+      "id": "S-001",
+      "severity": "critical",
+      "category": "command-injection",
+      "file": "src/publish.ts",
+      "line": 5,
+      "title": "execSync interpolates untrusted tag and remote into a shell command",
+      "rationale": "Both legs agree this is a directly exploitable shell injection: execSync runs its argument via /bin/sh -c, `remote` is interpolated entirely unquoted, and the double quotes around `tag` still permit `$(...)` and backtick expansion. Either parameter therefore yields arbitrary code execution with the release process's privileges, and any pipeline deriving tag/remote from a branch name, PR title, workflow input, or webhook payload is remotely exploitable. Both propose replacing execSync with execFileSync(\"git\", [\"push\", remote, `refs/tags/${tag}`]) so no shell parses the values; inv-claude-code adds that the argument-array form alone is insufficient because a remote such as `--receive-pack=<cmd>` is still argument injection, so values beginning with '-' must be rejected and the tag validated (e.g. /^[A-Za-z0-9._\\/-]+$/), while inv-codex suggests a `--` separator plus git-ref validation.",
+      "sources": [
+        "inv-claude-code:CR-001",
+        "inv-codex:REL-001"
+      ]
+    },
+    {
+      "id": "S-002",
+      "severity": "high",
+      "category": "off-by-one",
+      "file": "src/changelog.ts",
+      "line": 4,
+      "title": "Loop condition `i <= count` returns count + 1 entries",
+      "rationale": "The loop runs i = 0 through i = count inclusive, producing count + 1 elements instead of the count promised by the doc comment: firstEntries([\"a\",\"b\",\"c\"], 2) returns three items, and firstEntries(lines, 0) returns one. In release tooling this silently leaks one extra changelog entry into every published note — typically the previous release's top line, potentially an unreleased or embargoed entry. Fix: use the exclusive bound `i < count`, or simply `lines.slice(0, count)`. Severity taken as the higher of the two asserted (high from inv-claude-code; inv-codex rated it medium).",
+      "sources": [
+        "inv-claude-code:CR-002",
+        "inv-codex:REL-002"
+      ]
+    },
+    {
+      "id": "S-003",
+      "severity": "high",
+      "category": "input-mutation",
+      "file": "src/notes.ts",
+      "line": 8,
+      "title": "withFooter mutates the caller's note instead of returning a copy",
+      "rationale": "The doc comment promises a copy, but the body calls note.highlights.push(footer) and returns the same object reference, so the result is === the input. The caller's original note is corrupted for every other holder of that object, and calls do not compose: nesting or re-rendering in a loop accumulates one footer per invocation. Both legs give the same fix: return { ...note, highlights: [...note.highlights, footer] }. Severity taken as the higher of the two asserted (high from inv-claude-code; inv-codex rated it medium).",
+      "sources": [
+        "inv-claude-code:CR-003",
+        "inv-codex:REL-003"
+      ]
+    },
+    {
+      "id": "S-004",
+      "severity": "medium",
+      "category": "unchecked-array-access",
+      "file": "src/changelog.ts",
+      "line": 5,
+      "title": "Unbounded index pushes undefined into a declared string[]",
+      "rationale": "lines[i] is never bounds-checked against lines.length, so when count reaches or exceeds the number of available lines — normal for a first release or a short changelog — out-of-range reads yield undefined that is pushed into an array declared string[]. The annotation hides this from the compiler, so it surfaces downstream as a TypeError on .trim()/.toUpperCase() or as the literal text \"undefined\" in published notes. inv-claude-code raises this as a finding distinct from the off-by-one and notes it survives that fix (firstEntries([\"a\"], 5) still yields four undefined entries); inv-codex asserts the same undefined-insertion defect inside its off-by-one finding. Fix: clamp the bound, e.g. Math.max(0, Math.min(count, lines.length)), or use lines.slice(0, count).",
+      "sources": [
+        "inv-claude-code:CR-004",
+        "inv-codex:REL-002"
+      ]
+    },
+    {
+      "id": "S-005",
+      "severity": "medium",
+      "category": "output-stream-mismatch",
+      "file": "src/publish.ts",
+      "line": 5,
+      "title": "Documented \"server response\" is always empty because git push writes to stderr",
+      "rationale": "git push writes its human-readable status (\"To github.com:org/repo.git\", \"* [new tag] v1.0.0 -> v1.0.0\", \"Everything up-to-date\") to stderr, while execSync returns only the child's stdout and its default stdio forwards stderr to the parent rather than capturing it. The function therefore returns \"\" on every successful push, contradicting its contract, and callers that log, parse, or assert on that string get nothing; on failure execSync throws, so diagnostics never reach the return path either. Fix: capture both streams explicitly (e.g. stdio: [\"ignore\", \"pipe\", \"pipe\"] and return the captured stderr) via a spawn API, or redefine the API to return structured status / correct the doc comment.",
+      "sources": [
+        "inv-claude-code:CR-005",
+        "inv-codex:REL-004"
+      ]
+    },
+    {
+      "id": "S-006",
+      "severity": "medium",
+      "category": "missing-test-coverage",
+      "file": null,
+      "line": null,
+      "title": "Module ships no tests; no test run could be observed",
+      "rationale": "Raised as a finding only by inv-claude-code: the workspace holds just src/publish.ts, src/changelog.ts, and src/notes.ts, with no test file, harness, or runner, so no test execution could be observed and every defect above is unguarded. Each confirmed bug would be caught by one obvious test — firstEntries boundary assertions pinning S-002 and S-004, a withFooter purity assertion (result !== note, note.highlights unchanged) pinning S-003, and publishTag argument-handling assertions rejecting ';', '$(', backticks, and leading '-' pinning S-001 and the fix shape for S-005. inv-codex does not list this as a finding but corroborates the underlying fact in its summary (\"No test files or runnable test configuration were present, so no tests could be observed passing\"). Both legs return verdict request-changes.",
+      "sources": [
+        "inv-claude-code:CR-006"
+      ]
+    }
+  ]
+}
