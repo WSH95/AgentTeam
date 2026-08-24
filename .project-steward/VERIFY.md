@@ -4,6 +4,23 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G6 second live cycle — 2026-08-24 (FAIL exit 1; mechanical tier first live PASS)
+
+| Check | Result |
+| --- | --- |
+| Pre-run gate | PASS — no-call doctor exit 0 (Claude `2.1.241` signed-in, Codex `0.149.1` signed-in, Grok `1.0.5` verified-by-probe; all ready, zero conflicts/staleness, zero calls); package `fb9e98a3…` and target `25f03027…` matched; six proxy names inherited; subscription policy rechecked (support.claude.com article 11145838, accessed 2026-08-24 — CLI on Pro/Max fully supported, no pause language, decline-API-credit guidance matches the no-fallback stop rule); fresh explicit owner confirmation for ONE rerun; pushes held on owner decision |
+| Cycle | **FAIL, exit 1** — `run-20260824-154050-7a98`, 221.1s wall, exactly four calls (three concurrent legs + one synthesis), zero retries. Grok succeeded in 8.677s, Codex in 62.878s, Claude in 122.212s — all with `schema_outcome: valid` on attempt 1 and empty problems; synthesis (98.862s) returned a schema-valid report but failed attribution validation. 16 of 30 calls spent; **14 remain** |
+| G6.R1/R2 in vivo | **PASS** — Claude accepted the projected review and synthesis schemas and produced valid structured output on both its invocations (the draft-07 `$schema` rejection is gone); Grok produced a valid structured-output *field* for the projected full review schema (the `structuredOutput: null` failure is gone); Codex stayed good on the projected file. The delivery projection is live-proven on all four invocations |
+| G6.R3 in vivo | **PASS** — recursive walk of the real archive: zero mode violations (every directory 0700 and every file 0600, including `events.jsonl`, copied workspace trees, scratch, and vendor-written descendants); manifest reconstructs with zero problems; sanitizer to a temp copy completed with a clean scan; nothing promoted |
+| Mechanical tier | **PASS — first live all-PASS**: cond-1 (independent fresh legs, one bundle, targets unmutated), cond-6 (package rehash equals bundle hash), cond-7 (manifest reconstructs), cond-8 (names-only records, raw evidence local) |
+| Synthesis failure | Runtime FAIL — `agreements[].sources` carry bare invocation ids (`inv-claude-code`) where the contract requires `invocation_id:finding_id` pairs; `merged_findings[].sources` used the pair form correctly (`inv-claude-code:CR-001`), and disagreements used bare leg ids correctly. The task document's own line "Refer to legs only by invocation id" steers toward the error, and the synthesis instructions never state the pair convention — the deterministic fakes encode it, which is why no test caught it. Filed as G6.R4 |
+| Semantic tier | FAIL (first formal live evaluation; recorded in `ensemble.json`) — cond-2: Codex identified 1 seeded defect and Grok 0; cond-3: the union misses `input-mutation`; cond-4: Claude's four high-severity non-matching findings count as invented; cond-5: attribution invalid. Diagnosis: leg `category` labels are unsteered free text — Claude and Codex both *located* the changelog.ts:4 and notes.ts:8 defects but labeled them `correctness`/`mutation-of-caller-data`/`argument-injection` outside the oracle alias lists; Grok emitted its structured object after 8.677s as a progress narration ("Starting review: loading the review skills…") with zero findings — final-output semantics unsteered. Filed as G6.R5 (definition/prompt work per plan §14 routing) |
+| Boundary | PASS — exactly the one authorized rerun, no retry, no API fallback, no push, package/target hashes unchanged, raw evidence only in the local gitignored archive. Any further cycle requires a new explicit owner decision (ADR 0020's second-rerun allowance; ≤8 calls fits the 14 remaining) |
+
+Last verified: 2026-08-24 by Claude (owner-confirmed second G6 cycle; mechanical
+tier passed live for the first time; synthesis attribution and semantic
+steering failures diagnosed from the archive; no further rerun started).
+
 ## G6.R rerun-blocker remediation — 2026-08-24 (implemented locally; no rerun)
 
 | Check | Result |
