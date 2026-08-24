@@ -25,7 +25,11 @@ authoritative all-three capture verified current native auth plus required
 instruction/Skill/output channels for Claude, Codex, and Grok in one call each
 (`probe-20260824T075919Z-1edf636a`; ADR 0031). No-call doctor reports all three
 ready, no conflicts, and no stale rows. G6 is the next gate but has not started;
-every push and every future live call remains separately approved.
+every push and every future live call remains separately approved. The
+2026-08-24 independent review at `317bb52` verified the closure evidence,
+fixed two CI-breaking regressions (`739be1a`/`83f2b3b`; ADR 0032), and filed
+the PLAN "G5.R" pre-G6 tasks; the plan's call-budget wording is reconciled by
+the ADR 0033 amendment.
 
 ## Answered during G5 owner setup
 

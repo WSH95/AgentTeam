@@ -4,6 +4,27 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G5 independent review — 2026-08-24 (closure verified; two CI regressions fixed)
+
+Review record: `docs/reviews/2026-08-24-g5-review-at-317bb52.md` (ADR 0032);
+scope `549804f..317bb52`; owner-host evidence audited by the reviewer only,
+`~/.agentteam/vendors/` never read, no vendor model call.
+
+| Check | Result |
+| --- | --- |
+| Owner-host evidence | PASS — all five captures: 45/45 manifest-recorded artifact SHA-256s recompute, every dir 0700 / file 0600, statuses/durations match every cited number (180640 ms SIGKILL timeout; 44 ms exit-2 reject; 12362 ms exit-0/assessment-failed; 16562 ms; final 10363/20490/17195 ms); final capture exactly one call per harness; 9 call dirs total = Claude 3 / Codex 2 / Grok 4, each traced to ADR 0028/0029/0030 + Q12; 21 of the 30-call ceiling remain |
+| Installed CLIs | PASS — `2.1.241 (Claude Code)`, `codex-cli 0.149.1`, `grok 1.0.5 (5115b46bc9)` byte-match the claims and the profile rows; every adapter/probe flag present in `--help` |
+| Profiles + doctor | PASS — rows Claude 5v/3o, Codex 7v/2o, Grok 8v/1o/1u, version-bound, `proxy_policy: inherit`, names only; no-call doctor exit 0, all ready, `conflicts_set: []`, six inherited proxy names, provably non-mutating (before/after content hash) |
+| Fixture promotion | PASS — zero distinctive fixture literals appear in the raw captures (only shared vendor protocol vocabulary); hygiene caveats H1/H2 recorded in the review |
+| CI parity at `317bb52` | **FAIL, now fixed** — R1: `from click import Abort` was an undeclared dependency (typer 0.27.1 vendors Click; external click arrives only via the clawteam extra): core-mode mypy 2 errors, pytest 7 collection errors, every `atm` command dead — all six scaffold legs would have failed; fixed in `739be1a` (also restores prompt Ctrl-C → exit 130, review R2). R8: the deterministic-acceptance step lacked the fake vendor homes the new live preflight requires — fixed in `83f2b3b` |
+| Post-fix full CI step list (local) | PASS, 0 failures — core mode: lock check, frozen sync, bare-dot Ruff + format, strict mypy, **pytest 392 passed + 4 skips**, schema check + export round-trip, `uv build`, `atm --help/--version`, `assistant validate --strict-content`, three-harness render-only smoke, pinned hash `fb9e98a3…`, deterministic acceptance both tiers; extra mode: **pytest 404 passed + 3 skips** and `tests/compatibility` 12 passed; `git diff --check` clean; owner `profiles.yaml` hash unchanged across the whole suite |
+| Code vs ADR 0026–0030 contracts | PASS with recorded findings — ceilings, evidence semantics (call-2 unresolved-only vs authoritative downgrade), capture lifecycle, redaction (value-absence sweep), atomic locked profile updates, proxy inherit/deny, Claude/Grok argv all verified at cited lines; R3–R6 (lease leak on early-return paths, unbounded kill-escalation branch, stale-verified channel selection, discarded live Codex `-o`/JSONL disagreement) filed as PLAN G5.R pre-G6 tasks |
+| Boundary | PASS — nothing pushed at review time; no tracked capture/secret/proxy-value/absolute path in the range; no G6 run; AGENTS.md/CLAUDE.md untouched; review wrote only `docs/reviews/`, steward records, and the two owner-ruled fixes |
+
+Last verified: 2026-08-24 by Claude (Fable 5) independent review session
+(read-only evidence audit + credential-free local execution; no vendor model
+call; no credential or proxy value read).
+
 ## G5 deterministic and owner-host verification — 2026-08-24 (gate closed)
 
 | Check | Result |

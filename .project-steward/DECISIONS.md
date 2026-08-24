@@ -586,3 +586,44 @@ Ubuntu subscription-backed acceptance cycle still needs its own attended
 execution confirmation and existing budget/stop rules. This closure authorizes
 the requested local commit only, not a push, G6 invocation, raw-capture
 promotion, credential inspection, or package publication.
+
+## 0032 — 2026-08-24 — Independent G5 review at `317bb52`: closure verified, two CI regressions fixed, pre-G6 tasks filed
+
+**Context**: The owner asked to "resume and review G5". A Claude (Fable 5)
+session executed an owner-approved review plan over the four unpushed
+commits `549804f..317bb52`: installed-CLI verification, a full owner-host
+evidence audit (all five probe captures — 45/45 recorded artifact hashes
+recomputed, 0700/0600 verified, per-call rows reconciled; `profiles.yaml`
+rows and the sanctioned no-call doctor cross-checked with a non-mutation
+hash guard; nine call directories = Claude 3 / Codex 2 / Grok 4, each traced
+to its ADR 0028/0029/0030 + Q12 approval), the complete
+`.github/workflows/ci.yml` step list executed locally in both dependency
+modes, four read-only code-review subagents reconciled by the reviewer, and
+a fixture-literal cross-grep proving the promoted fixtures share nothing
+with the raw captures but protocol vocabulary. Record:
+`docs/reviews/2026-08-24-g5-review-at-317bb52.md`.
+**Decision**: (1) The G5 closure (ADR 0031) stands: the owner-host evidence
+is genuine and matches every recorded number. (2) Two CI-breaking
+regressions found by the review are fixed immediately, each in its own
+commit: review R1/R2 — `from click import Abort` was an undeclared
+dependency (the locked typer 0.27.1 vendors Click; external `click` arrives
+only via the optional clawteam extra), which broke mypy, pytest, and every
+`atm` command in core mode and made a real prompt Ctrl-C exit 1 instead of
+the contractual 130 — fixed by `from typer import Abort` (code + test); and
+review R8 — the G5 home-existence preflight fails the CI
+deterministic-acceptance step, whose disposable fake vendor homes only
+pytest's conftest ever provisioned — fixed by a `mkdir -p` in the step.
+After both fixes the full step list passes locally in core mode (392 passed
++ 4 skips) and extra mode (404 passed + 3 skips; compatibility 12).
+(3) Review findings R3–R6 (managed-skills lease leak on early-return paths,
+an unbounded probe kill-escalation branch, stale-verified channel selection
+at render time, and the discarded live Codex `-o`/JSONL disagreement) are
+filed as PLAN "G5.R" tasks that gate G6. (4) The plan-amendment record and
+call-budget reconciliation (review R7) are handled as a separately approved
+amendment (ADR 0033). (5) The owner conditionally approved a push of `main`
+once the fixes landed and the two-mode block was green, to obtain the nine
+hosted CI checks on the G5 work.
+**Consequences**: The push under (5) is the first publication of the G5
+work; G6 remains gated on the G5.R tasks and its own attended execution
+decision. Hygiene findings H1–H13 stay recorded in the review document;
+only items the owner acts on become tasks.

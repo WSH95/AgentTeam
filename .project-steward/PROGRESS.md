@@ -4,6 +4,12 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T11:32:56Z — cli
+Independent G5 review delivered (`docs/reviews/2026-08-24-g5-review-at-317bb52.md`; ADR 0032): closure evidence verified genuine (all five captures, 45/45 hashes, 9 owner-gated calls, profiles/doctor exact); two CI-breaking regressions found by running the full CI step list locally and fixed on owner ruling — `739be1a` (typer-vendored-click Abort: core-mode CI + Ctrl-C exit 130) and `83f2b3b` (acceptance step provisions fake vendor homes). Full step list now 0 failures in both modes (core 392+4, extra 404+3, compat 12). R3–R6 filed as PLAN G5.R pre-G6 tasks; R7 plan amendment drafted for approval (ADR 0033 pending); owner conditionally approved the push after the green block.
+
+### 2026-08-24T09:39:25Z — cli
+Resume done (codex G5 closure benign unclosed session). Independent G5 review executing per approved plan: tripwires/evidence/doctor/CI-parity verified (captures 45/45 hashes, 9 calls 3/2/4, doctor exit 0); MAJOR finding: G5 'from click import Abort' is an undeclared dep (typer 0.27 vendors click) — core-mode mypy/pytest/atm fail, 6/9 CI checks would fail on push; latent Ctrl-C exit-1-not-130 at probe prompt; fix candidate 'from typer import Abort'. 4 review subagents in flight; findings to owner before any repo write; nothing committed.
+
 ### 2026-08-24T08:34:59Z — codex
 [auto-checkpoint] Committed the complete G5 closure as `5efce91` (`fix(profile): honor native proxy and authoritative probe contracts`); `main` is three commits ahead of `origin/main`, the worktree was clean, nothing was pushed, and G6 remains unstarted pending a separate owner-attended decision.
 
