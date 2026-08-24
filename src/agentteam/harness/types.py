@@ -92,6 +92,7 @@ class RawInvocationV1(InternalModel):
     duration_ms: int
     started_at: datetime | None = None
     finished_at: datetime | None = None
+    structured_output_channel: str | None = None
 
 
 class FileWriteV1(InternalModel):
@@ -122,6 +123,7 @@ class RenderedInvocationV1(InternalModel):
     placeholders: list[PlaceholderV1]
     schema_channel: str
     timeout_seconds: int
+    structured_output_channel: str | None = None
 
 
 class ExtractedStructured(InternalModel):

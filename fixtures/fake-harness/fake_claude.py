@@ -10,6 +10,7 @@ derived from the actual labels. When $FAKE_OBSERVE is set, the fake records
 its argv, cwd, selected env names/values, and stdin to that path as JSON.
 """
 
+import hashlib
 import json
 import os
 import re
@@ -131,7 +132,8 @@ def rate_limited_once():
     if not home:
         return True
     os.makedirs(home, exist_ok=True)
-    sentinel = os.path.join(home, ".fake-rate-limited")
+    scope = hashlib.sha256(os.getcwd().encode("utf-8")).hexdigest()[:16]
+    sentinel = os.path.join(home, ".fake-rate-limited-" + scope)
     if os.path.exists(sentinel):
         return False
     with open(sentinel, "w", encoding="utf-8") as fh:

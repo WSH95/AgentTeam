@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import shutil
+import sys
+from collections.abc import Iterator
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
@@ -13,6 +16,19 @@ if TYPE_CHECKING:
 
 H64 = "a" * 64
 NOW = datetime(2026, 8, 23, 12, 0, 0, tzinfo=UTC)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _fake_profile_homes() -> Iterator[None]:
+    """The checked-in fake profile models persistent, but disposable, homes."""
+    root = Path(__file__).resolve().parents[1] / "examples" / "profiles" / ".agentteam-local"
+    for harness in ("claude-code", "codex", "grok"):
+        home = root / "vendors" / harness
+        home.mkdir(parents=True, exist_ok=True)
+        if sys.platform != "win32":
+            home.chmod(0o700)
+    yield
+    shutil.rmtree(root, ignore_errors=True)
 
 
 def minimal_payloads() -> dict[str, dict[str, Any]]:
@@ -178,7 +194,25 @@ def make_render_context(
         digest=digest,
         created_at=NOW,
     )
-    profiles = {p.harness.value: p for p in seed_default_profiles().profiles}
+    from agentteam.domain.profile import Verification
+
+    profiles = {
+        p.harness.value: p.model_copy(
+            update={
+                "capabilities": [
+                    row.model_copy(
+                        update={
+                            "verification": Verification.VERIFIED,
+                            "cli_version": "test-version",
+                            "verified_at": NOW,
+                        }
+                    )
+                    for row in p.capabilities
+                ]
+            }
+        )
+        for p in seed_default_profiles().profiles
+    }
     workspace = tmp_path / "workspace"
     workspace.mkdir(exist_ok=True)
     (workspace / "target.ts").write_text("export const x = 1\n", encoding="utf-8")

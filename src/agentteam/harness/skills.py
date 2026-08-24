@@ -8,8 +8,12 @@ owner's own skills are never touched.
 
 from __future__ import annotations
 
+import contextlib
+import os
 import shutil
+import sys
 from pathlib import Path
+from types import TracebackType
 
 from agentteam.domain.assistant import ArtifactKind, RequirementLevel
 from agentteam.domain.run import DegradedPartV1
@@ -17,17 +21,117 @@ from agentteam.harness.rendering import RenderError
 from agentteam.harness.types import FileWriteV1, RenderContext
 
 MARKER = ".agentteam-managed"
+LOCK_FILE = ".agentteam-skills.lock"
+
+
+class ManagedSkillsLease:
+    """Exclusive cross-process lease for one persistent Claude Skill root."""
+
+    def __init__(self, config_home: Path, *, platform: str = sys.platform) -> None:
+        self.config_home = config_home
+        self.channel_root = config_home / "skills"
+        self.platform = platform
+        self._fd: int | None = None
+
+    def acquire(self) -> ManagedSkillsLease:
+        if self.config_home.is_symlink() or self.channel_root.is_symlink():
+            raise RenderError(f"refusing symlinked Claude Skill home: {self.channel_root}")
+        self.config_home.mkdir(parents=True, exist_ok=True)
+        if self.platform != "win32":
+            with contextlib.suppress(OSError):
+                self.config_home.chmod(0o700)
+        flags = os.O_CREAT | os.O_RDWR
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        lock_path = self.config_home / LOCK_FILE
+        fd: int | None = None
+        try:
+            fd = os.open(lock_path, flags, 0o600)
+            if self.platform == "win32":
+                import msvcrt
+
+                if os.fstat(fd).st_size == 0:
+                    os.write(fd, b"0")
+                os.lseek(fd, 0, os.SEEK_SET)
+                msvcrt.locking(fd, msvcrt.LK_LOCK, 1)  # type: ignore[attr-defined]
+            else:
+                import fcntl
+
+                fcntl.flock(fd, fcntl.LOCK_EX)
+            self._fd = fd
+        except OSError as error:
+            if fd is not None:
+                with contextlib.suppress(OSError):
+                    os.close(fd)
+            raise RenderError(f"cannot acquire Claude Skill lease: {error}") from None
+        try:
+            _require_managed_or_empty(self.channel_root)
+        except BaseException:
+            self.close()
+            raise
+        return self
+
+    def close(self) -> None:
+        if self._fd is None:
+            return
+        try:
+            _clean_managed(self.channel_root)
+        finally:
+            fd, self._fd = self._fd, None
+            try:
+                if self.platform == "win32":
+                    import msvcrt
+
+                    os.lseek(fd, 0, os.SEEK_SET)
+                    msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)  # type: ignore[attr-defined]
+                else:
+                    import fcntl
+
+                    fcntl.flock(fd, fcntl.LOCK_UN)
+            finally:
+                os.close(fd)
+
+    def __enter__(self) -> ManagedSkillsLease:
+        return self.acquire()
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        self.close()
+
+
+def _require_managed_or_empty(channel_root: Path) -> None:
+    if channel_root.exists() and not (channel_root / MARKER).is_file():
+        try:
+            occupied = any(channel_root.iterdir())
+        except OSError as error:
+            raise RenderError(f"cannot inspect Claude Skill directory: {error}") from None
+        if occupied:
+            raise RenderError(
+                f"refusing to write skills into an unmanaged existing directory: {channel_root}"
+            )
+
+
+def _clean_managed(channel_root: Path) -> None:
+    """Remove only content beneath a directory carrying our ownership marker."""
+    if not channel_root.is_dir() or not (channel_root / MARKER).is_file():
+        return
+    for child in channel_root.iterdir():
+        if child.name == MARKER:
+            continue
+        if child.is_symlink() or child.is_file():
+            child.unlink()
+        elif child.is_dir():
+            shutil.rmtree(child)
 
 
 def write_skills(ctx: RenderContext, channel_root: Path, channel: str) -> list[FileWriteV1]:
-    if (
-        channel_root.exists()
-        and not (channel_root / MARKER).exists()
-        and any(channel_root.iterdir())
-    ):
-        raise RenderError(
-            f"refusing to write skills into an unmanaged existing directory: {channel_root}"
-        )
+    if channel_root.is_symlink():
+        raise RenderError(f"refusing symlinked Skill directory: {channel_root}")
+    _require_managed_or_empty(channel_root)
     channel_root.mkdir(parents=True, exist_ok=True)
     (channel_root / MARKER).write_text("written by agentteam; safe to delete\n", encoding="utf-8")
 
@@ -46,7 +150,10 @@ def write_skills(ctx: RenderContext, channel_root: Path, channel: str) -> list[F
             continue
         destination = channel_root / artifact.ref
         if destination.exists():
-            shutil.rmtree(destination)
+            if destination.is_symlink() or destination.is_file():
+                destination.unlink()
+            else:
+                shutil.rmtree(destination)
         shutil.copytree(source, destination)
         writes.append(FileWriteV1(path=destination / "SKILL.md", role=part, channel=channel))
     if undeliverable:

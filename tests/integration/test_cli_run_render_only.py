@@ -68,6 +68,14 @@ def test_render_only_renders_all_three_and_touches_nothing_outside(tmp_path: Pat
         assert payload["harness"] == harness
         assert "env_values" not in payload  # excluded by construction
         assert payload["command"]["launcher_policy"] == "python-script"
+        if harness == "claude-code":
+            skill_paths = [
+                Path(item["path"])
+                for item in payload["files_written"]
+                if item["role"].startswith("skill:")
+            ]
+            assert skill_paths
+            assert all(out / "claude-code" / "config-home" in path.parents for path in skill_paths)
     # nothing outside the output dir changed
     assert _tree_digest(EXAMPLE) == package_before
     assert _tree_digest(workspace) == workspace_before
@@ -96,6 +104,27 @@ def test_without_render_only_the_run_launches(tmp_path: Path) -> None:
     result = runner.invoke(app, args, env={"FAKE_MODE": "ok"})
     assert result.exit_code == 0, result.output
     assert (tmp_path / "run-archive" / "run.json").is_file()
+
+
+def test_live_run_uses_persistent_profile_home_and_cleans_managed_skills(
+    tmp_path: Path,
+) -> None:
+    out = tmp_path / "run-archive"
+    observed_path = tmp_path / "observed.json"
+    args = _base_args(tmp_path, out)
+    args.remove("--render-only")
+    result = runner.invoke(
+        app,
+        args,
+        env={"FAKE_MODE": "ok", "FAKE_OBSERVE": str(observed_path)},
+    )
+    assert result.exit_code == 0, result.output
+    observed = json.loads(observed_path.read_text(encoding="utf-8"))
+    persistent = (CI_FAKE.parent / ".agentteam-local/vendors/claude-code").resolve()
+    assert observed["env"]["CLAUDE_CONFIG_DIR"] == str(persistent)
+    assert not (out / "legs/inv-claude-code/config-home/skills").exists()
+    skills = persistent / "skills"
+    assert sorted(path.name for path in skills.iterdir()) == [".agentteam-managed"]
 
 
 def test_missing_output_dir_exits_2(tmp_path: Path) -> None:

@@ -88,21 +88,27 @@ def test_codex_prefers_the_output_file_and_reads_turn_usage() -> None:
     assert leg.usage.cost_amount is None
 
 
-def test_codex_falls_back_to_the_agent_message_event() -> None:
+def test_codex_does_not_promote_the_agent_message_event() -> None:
     leg = CodexAdapter().parse(_raw(stdout=_read("codex/jsonl-ok.jsonl")))
-    assert leg.schema_outcome is SchemaOutcome.VALID
-    assert leg.review is not None
+    assert leg.schema_outcome is SchemaOutcome.MISSING
+    assert leg.review is None
+    assert any("authoritative" in p for p in leg.problems)
 
 
 def test_codex_no_agent_message_is_a_problem_not_a_crash() -> None:
     leg = CodexAdapter().parse(_raw(stdout=_read("codex/jsonl-no-agent-message.jsonl")))
     assert leg.review is None
     assert leg.schema_outcome is SchemaOutcome.MISSING
-    assert any("agent_message" in p for p in leg.problems)
+    assert any("authoritative" in p for p in leg.problems)
 
 
 def test_codex_tolerates_noise_lines() -> None:
-    leg = CodexAdapter().parse(_raw(stdout=_read("codex/jsonl-with-noise.jsonl")))
+    leg = CodexAdapter().parse(
+        _raw(
+            stdout=_read("codex/jsonl-with-noise.jsonl"),
+            output_file_text=(FIXTURES / "codex" / "final-message.json").read_text(),
+        )
+    )
     assert leg.schema_outcome is SchemaOutcome.VALID
     assert any("non-JSON event line" in p for p in leg.problems)
 

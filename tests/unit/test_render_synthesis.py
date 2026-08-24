@@ -38,14 +38,14 @@ def test_claude_synthesis_render_swaps_schema_and_skips_skills(
     rendered = ClaudeAdapter().render(ctx)
     schema_arg = rendered.argv[rendered.argv.index("--json-schema") + 1]
     assert "synthesis-report" in schema_arg
-    prompt_arg = rendered.argv[rendered.argv.index("--append-system-prompt") + 1]
-    assert prompt_arg == INSTRUCTIONS
+    prompt_path = Path(rendered.argv[rendered.argv.index("--append-system-prompt-file") + 1])
+    assert prompt_path.read_text(encoding="utf-8") == INSTRUCTIONS
     assert not (ctx.config_root / "skills").exists()
     parts = {part.part for part in rendered.injection.render}
     assert "synthesis-instructions" in parts
     assert "persona" not in parts
     assert not any(part.startswith("skill:") for part in parts)
-    assert rendered.files_written == []
+    assert {write.role for write in rendered.files_written} == {"instructions"}
 
 
 def test_codex_synthesis_render_swaps_schema_and_skips_skills(
@@ -53,8 +53,9 @@ def test_codex_synthesis_render_swaps_schema_and_skips_skills(
 ) -> None:
     ctx = _synthesis_ctx(render_context_builder, "codex", tmp_path)
     rendered = CodexAdapter().render(ctx)
-    agents_md = ctx.workspace_root / "AGENTS.md"
-    assert agents_md.read_text(encoding="utf-8") == INSTRUCTIONS
+    model_arg = next(arg for arg in rendered.argv if arg.startswith("model_instructions_file="))
+    model_file = Path(model_arg.partition("=")[2].strip('"'))
+    assert model_file.read_text(encoding="utf-8") == INSTRUCTIONS
     schema_file = ctx.scratch_dir / "output-schema.json"
     assert "synthesis-report" in schema_file.read_text(encoding="utf-8")
     assert not (ctx.workspace_root / ".agents" / "skills").exists()
@@ -73,7 +74,8 @@ def test_grok_synthesis_render_swaps_schema_and_skips_skills(
     schema_arg = rendered.argv[rendered.argv.index("--json-schema") + 1]
     assert "synthesis-report" in schema_arg
     prompt_file = ctx.scratch_dir / "prompt.md"
-    assert prompt_file.read_text(encoding="utf-8").startswith(INSTRUCTIONS)
+    assert prompt_file.read_text(encoding="utf-8") == "Review the change in target.ts.\n"
+    assert rendered.argv[rendered.argv.index("--rules") + 1] == INSTRUCTIONS
     assert not (ctx.workspace_root / ".grok" / "skills").exists()
     parts = {part.part for part in rendered.injection.render}
     assert "synthesis-instructions" in parts

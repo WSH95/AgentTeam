@@ -11,22 +11,33 @@ happen before the pending archive exists; all failures are `PreflightError`
 
 from __future__ import annotations
 
+import os
 import shutil
-from collections.abc import Callable, Sequence
+import sys
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 from pydantic import ValidationError
 
+from agentteam.domain.assistant import ArtifactKind
 from agentteam.domain.common import HarnessId
 from agentteam.domain.profile import HarnessProfileSetV1, HarnessProfileV1, ProfileKind
 from agentteam.domain.request import MAX_TRANSIENT_RETRIES, HarnessOverrideV1, RunRequestV1
 from agentteam.domain.run import RequestedV1
+from agentteam.harness.capabilities import readiness_problems
+from agentteam.harness.diagnostics import capture_version
+from agentteam.harness.environment import EnvironmentConflictError, build_environment
 from agentteam.resolution.archive import ArchiveContractError, PackageDigest, hash_package
 from agentteam.resolution.models import resolve_model_effort
 from agentteam.resolution.package import LoadedPackage, PackageError, load_package
-from agentteam.resolution.profiles import ProfileError, load_profile_set, resolve_profile_path
+from agentteam.resolution.profiles import (
+    ProfileError,
+    load_profile_set,
+    resolve_config_home,
+    resolve_profile_executable,
+)
 from agentteam.resolution.selection import SelectionError, SelectionOutcome, select_harnesses
 
 DEFAULT_TIMEOUT_SECONDS = 900
@@ -59,6 +70,7 @@ class ResolvedRun:
     oracle_path: Path | None
     timeout_seconds: int
     transient_retries: int
+    live_ready: bool
 
 
 def _resolve_against(base: Path, value: str) -> str:
@@ -156,7 +168,7 @@ def build_request(
 
 def _default_installed(profile_path: Path) -> Callable[[HarnessProfileV1], bool]:
     def installed(profile: HarnessProfileV1) -> bool:
-        resolved = resolve_profile_path(profile_path, profile.executable)
+        resolved = resolve_profile_executable(profile_path, profile.executable)
         return resolved.is_file() or shutil.which(str(profile.executable)) is not None
 
     return installed
@@ -170,8 +182,11 @@ def _leg_plan(
     request: RunRequestV1,
     resolved: LoadedPackage,
 ) -> LegPlan:
-    executable = resolve_profile_path(profile_path, profile.executable)
-    concrete = profile.model_copy(update={"executable": str(executable)})
+    executable = resolve_profile_executable(profile_path, profile.executable)
+    config_home = resolve_config_home(profile_path, profile.config_home)
+    concrete = profile.model_copy(
+        update={"executable": str(executable), "config_home": str(config_home)}
+    )
     model_by_harness = {o.harness: o.value for o in request.model_overrides}
     effort_by_harness = {o.harness: o.value for o in request.effort_overrides}
     requested = resolve_model_effort(
@@ -191,6 +206,10 @@ def preflight(
     *,
     profile_path: Path,
     installed: Callable[[HarnessProfileV1], bool] | None = None,
+    live: bool = False,
+    environ: Mapping[str, str] | None = None,
+    platform: str = sys.platform,
+    version_reader: Callable[[HarnessProfileV1], str | None] | None = None,
 ) -> ResolvedRun:
     if request.overlay_refs:
         raise PreflightError("overlay_refs are reserved for M3 and must be empty in M1a")
@@ -237,6 +256,58 @@ def preflight(
         raise PreflightError(
             f"synthesis harness {request.synthesis.harness.value} is not installed"
         )
+
+    if live:
+        parent = dict(os.environ if environ is None else environ)
+        needs_skills = any(
+            artifact.kind is ArtifactKind.AGENT_SKILL for artifact in package.definition.artifacts
+        )
+        live_problems: list[str] = []
+        for harness in dict.fromkeys(guarded):
+            raw_profile = by_id[harness]
+            try:
+                executable = resolve_profile_executable(profile_path, raw_profile.executable)
+                config_home = resolve_config_home(profile_path, raw_profile.config_home)
+            except ProfileError as error:
+                raise PreflightError(str(error)) from None
+            concrete = raw_profile.model_copy(
+                update={"executable": str(executable), "config_home": str(config_home)}
+            )
+            if not config_home.is_dir():
+                live_problems.append(f"{harness.value}: config home does not exist")
+                continue
+            try:
+                build_environment(concrete, parent, platform=platform)
+            except EnvironmentConflictError as error:
+                live_problems.append(f"{harness.value}: {error}")
+            current_version = (
+                version_reader(concrete)
+                if version_reader is not None
+                else capture_version(concrete, parent=parent, platform=platform)
+            )
+            if current_version is None:
+                live_problems.append(f"{harness.value}: --version failed")
+            if (
+                raw_profile.expected_version is not None
+                and current_version != raw_profile.expected_version
+            ):
+                live_problems.append(
+                    f"{harness.value}: expected version {raw_profile.expected_version!r}, "
+                    f"found {current_version!r}"
+                )
+            live_problems.extend(
+                f"{harness.value}: {problem}"
+                for problem in readiness_problems(
+                    raw_profile,
+                    cli_version=current_version,
+                    needs_skills=needs_skills,
+                )
+            )
+        if live_problems:
+            raise PreflightError(
+                "live harness readiness is incomplete; run `atm profile doctor --probe`: "
+                + "; ".join(live_problems)
+            )
 
     legs = [
         _leg_plan(
@@ -288,4 +359,5 @@ def preflight(
         oracle_path=oracle_path,
         timeout_seconds=timeout_seconds,
         transient_retries=transient_retries,
+        live_ready=live,
     )

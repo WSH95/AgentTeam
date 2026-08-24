@@ -47,10 +47,12 @@ from agentteam.domain.run import (
     UsageV1,
 )
 from agentteam.harness import get_adapter
+from agentteam.harness.capabilities import CLAUDE_SKILL_LADDER, select_verified
 from agentteam.harness.environment import EnvironmentConflictError
 from agentteam.harness.process import classify_failure
 from agentteam.harness.protocol import HarnessAdapter, StructuredExtractor
 from agentteam.harness.rendering import RenderError
+from agentteam.harness.skills import ManagedSkillsLease
 from agentteam.harness.types import (
     RawInvocationV1,
     RenderContext,
@@ -251,7 +253,9 @@ class _Runner:
             platform=self.platform,
             run_id=self.run_id,
             invocation_id=invocation_id,
-            timeout_seconds=self.resolved.timeout_seconds,
+            timeout_seconds=min(
+                self.resolved.timeout_seconds, plan.profile.timeouts.attempt_seconds
+            ),
             profile_file=self.resolved.profile_path,
             synthesis=synthesis,
         )
@@ -450,6 +454,10 @@ async def execute_run(
     platform: str = sys.platform,
     home: Path | None = None,
 ) -> RunOutcome:
+    if not resolved.live_ready:
+        raise PreflightError(
+            "execute_run requires live readiness checks; call preflight(..., live=True)"
+        )
     runner = _Runner(resolved, environ=environ, platform=platform, home=home)
     runner.create_archive()
     try:
@@ -475,10 +483,13 @@ async def _run_body(runner: _Runner) -> RunOutcome:
         return runner._finalize_run(status=RunStatus.FAILED, exit_code=2, failure_reason=str(error))
 
     prepared: list[tuple[LegPlan, str, RenderedInvocationV1, HarnessInvocationV1, Path]] = []
+    skill_leases: list[ManagedSkillsLease] = []
     try:
         for plan in resolved.legs:
             invocation_id = leg_invocation_id(plan.harness)
-            workspace_dir, config_home, scratch = runner.archive.working_dirs(invocation_id)
+            workspace_dir, _synthetic_config_home, scratch = runner.archive.working_dirs(
+                invocation_id
+            )
             copy_workspace(Path(request.workspace), workspace_dir)
             if hash_tree(workspace_dir) != source_hash:
                 return runner._finalize_run(
@@ -486,11 +497,19 @@ async def _run_body(runner: _Runner) -> RunOutcome:
                     exit_code=1,
                     failure_reason=f"workspace copy for {invocation_id} does not match the source",
                 )
+            if (
+                plan.harness.value == "claude-code"
+                and select_verified(plan.profile, CLAUDE_SKILL_LADDER) == "skills-config-home"
+            ):
+                lease = ManagedSkillsLease(
+                    Path(plan.profile.config_home), platform=runner.platform
+                ).acquire()
+                skill_leases.append(lease)
             context = runner._render_context(
                 plan,
                 invocation_id,
                 workspace=workspace_dir,
-                config_root=config_home,
+                config_root=Path(plan.profile.config_home),
                 scratch=scratch,
                 task_file=Path(request.task_file),
                 synthesis=None,
@@ -500,17 +519,23 @@ async def _run_body(runner: _Runner) -> RunOutcome:
             record = runner._pending_record(plan, invocation_id, rendered, source_hash)
             prepared.append((plan, invocation_id, rendered, record, workspace_dir))
     except (RenderError, EnvironmentConflictError, TargetError) as error:
+        for lease in reversed(skill_leases):
+            lease.close()
         return runner._finalize_run(status=RunStatus.FAILED, exit_code=2, failure_reason=str(error))
 
     # step 7: all requested legs, concurrently, fresh sessions
-    leg_outcomes = list(
-        await asyncio.gather(
-            *(
-                runner._execute_leg(plan, invocation_id, rendered, record, workspace_dir)
-                for plan, invocation_id, rendered, record, workspace_dir in prepared
+    try:
+        leg_outcomes = list(
+            await asyncio.gather(
+                *(
+                    runner._execute_leg(plan, invocation_id, rendered, record, workspace_dir)
+                    for plan, invocation_id, rendered, record, workspace_dir in prepared
+                )
             )
         )
-    )
+    finally:
+        for lease in reversed(skill_leases):
+            lease.close()
     legs_ok = all(outcome.record.status is RunStatus.SUCCEEDED for outcome in leg_outcomes)
     failed_legs = [
         outcome.invocation_id
@@ -651,13 +676,13 @@ async def _run_synthesis(
         ]
     )
     task_ref = runner.archive.write_leg_text(invocation_id, "task.md", document, role="task")
-    workspace_dir, config_home, scratch = runner.archive.working_dirs(invocation_id)
+    workspace_dir, _synthetic_config_home, scratch = runner.archive.working_dirs(invocation_id)
     before = hash_tree(workspace_dir)
     context = runner._render_context(
         plan,
         invocation_id,
         workspace=workspace_dir,
-        config_root=config_home,
+        config_root=Path(plan.profile.config_home),
         scratch=scratch,
         task_file=runner.archive.leg_dir(invocation_id) / "task.md",
         synthesis=SynthesisRenderV1(instructions_file=INSTRUCTIONS_FILE),

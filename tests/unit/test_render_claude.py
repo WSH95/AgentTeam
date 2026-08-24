@@ -16,6 +16,25 @@ from agentteam.harness.rendering import RenderError
 Builder = Callable[..., Any]
 
 
+def _only_channels(profile: Any, names: set[str]) -> Any:
+    from agentteam.domain.profile import Verification
+
+    return profile.model_copy(
+        update={
+            "capabilities": [
+                row.model_copy(
+                    update={
+                        "verification": (
+                            Verification.VERIFIED if row.name in names else Verification.UNVERIFIED
+                        )
+                    }
+                )
+                for row in profile.capabilities
+            ]
+        }
+    )
+
+
 def _render(builder: Builder, tmp_path: Path, **overrides: object) -> Any:
     ctx = builder("claude-code", tmp_path, **overrides)
     return ClaudeAdapter().render(ctx), ctx
@@ -37,8 +56,9 @@ def test_golden_argv_and_channels(render_context_builder: Builder, tmp_path: Pat
     schema = json.loads(flags[schema_index + 1])
     assert schema["$id"] == "urn:agentteam:schema:normalized-review:v1"
     assert "\n" not in flags[schema_index + 1]  # minified single line
-    prompt_index = flags.index("--append-system-prompt")
-    assert "meticulous senior code reviewer" in flags[prompt_index + 1]
+    prompt_index = flags.index("--append-system-prompt-file")
+    prompt_file = Path(flags[prompt_index + 1])
+    assert "meticulous senior code reviewer" in prompt_file.read_text(encoding="utf-8")
     assert rendered.stdin_text is not None and "Review the change" in rendered.stdin_text
     assert rendered.environment.config_home_variable == "CLAUDE_CONFIG_DIR"
     assert rendered.env_values["CLAUDE_CONFIG_DIR"] == str(ctx.config_root)
@@ -56,10 +76,35 @@ def test_skills_are_written_into_the_config_home_channel(
     assert marker.is_file()
     channels = {part.part: part.channel for part in rendered.injection.render}
     assert channels["skill:code-review"] == "config-home-skills"
-    assert channels["persona"] == "append-system-prompt-inline"
+    assert channels["persona"] == "append-system-prompt-file"
     assert channels["task"] == "stdin"
     assert channels["output-schema"] == "argv-inline"
     assert rendered.injection.undeliverable_required_parts == []
+
+
+def test_skill_channel_ladder_uses_plugin_then_workspace_fallbacks(
+    render_context_builder: Builder, tmp_path: Path
+) -> None:
+    ctx = render_context_builder("claude-code", tmp_path)
+    plugin_profile = _only_channels(
+        ctx.profile, {"append-system-prompt", "skills-plugin-dir", "skills-workspace"}
+    )
+    plugin = ClaudeAdapter().render(ctx.model_copy(update={"profile": plugin_profile}))
+    assert "--plugin-dir" in plugin.argv
+    assert any(write.channel == "plugin-dir-skills" for write in plugin.files_written)
+
+    workspace_profile = _only_channels(ctx.profile, {"append-system-prompt", "skills-workspace"})
+    workspace = ClaudeAdapter().render(
+        ctx.model_copy(
+            update={
+                "profile": workspace_profile,
+                "workspace_root": tmp_path / "workspace-fallback",
+                "scratch_dir": tmp_path / "scratch-fallback",
+            }
+        )
+    )
+    assert "--plugin-dir" not in workspace.argv
+    assert any(write.channel == "workspace-claude-skills" for write in workspace.files_written)
 
 
 def test_model_and_effort_flags_appear_when_resolved(
@@ -109,8 +154,30 @@ def test_argv_length_guard(render_context_builder: Builder, tmp_path: Path) -> N
     from agentteam.resolution.package import load_package
 
     loaded = load_package(huge)
+    from agentteam.domain.profile import Verification
+
+    profile = ctx.profile.model_copy(
+        update={
+            "capabilities": [
+                row.model_copy(
+                    update={
+                        "verification": (
+                            Verification.UNVERIFIED
+                            if row.name == "append-system-prompt-file"
+                            else row.verification
+                        )
+                    }
+                )
+                for row in ctx.profile.capabilities
+            ]
+        }
+    )
     ctx2 = render_context_builder(
-        "claude-code", tmp_path, package_root=huge, definition=loaded.definition
+        "claude-code",
+        tmp_path,
+        package_root=huge,
+        definition=loaded.definition,
+        profile=profile,
     )
     with pytest.raises(RenderError, match="argv length"):
         ClaudeAdapter().render(ctx2)
@@ -124,7 +191,7 @@ def test_command_record_is_redacted_and_launcher_resolved(
     joined = " ".join(rendered.command.argv_redacted)
     assert str(ctx.workspace) not in joined
     assert str(ctx.scratch_dir) not in joined
-    assert "<INSTRUCTIONS_TEXT>" in joined and "<SCHEMA_JSON>" in joined
+    assert "<INSTRUCTIONS_FILE>" in joined and "<SCHEMA_JSON>" in joined
     assert rendered.command.cwd == "<WORKSPACE>"
     dumped = rendered.model_dump_json()
     assert "/home/u" not in dumped  # env values never serialise

@@ -12,6 +12,7 @@ plan names only the categories, so the concrete names live here as data
 
 from __future__ import annotations
 
+import shutil
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -78,15 +79,23 @@ _SEED_CAPABILITIES: dict[HarnessId, list[tuple[str, Verification]]] = {
     HarnessId.CODEX: [
         ("headless-jsonl", Verification.OBSERVED),
         ("structured-output", Verification.OBSERVED),
+        ("output-last-message", Verification.OBSERVED),
+        ("jsonl-final-agent-message", Verification.UNVERIFIED),
         ("instructions-workspace-agents-md", Verification.OBSERVED),
         ("instructions-model-instructions-file", Verification.OBSERVED),
+        ("instructions-developer-instructions", Verification.OBSERVED),
         ("skills-workspace", Verification.OBSERVED),
     ],
     HarnessId.GROK: [
         ("headless-json", Verification.OBSERVED),
         ("structured-output", Verification.OBSERVED),
         ("prompt-file", Verification.OBSERVED),
-        ("skills-workspace", Verification.OBSERVED),
+        ("instructions-rules", Verification.OBSERVED),
+        ("instructions-system-prompt-override", Verification.OBSERVED),
+        ("skills-workspace-grok", Verification.OBSERVED),
+        ("skills-workspace-agents", Verification.OBSERVED),
+        ("structured-output-field", Verification.UNVERIFIED),
+        ("structured-output-text", Verification.UNVERIFIED),
         ("native-auth", Verification.UNVERIFIED),
     ],
 }
@@ -160,3 +169,29 @@ def resolve_profile_path(profile_file: Path, value: str) -> Path:
         return candidate
     resolved = (Path(profile_file).parent / candidate).resolve()
     return resolved
+
+
+def resolve_config_home(profile_file: Path, value: str) -> Path:
+    """Resolve a config home while refusing every symlinked path component."""
+    candidate = Path(value).expanduser()
+    lexical = candidate if candidate.is_absolute() else Path(profile_file).parent / candidate
+    lexical = lexical.absolute()
+    current = Path(lexical.anchor)
+    for part in lexical.parts[1:]:
+        current = current / part
+        if current.is_symlink():
+            raise ProfileError(f"unsafe symlink in config home: {current}")
+    return lexical.resolve()
+
+
+def resolve_profile_executable(profile_file: Path, value: str) -> Path:
+    """Resolve path-like values against the profile and command names via PATH."""
+    candidate = Path(value).expanduser()
+    path_like = candidate.is_absolute() or candidate.parent != Path(".")
+    if path_like:
+        return resolve_profile_path(profile_file, value)
+    profile_relative = Path(profile_file).parent / candidate
+    if profile_relative.is_file():
+        return profile_relative.resolve()
+    found = shutil.which(value)
+    return Path(found) if found is not None else resolve_profile_path(profile_file, value)

@@ -103,7 +103,13 @@ def register_run(app: typer.Typer) -> None:
 
         profile_path = config if config is not None else default_profile_path(os.environ)
         try:
-            resolved = preflight(request, profile_path=profile_path)
+            resolved = preflight(
+                request,
+                profile_path=profile_path,
+                live=not render_only,
+                environ=os.environ,
+                platform=sys.platform,
+            )
         except PreflightError as error:
             raise fail(str(error), exit_code=error.exit_code) from None
 

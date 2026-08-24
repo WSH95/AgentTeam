@@ -1,12 +1,9 @@
 """Grok adapter (plan section 11; fact sheet 2026-08-23, grok 1.0.5).
 
 Headless entry is `grok -p` with `--prompt-file` (never `grok agent headless`,
-a WebSocket relay). `--rules`/`--system-prompt-override` are inline-only, so
-the instructions travel as a prompt-file preamble ahead of the task (file
-delivery, recorded as `prompt-file-preamble`). Where the structured output
-lands under plain `--output-format json` is undocumented until the G5 probe:
-the parser accepts a `structured_output` field or `text` that parses as the
-review JSON. Cost is often absent under subscription OAuth; `cost_source` is
+a WebSocket relay). `--rules`/`--system-prompt-override` and the structured
+output location are selected only after probing. Cost is often absent under
+subscription OAuth; `cost_source` is
 decided per run and never fabricated.
 """
 
@@ -15,6 +12,12 @@ from __future__ import annotations
 import json
 
 from agentteam.domain.run import InjectionV1, RenderedPartV1, SchemaOutcome, UsageV1
+from agentteam.harness.capabilities import (
+    GROK_INSTRUCTION_LADDER,
+    GROK_OUTPUT_LADDER,
+    GROK_SKILL_LADDER,
+    select_verified,
+)
 from agentteam.harness.environment import build_environment
 from agentteam.harness.parsing import (
     cost_from_total_usd,
@@ -23,6 +26,7 @@ from agentteam.harness.parsing import (
 )
 from agentteam.harness.process import ProcessSpec, run_process
 from agentteam.harness.rendering import (
+    RenderError,
     build_command_record,
     guard_argv_length,
     instruction_parts,
@@ -48,22 +52,44 @@ class GrokAdapter:
     harness = "grok"
 
     async def probe(self, context: object) -> HarnessCapabilityReportV1:
-        raise NotImplementedError("capability probes arrive at G5")
+        raise NotImplementedError("profile doctor owns attended capability probes")
 
     def render(self, ctx: RenderContext) -> RenderedInvocationV1:
         instructions = read_instruction_text(ctx)
         task = read_task_text(ctx)
         schema_min = vendor_schema_min(schema_name_for(ctx))
+        instruction_channel = select_verified(ctx.profile, GROK_INSTRUCTION_LADDER)
+        if instruction_channel is None:
+            raise RenderError(
+                "Grok has no probe-verified instruction channel; run `atm profile doctor --probe`"
+            )
+        output_channel = select_verified(ctx.profile, GROK_OUTPUT_LADDER)
+        if output_channel is None:
+            raise RenderError(
+                "Grok has no probe-verified structured-output location; "
+                "run `atm profile doctor --probe`"
+            )
+        skill_channel = (
+            None if ctx.synthesis is not None else select_verified(ctx.profile, GROK_SKILL_LADDER)
+        )
+        if ctx.synthesis is None and skill_channel is None:
+            raise RenderError(
+                "Grok has no probe-verified Skill channel; run `atm profile doctor --probe`"
+            )
 
         ctx.workspace_root.mkdir(parents=True, exist_ok=True)
         ctx.scratch_dir.mkdir(parents=True, exist_ok=True)
         prompt_file = ctx.scratch_dir / "prompt.md"
-        prompt_file.write_text(instructions + "\n---\n\n# Task\n\n" + task, encoding="utf-8")
-        skill_writes: list[FileWriteV1] = (
-            []
-            if ctx.synthesis is not None
-            else write_skills(ctx, ctx.workspace_root / ".grok" / "skills", "workspace-grok-skills")
-        )
+        prompt_file.write_text(task, encoding="utf-8")
+        skill_writes: list[FileWriteV1] = []
+        if skill_channel == "skills-workspace-grok":
+            skill_writes = write_skills(
+                ctx, ctx.workspace_root / ".grok" / "skills", "workspace-grok-skills"
+            )
+        elif skill_channel == "skills-workspace-agents":
+            skill_writes = write_skills(
+                ctx, ctx.workspace_root / ".agents" / "skills", "workspace-agents-skills"
+            )
 
         env_values, env_record = build_environment(
             ctx.profile, ctx.parent_env, platform=ctx.platform
@@ -83,6 +109,12 @@ class GrokAdapter:
             "--no-subagents",
             "--sandbox",
             "read-only",
+            (
+                "--rules"
+                if instruction_channel == "instructions-rules"
+                else "--system-prompt-override"
+            ),
+            instructions,
             "--json-schema",
             schema_min,
         ]
@@ -94,7 +126,12 @@ class GrokAdapter:
         argv, policy = resolve_for_render(ctx, rest)
         guard_argv_length(argv)
 
-        parts = instruction_parts(ctx, "prompt-file-preamble")
+        rendered_instruction_channel = (
+            "rules-inline"
+            if instruction_channel == "instructions-rules"
+            else "system-prompt-override-inline"
+        )
+        parts = instruction_parts(ctx, rendered_instruction_channel)
         parts.append(RenderedPartV1(part="task", channel="prompt-file"))
         parts.append(RenderedPartV1(part="output-schema", channel="argv-inline"))
         parts += [RenderedPartV1(part=w.role, channel=w.channel) for w in skill_writes]
@@ -107,6 +144,7 @@ class GrokAdapter:
             launcher_prefix=len(argv) - len(rest),
             substitutions={
                 schema_min: "<SCHEMA_JSON>",
+                instructions: "<INSTRUCTIONS_TEXT>",
                 str(prompt_file): "<PROMPT_FILE>",
                 str(ctx.workspace_root): "<WORKSPACE>",
                 str(ctx.config_root): "<CONFIG_HOME>",
@@ -130,10 +168,11 @@ class GrokAdapter:
             placeholders=placeholders,
             schema_channel="argv-inline",
             timeout_seconds=ctx.timeout_seconds,
+            structured_output_channel=output_channel,
         )
 
     async def invoke(self, rendered: RenderedInvocationV1) -> RawInvocationV1:
-        return await run_process(
+        raw = await run_process(
             ProcessSpec(
                 argv=rendered.argv,
                 env=rendered.env_values,
@@ -142,6 +181,9 @@ class GrokAdapter:
                 timeout_seconds=rendered.timeout_seconds,
                 output_file=rendered.output_file,
             )
+        )
+        return raw.model_copy(
+            update={"structured_output_channel": rendered.structured_output_channel}
         )
 
     def extract_structured(self, raw: RawInvocationV1) -> ExtractedStructured:
@@ -168,8 +210,11 @@ class GrokAdapter:
                 problems=[f"vendor error: {payload.get('message', 'unknown')}"],
                 hard_failure=True,
             )
-        candidate = payload.get("structured_output")
-        if candidate is None:
+        candidate = None
+        channel = raw.structured_output_channel
+        if channel in (None, "structured-output-field"):
+            candidate = payload.get("structured_output")
+        if candidate is None and channel in (None, "structured-output-text"):
             text = payload.get("text")
             if isinstance(text, str):
                 try:

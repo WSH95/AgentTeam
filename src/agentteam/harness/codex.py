@@ -3,9 +3,8 @@
 `codex exec` has no `-a/--ask-for-approval` in 0.149.0, so approval is pinned
 with `-c approval_policy="never"` (recorded deviation). The structured-output
 schema travels by file (`--output-schema`); the final message is read from the
-`-o` file because the JSONL event carrying it is not documented — the event
-stream is telemetry. Instructions use the workspace `AGENTS.md` channel
-(file-delivered) until the G5 probe settles the ladder. Cost is always
+authoritative `-o` file and the final JSONL agent-message is agreement
+telemetry only. Instructions use the first probe-verified channel. Cost is always
 `cost_source: unavailable` (plan section 7).
 """
 
@@ -15,10 +14,16 @@ import json
 from typing import Any
 
 from agentteam.domain.run import InjectionV1, ObservedV1, RenderedPartV1, UsageV1
+from agentteam.harness.capabilities import (
+    CODEX_INSTRUCTION_LADDER,
+    CODEX_SKILL_LADDER,
+    select_verified,
+)
 from agentteam.harness.environment import build_environment
 from agentteam.harness.parsing import review_from_object
 from agentteam.harness.process import ProcessSpec, run_process
 from agentteam.harness.rendering import (
+    RenderError,
     build_command_record,
     guard_argv_length,
     instruction_parts,
@@ -44,15 +49,59 @@ class CodexAdapter:
     harness = "codex"
 
     async def probe(self, context: object) -> HarnessCapabilityReportV1:
-        raise NotImplementedError("capability probes arrive at G5")
+        raise NotImplementedError("profile doctor owns attended capability probes")
 
     def render(self, ctx: RenderContext) -> RenderedInvocationV1:
         instructions = read_instruction_text(ctx)
         task = read_task_text(ctx)
+        instruction_channel = select_verified(ctx.profile, CODEX_INSTRUCTION_LADDER)
+        if instruction_channel is None:
+            raise RenderError(
+                "Codex has no probe-verified instruction channel; run `atm profile doctor --probe`"
+            )
+        skill_channel = (
+            None if ctx.synthesis is not None else select_verified(ctx.profile, CODEX_SKILL_LADDER)
+        )
+        if ctx.synthesis is None and skill_channel is None:
+            raise RenderError(
+                "Codex has no probe-verified Skill channel; run `atm profile doctor --probe`"
+            )
 
         ctx.workspace_root.mkdir(parents=True, exist_ok=True)
-        agents_md = ctx.workspace_root / "AGENTS.md"
-        agents_md.write_text(instructions, encoding="utf-8")
+        ctx.scratch_dir.mkdir(parents=True, exist_ok=True)
+        files: list[FileWriteV1] = []
+        instruction_config: list[str] = []
+        instruction_path: str | None = None
+        developer_literal: str | None = None
+        if instruction_channel == "instructions-model-instructions-file":
+            model_instructions = ctx.scratch_dir / "model-instructions.md"
+            model_instructions.write_text(instructions, encoding="utf-8")
+            instruction_path = str(model_instructions)
+            instruction_config = [
+                "-c",
+                "model_instructions_file=" + json.dumps(str(model_instructions)),
+            ]
+            files.append(
+                FileWriteV1(
+                    path=model_instructions,
+                    role="instructions",
+                    channel="model-instructions-file",
+                )
+            )
+        elif instruction_channel == "instructions-developer-instructions":
+            developer_literal = json.dumps(instructions)
+            instruction_config = ["-c", "developer_instructions=" + developer_literal]
+        else:
+            agents_md = ctx.workspace_root / "AGENTS.md"
+            agents_md.write_text(instructions, encoding="utf-8")
+            instruction_path = str(agents_md)
+            files.append(
+                FileWriteV1(
+                    path=agents_md,
+                    role="instructions",
+                    channel="workspace-agents-md",
+                )
+            )
         skill_writes: list[FileWriteV1] = (
             []
             if ctx.synthesis is not None
@@ -60,10 +109,11 @@ class CodexAdapter:
                 ctx, ctx.workspace_root / ".agents" / "skills", "workspace-agents-skills"
             )
         )
+        files.extend(skill_writes)
 
-        ctx.scratch_dir.mkdir(parents=True, exist_ok=True)
         schema_file = ctx.scratch_dir / "output-schema.json"
         schema_file.write_text(render_schema(schema_name_for(ctx)), encoding="utf-8")
+        files.append(FileWriteV1(path=schema_file, role="output-schema", channel="file"))
         output_file = ctx.scratch_dir / "final-message.json"
 
         env_values, env_record = build_environment(
@@ -83,6 +133,7 @@ class CodexAdapter:
             "read-only",
             "-c",
             'approval_policy="never"',
+            *instruction_config,
             "--output-schema",
             str(schema_file),
             "-o",
@@ -99,7 +150,12 @@ class CodexAdapter:
         argv, policy = resolve_for_render(ctx, rest)
         guard_argv_length(argv)
 
-        parts = instruction_parts(ctx, "workspace-agents-md")
+        rendered_instruction_channel = {
+            "instructions-model-instructions-file": "model-instructions-file",
+            "instructions-developer-instructions": "developer-instructions-inline",
+            "instructions-workspace-agents-md": "workspace-agents-md",
+        }[instruction_channel]
+        parts = instruction_parts(ctx, rendered_instruction_channel)
         parts.append(RenderedPartV1(part="task", channel="stdin"))
         parts.append(RenderedPartV1(part="output-schema", channel="file"))
         parts += [RenderedPartV1(part=w.role, channel=w.channel) for w in skill_writes]
@@ -116,15 +172,14 @@ class CodexAdapter:
                 str(output_file): "<OUT_FILE>",
                 str(ctx.config_root): "<CONFIG_HOME>",
                 str(ctx.task_file): "<TASK_FILE>",
+                **({instruction_path: "<INSTRUCTIONS_FILE>"} if instruction_path else {}),
+                **(
+                    {developer_literal: "<INSTRUCTIONS_TEXT_JSON>"}
+                    if developer_literal is not None
+                    else {}
+                ),
             },
         )
-        from agentteam.harness.types import FileWriteV1
-
-        files = [
-            FileWriteV1(path=agents_md, role="instructions", channel="workspace-agents-md"),
-            FileWriteV1(path=schema_file, role="output-schema", channel="file"),
-            *skill_writes,
-        ]
         return RenderedInvocationV1(
             harness=self.harness,
             argv=argv,
@@ -169,16 +224,22 @@ class CodexAdapter:
                         }
                     )
         candidate: Any = None
+        event_candidate = _final_agent_message(events)
         if raw.output_file_text is not None:
             text = raw.output_file_text.strip()
             try:
                 candidate = json.loads(text)
             except json.JSONDecodeError:
                 problems.append("final-message file is not JSON")
+            if candidate is not None and event_candidate is not None:
+                if event_candidate == candidate:
+                    problems.append("JSONL final agent_message agrees with the -o file")
+                else:
+                    problems.append(
+                        "JSONL final agent_message disagrees with the authoritative -o file"
+                    )
         else:
-            candidate = _final_agent_message(events)
-            if candidate is None:
-                problems.append("no -o file and no agent_message event found")
+            problems.append("authoritative -o final-message file is missing")
         return ExtractedStructured(
             candidate=candidate,
             usage=usage,

@@ -12,6 +12,32 @@ from agentteam.harness.grok import GrokAdapter
 Builder = Callable[..., Any]
 
 
+def _fallback_profile(profile: Any) -> Any:
+    from agentteam.domain.profile import Verification
+
+    selected = {
+        "instructions-system-prompt-override",
+        "skills-workspace-agents",
+        "structured-output-text",
+    }
+    return profile.model_copy(
+        update={
+            "capabilities": [
+                row.model_copy(
+                    update={
+                        "verification": (
+                            Verification.VERIFIED
+                            if row.name in selected
+                            else Verification.UNVERIFIED
+                        )
+                    }
+                )
+                for row in profile.capabilities
+            ]
+        }
+    )
+
+
 def _render(builder: Builder, tmp_path: Path, **overrides: object) -> Any:
     ctx = builder("grok", tmp_path, **overrides)
     return GrokAdapter().render(ctx), ctx
@@ -26,9 +52,10 @@ def test_golden_argv_and_prompt_file(render_context_builder: Builder, tmp_path: 
     prompt = Path(argv[prompt_index + 1])
     assert prompt.is_file()
     text = prompt.read_text(encoding="utf-8")
-    # preamble carries the instructions, then the task
-    assert "meticulous senior code reviewer" in text
-    assert text.index("meticulous") < text.index("Review the change")
+    assert "Review the change" in text
+    assert "meticulous senior code reviewer" not in text
+    rules_index = argv.index("--rules")
+    assert "meticulous senior code reviewer" in argv[rules_index + 1]
     assert argv >= ["--output-format", "json"]
     assert "--no-subagents" in argv
     assert argv >= ["--sandbox", "read-only"]
@@ -38,7 +65,7 @@ def test_golden_argv_and_prompt_file(render_context_builder: Builder, tmp_path: 
     assert rendered.env_values["GROK_HOME"] == str(ctx.config_root)
     assert rendered.env_values["GROK_MEMORY"] == "0"
     channels = {part.part: part.channel for part in rendered.injection.render}
-    assert channels["persona"] == "prompt-file-preamble"
+    assert channels["persona"] == "rules-inline"
     assert channels["task"] == "prompt-file"
 
 
@@ -50,6 +77,26 @@ def test_skills_primary_and_fallback_channels(
         assert (ctx.workspace_root / ".grok" / "skills" / name / "SKILL.md").is_file()
     channels = {part.part: part.channel for part in rendered.injection.render}
     assert channels["skill:code-review"] == "workspace-grok-skills"
+
+
+def test_grok_uses_system_prompt_agents_skills_and_text_location_fallbacks(
+    render_context_builder: Builder, tmp_path: Path
+) -> None:
+    ctx = render_context_builder("grok", tmp_path)
+    workspace = tmp_path / "fallback-workspace"
+    rendered = GrokAdapter().render(
+        ctx.model_copy(
+            update={
+                "profile": _fallback_profile(ctx.profile),
+                "workspace_root": workspace,
+                "scratch_dir": tmp_path / "fallback-scratch",
+            }
+        )
+    )
+    assert "--system-prompt-override" in rendered.argv
+    assert "--rules" not in rendered.argv
+    assert (workspace / ".agents" / "skills" / "code-review" / "SKILL.md").is_file()
+    assert rendered.structured_output_channel == "structured-output-text"
 
 
 def test_effort_flag(render_context_builder: Builder, tmp_path: Path) -> None:

@@ -11,6 +11,27 @@ from agentteam.harness.codex import CodexAdapter
 Builder = Callable[..., Any]
 
 
+def _only_instruction_channel(profile: Any, name: str) -> Any:
+    from agentteam.domain.profile import Verification
+
+    return profile.model_copy(
+        update={
+            "capabilities": [
+                row.model_copy(
+                    update={
+                        "verification": (
+                            Verification.VERIFIED
+                            if row.name in {name, "skills-workspace"}
+                            else Verification.UNVERIFIED
+                        )
+                    }
+                )
+                for row in profile.capabilities
+            ]
+        }
+    )
+
+
 def _render(builder: Builder, tmp_path: Path, **overrides: object) -> Any:
     ctx = builder("codex", tmp_path, **overrides)
     return CodexAdapter().render(ctx), ctx
@@ -39,18 +60,44 @@ def test_golden_argv(render_context_builder: Builder, tmp_path: Path) -> None:
     assert rendered.env_values["CODEX_HOME"] == str(ctx.config_root)
 
 
-def test_instructions_go_to_workspace_agents_md(
+def test_instructions_use_the_verified_model_instructions_file(
     render_context_builder: Builder, tmp_path: Path
 ) -> None:
-    rendered, ctx = _render(render_context_builder, tmp_path)
-    agents_md = ctx.workspace_root / "AGENTS.md"
-    assert agents_md.is_file()
-    text = agents_md.read_text(encoding="utf-8")
+    rendered, _ctx = _render(render_context_builder, tmp_path)
+    value = next(arg for arg in rendered.argv if arg.startswith("model_instructions_file="))
+    path = Path(value.partition("=")[2].strip('"'))
+    text = path.read_text(encoding="utf-8")
     assert "meticulous senior code reviewer" in text  # persona
     assert "Evidence over impression" in text  # principles
     channels = {part.part: part.channel for part in rendered.injection.render}
-    assert channels["persona"] == "workspace-agents-md"
+    assert channels["persona"] == "model-instructions-file"
     assert channels["task"] == "stdin"
+
+
+def test_instruction_ladder_falls_back_to_developer_then_agents_md(
+    render_context_builder: Builder, tmp_path: Path
+) -> None:
+    ctx = render_context_builder("codex", tmp_path)
+    developer_profile = _only_instruction_channel(
+        ctx.profile, "instructions-developer-instructions"
+    )
+    developer = CodexAdapter().render(ctx.model_copy(update={"profile": developer_profile}))
+    assert any(arg.startswith("developer_instructions=") for arg in developer.argv)
+    assert not (ctx.workspace_root / "AGENTS.md").exists()
+
+    agents_profile = _only_instruction_channel(ctx.profile, "instructions-workspace-agents-md")
+    agents_root = tmp_path / "agents-fallback"
+    agents = CodexAdapter().render(
+        ctx.model_copy(
+            update={
+                "profile": agents_profile,
+                "workspace_root": agents_root,
+                "scratch_dir": tmp_path / "agents-scratch",
+            }
+        )
+    )
+    assert (agents_root / "AGENTS.md").is_file()
+    assert not any(arg.startswith("developer_instructions=") for arg in agents.argv)
 
 
 def test_skills_go_to_workspace_agents_skills(

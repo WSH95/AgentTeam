@@ -8,6 +8,7 @@ chosen; the oracle is resolved and checked but never copied anywhere.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +16,7 @@ import pytest
 from pydantic import ValidationError
 
 from agentteam.domain.common import HarnessId
-from agentteam.domain.profile import HarnessProfileV1, ProfileKind
+from agentteam.domain.profile import HarnessProfileV1, ProfileKind, Verification
 from agentteam.domain.request import AcceptanceSettingsV1, HarnessOverrideV1, RunRequestV1
 from agentteam.resolution.profiles import seed_default_profiles, write_profile_set
 from agentteam.run.preflight import PreflightError, build_request, preflight
@@ -36,6 +37,36 @@ def _profiles_path(tmp_path: Path, *, api_test: frozenset[str] = frozenset()) ->
         else profile
         for profile in profile_set.profiles
     ]
+    path = tmp_path / "profiles.yaml"
+    write_profile_set(path, profile_set.model_copy(update={"profiles": updated}))
+    return path
+
+
+def _live_profiles_path(
+    tmp_path: Path, *, version: str = "current-version", expected: str | None = None
+) -> Path:
+    profile_set = seed_default_profiles()
+    updated = []
+    for profile in profile_set.profiles:
+        home = tmp_path / "vendors" / profile.harness.value
+        home.mkdir(parents=True)
+        updated.append(
+            profile.model_copy(
+                update={
+                    "expected_version": expected,
+                    "capabilities": [
+                        row.model_copy(
+                            update={
+                                "verification": Verification.VERIFIED,
+                                "cli_version": version,
+                                "verified_at": datetime(2026, 8, 23, tzinfo=UTC),
+                            }
+                        )
+                        for row in profile.capabilities
+                    ],
+                }
+            )
+        )
     path = tmp_path / "profiles.yaml"
     write_profile_set(path, profile_set.model_copy(update={"profiles": updated}))
     return path
@@ -335,3 +366,89 @@ def test_leg_plans_carry_resolved_models_with_cli_precedence(tmp_path: Path) -> 
     synthesis = resolved.synthesis_leg
     assert synthesis is not None
     assert synthesis.harness is HarnessId.CLAUDE_CODE
+
+
+def test_live_preflight_resolves_the_persistent_profile_home(tmp_path: Path) -> None:
+    profiles = _live_profiles_path(tmp_path)
+    resolved = preflight(
+        _request(tmp_path),
+        profile_path=profiles,
+        installed=_installed,
+        live=True,
+        environ={},
+        version_reader=lambda _profile: "current-version",
+    )
+    assert resolved.live_ready is True
+    assert Path(resolved.legs[0].profile.config_home) == (tmp_path / "vendors" / "claude-code")
+
+
+@pytest.mark.parametrize(
+    ("recorded", "current", "expected", "match"),
+    [
+        ("old-version", "current-version", None, "stale"),
+        ("current-version", "current-version", "required-version", "expected version"),
+    ],
+)
+def test_live_preflight_rejects_stale_or_expected_version_mismatch(
+    tmp_path: Path,
+    recorded: str,
+    current: str,
+    expected: str | None,
+    match: str,
+) -> None:
+    profiles = _live_profiles_path(tmp_path, version=recorded, expected=expected)
+    with pytest.raises(PreflightError, match=match):
+        preflight(
+            _request(tmp_path),
+            profile_path=profiles,
+            installed=_installed,
+            live=True,
+            environ={},
+            version_reader=lambda _profile: current,
+        )
+
+
+def test_live_preflight_rejects_incomplete_readiness_and_conflicting_env(
+    tmp_path: Path,
+) -> None:
+    path = _live_profiles_path(tmp_path)
+    # Reuse the already-versioned on-disk rows and make one required row unverified.
+    from agentteam.resolution.profiles import load_profile_set
+
+    profile_set = load_profile_set(path)
+    claude = profile_set.profiles[0]
+    rows = [
+        row.model_copy(update={"verification": Verification.UNVERIFIED})
+        if row.name == "structured-output"
+        else row
+        for row in claude.capabilities
+    ]
+    write_profile_set(
+        path,
+        profile_set.model_copy(
+            update={
+                "profiles": [
+                    claude.model_copy(update={"capabilities": rows}),
+                    *profile_set.profiles[1:],
+                ]
+            }
+        ),
+    )
+    with pytest.raises(PreflightError, match="structured-output"):
+        preflight(
+            _request(tmp_path),
+            profile_path=path,
+            installed=_installed,
+            live=True,
+            environ={},
+            version_reader=lambda _profile: "current-version",
+        )
+    with pytest.raises(PreflightError, match="ANTHROPIC_API_KEY"):
+        preflight(
+            _request(tmp_path),
+            profile_path=_live_profiles_path(tmp_path / "conflict"),
+            installed=_installed,
+            live=True,
+            environ={"ANTHROPIC_API_KEY": "never-record-this"},
+            version_reader=lambda _profile: "current-version",
+        )

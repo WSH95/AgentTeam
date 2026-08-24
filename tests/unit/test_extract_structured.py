@@ -61,12 +61,43 @@ def test_codex_extraction_prefers_the_output_file() -> None:
     assert extracted.hard_failure is False
 
 
-def test_codex_falls_back_to_the_agent_message_event() -> None:
+def test_codex_requires_the_authoritative_output_file() -> None:
     adapter = CodexAdapter()
     raw = _raw(stdout=(FIXTURES / "codex" / "jsonl-ok.jsonl").read_bytes())
     extracted = adapter.extract_structured(raw)
-    assert extracted.candidate is not None
+    assert extracted.candidate is None
     assert extracted.hard_failure is False
+    assert any("authoritative" in problem for problem in extracted.problems)
+
+
+def test_codex_reports_jsonl_agreement_and_disagreement_as_telemetry() -> None:
+    adapter = CodexAdapter()
+    stdout = (FIXTURES / "codex" / "jsonl-ok.jsonl").read_bytes()
+    final = (FIXTURES / "codex" / "final-message.json").read_text(encoding="utf-8")
+    agreement = adapter.extract_structured(_raw(stdout=stdout, output_file_text=final))
+    assert any("agrees" in problem for problem in agreement.problems)
+    altered = final.replace("One critical finding.", "Authoritative file wins.")
+    disagreement = adapter.extract_structured(_raw(stdout=stdout, output_file_text=altered))
+    assert disagreement.candidate is not None
+    assert disagreement.candidate["summary"] == "Authoritative file wins."
+    assert any("disagrees" in problem for problem in disagreement.problems)
+
+
+def test_grok_reads_only_the_probe_selected_output_location() -> None:
+    adapter = GrokAdapter()
+    field_stdout = (FIXTURES / "grok" / "ok-structured-field.json").read_bytes()
+    field = _raw(stdout=field_stdout).model_copy(
+        update={"structured_output_channel": "structured-output-field"}
+    )
+    assert adapter.extract_structured(field).candidate is not None
+    text_only = field.model_copy(update={"structured_output_channel": "structured-output-text"})
+    assert adapter.extract_structured(text_only).candidate is None
+
+    text_stdout = (FIXTURES / "grok" / "ok-text-as-json-cost-absent.json").read_bytes()
+    text = _raw(stdout=text_stdout).model_copy(
+        update={"structured_output_channel": "structured-output-text"}
+    )
+    assert adapter.extract_structured(text).candidate is not None
 
 
 def test_grok_extraction_matches_parse_and_flags_vendor_errors() -> None:

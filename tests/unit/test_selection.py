@@ -11,6 +11,7 @@ from agentteam.domain.profile import (
     EnvironmentNamesV1,
     HarnessProfileSetV1,
     HarnessProfileV1,
+    Verification,
 )
 from agentteam.domain.run import DecidedBy
 from agentteam.resolution.selection import SelectionError, select_harnesses
@@ -24,7 +25,10 @@ def _profile(harness: HarnessId, capabilities: list[str] | None = None) -> Harne
         executable=harness.value,
         config_home=f"vendors/{harness.value}",
         environment=EnvironmentNamesV1(config_home_variable=f"{harness.value.upper()}_HOME"),
-        capabilities=[CapabilityRecordV1(name=c) for c in (capabilities or [])],
+        capabilities=[
+            CapabilityRecordV1(name=c, verification=Verification.VERIFIED)
+            for c in (capabilities or [])
+        ],
     )
 
 
@@ -117,6 +121,23 @@ def test_required_capability_gates_a_user_request() -> None:
         requested=[CLAUDE], policy=policy, profiles=profiles, installed=ALL_INSTALLED
     )
     assert ok.chosen == [CLAUDE]
+
+
+def test_observed_or_unverified_capability_does_not_satisfy_assistant_policy() -> None:
+    profile = _profile(CODEX, ["structured-output"])
+    row = profile.capabilities[0].model_copy(update={"verification": Verification.OBSERVED})
+    profiles = HarnessProfileSetV1(
+        schema_version=1,
+        kind="harness-profile-set",
+        profiles=[profile.model_copy(update={"capabilities": [row]})],
+    )
+    with pytest.raises(SelectionError, match="structured-output"):
+        select_harnesses(
+            requested=[CODEX],
+            policy=HarnessPolicyV1(required_capabilities=["structured-output"]),
+            profiles=profiles,
+            installed=ALL_INSTALLED,
+        )
 
 
 def test_assistant_preference_picks_first_eligible_and_is_solo() -> None:

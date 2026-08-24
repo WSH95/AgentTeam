@@ -14,7 +14,7 @@ from dataclasses import dataclass
 
 from agentteam.domain.assistant import HarnessPolicyV1
 from agentteam.domain.common import HarnessId
-from agentteam.domain.profile import HarnessProfileSetV1, HarnessProfileV1
+from agentteam.domain.profile import HarnessProfileSetV1, HarnessProfileV1, Verification
 from agentteam.domain.run import DecidedBy, SelectionV1
 
 
@@ -33,7 +33,9 @@ class SelectionOutcome:
 
 
 def _capability_names(profile: HarnessProfileV1) -> set[str]:
-    return {row.name for row in profile.capabilities}
+    # Assistant capability requirements are semantic promises.  Merely seeing
+    # a flag in --help is not evidence that the channel works end to end.
+    return {row.name for row in profile.capabilities if row.verification is Verification.VERIFIED}
 
 
 def select_harnesses(
