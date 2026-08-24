@@ -1,10 +1,16 @@
-# The G6 live acceptance request (plan sections 12 and 14): the same bundle,
-# target, and oracle as direct-review.yaml, but executed over the owner's real
-# native-subscription profiles (default ~/.agentteam/profiles.yaml from
-# `atm profile init` + interactive logins; see plan section 11):
+# The G6 live acceptance request (plan sections 12 and 14, as amended by
+# ADR 0036): the same bundle, target, and oracle as direct-review.yaml, but
+# executed over the owner's real native-subscription profiles (default
+# ~/.agentteam/profiles.yaml from `atm profile init` + interactive logins;
+# see plan section 11):
 #
 #   atm run examples/run-requests/live-review.yaml
 #
+# PoC A live acceptance runs the Claude and Codex legs plus Claude synthesis.
+# Grok's leg is amended out under ADR 0036 after four owner-attended cycles
+# recorded FAIL-HARD (headless turn-cap; `--max-turns` falsified); the
+# deterministic tier still exercises all three harnesses through the fakes,
+# and the all-three question returns on a future Grok CLI version.
 # One acceptance cycle uses at most eight vendor calls and never repeats
 # automatically. Relative paths resolve against this file's directory.
 schema_version: 1
@@ -13,6 +19,6 @@ mode: direct
 assistant: ../assistants/code-reviewer
 workspace: ../../fixtures/review-target
 task_file: review-task.md
-harnesses: [claude-code, codex, grok]
+harnesses: [claude-code, codex]
 synthesis: {enabled: true, harness: claude-code}
 acceptance: {oracle: ../../fixtures/review-target.oracle.json}

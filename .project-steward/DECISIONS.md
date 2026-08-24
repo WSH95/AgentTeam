@@ -708,3 +708,29 @@ automatic retry.
 any Grok version drift). The ADR 0020 rerun allowance is exhausted; this
 and any future cycle authorizations are individual owner ceiling decisions
 (ADR 0033 discipline).
+
+## 0036 — 2026-08-24 — PoC A live acceptance runs Claude + Codex; Grok's leg amended out on FAIL-HARD evidence
+
+**Context**: Four owner-attended G6 cycles produced zero real Grok reviews:
+three ended `cancelled` at `num_turns: 2` with `structuredOutput: null`
+(cycles 1, 3, 4 — cycle 4 with `--max-turns 40` verified in argv, falsifying
+the turn-budget hypothesis) and one accepted a single-turn empty progress
+snapshot (cycle 2). The cancellation cause is unreachable from the recipe at
+grok 1.0.5 / grok-4.6-build. Claude and Codex delivered three consecutive
+valid legs, and the offline matcher over cycle 4 shows both identifying all
+three seeded defects with exact oracle categories and zero invented
+criticals. 8 of the 30-call ceiling remain.
+**Decision**: The owner amends the PoC A live acceptance (plan §12/§14, ADR
+0022 convention; §22 table row): the live cycle runs the Claude and Codex
+legs plus Claude synthesis; `live-review.yaml` requests exactly those legs
+(pinned by regression). Grok's FAIL-HARD evidence is recorded per the §18
+falsification routing; the deterministic tier still exercises all three
+harnesses through the fakes, and Grok's profile, adapter, recipe, and probes
+remain intact — the all-three question returns when a future Grok CLI
+version changes the headless behavior (RISKS R27/R33). Any live cycle under
+the amended gate still requires its own explicit owner confirmation within
+the remaining ceiling.
+**Consequences**: A passing amended cycle can close G6's live acceptance
+with the two-leg ensemble; the evidence bundle and G8 record must state the
+amendment and Grok's FAIL-HARD explicitly. Restoring the three-leg gate
+requires fresh probe evidence on a newer Grok CLI and an owner decision.

@@ -11,6 +11,12 @@
   section 12 across-M1a probe budget is superseded by the recorded spend
   (nine attended calls under ADR 0028–0030; 21 of the 30-call ceiling
   remain)
+- Amended during G6 execution (recorded 2026-08-24, ADRs 0034–0036; section
+  22 table): vendor-delivery schema projection and steering; oracle
+  true-synonym aliases; PoC A live acceptance legs are Claude + Codex with
+  Claude synthesis after Grok's four-cycle FAIL-HARD record (the
+  deterministic tier still exercises all three harnesses via fakes); 22 of
+  the 30-call ceiling spent through the fourth cycle
 - Revision baseline: `7ea1c0e` (r2 was `972aa95`; r1 was `9aff78f`,
   `docs(plan): propose AgentTeam M1a direct harness PoC`)
 - Supersedes: `docs/plans/m1-agentteam-direct-slice.md` (independent proposal,
@@ -978,3 +984,18 @@ names and every non-G5 bound are unchanged.
 | §11 | Claude's built-in `Skill` tool pre-approved while write/shell/web tools stay denied | ADR 0028 | `5efce91` |
 | §11 | Grok: `--prompt-file` never with bare `-p`; explicit Skill slash-name references; `structuredOutput`/`structured_output` map to one field channel | ADR 0029 | `5efce91` |
 | §12, §18 | probe-call budget reconciliation: nine attended calls spent (Claude 3 / Codex 2 / Grok 4); 21 of the 30-call ceiling remain; the ceiling binds before the rerun allowance | ADR 0033 | this commit |
+
+### Amendments during G6 execution (recorded 2026-08-24, ADRs 0034–0036)
+
+Four owner-attended live cycles executed under per-cycle explicit
+confirmations; every amendment below was owner-ruled in-session and is
+recorded in `.project-steward/VERIFY.md` with the raw evidence.
+
+| Section | Amendment | Decision | Commit |
+| --- | --- | --- | --- |
+| §7, §11 | vendor-delivered review/synthesis schemas are projected out of the canonical `$schema`/`$id`/`title` envelope at delivery time (Claude Code validates draft-07 — the documented cause of the cycle-1 rejection); canonical checked-in schemas unchanged | review + docs verification | `9b8d116` |
+| §12 | synthesis `sources` convention unified to `"<invocation-id>:<finding-id>"` pairs across instructions, task document, and schema descriptions | cycle-2 diagnosis | `355ff57` |
+| §14 | oracle gains true-synonym aliases only (`argument-injection`; `mutation-of-caller-data`, `caller-input-mutation`); definition/task gain category/severity/final-output discipline; example-package hash re-pinned `fd54eae7…` | ADR 0034 | `cd92bd7` |
+| §11 | Grok live recipe passes `--max-turns 40` (dated capability evidence) | ADR 0035 | `1ef11d3` |
+| §12, §14 | PoC A live acceptance legs are **Claude + Codex** with Claude synthesis; Grok's leg is amended out after four cycles of FAIL-HARD (headless turn-cap, `cancelled` at turn 2; `--max-turns` falsified in-argv); the deterministic tier still exercises all three harnesses via fakes; the all-three question returns on a future Grok CLI version | ADR 0036 | this commit |
+| §12, §18 | spend reconciliation: 22 of the 30-call ceiling spent through the fourth cycle (G5 nine + cycles 3+4+3+3); both ADR 0020 reruns and the ADR 0035 beyond-allowance cycle consumed; every further cycle is an individual owner ceiling decision | ADR 0035/0036 | this commit |

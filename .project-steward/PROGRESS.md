@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T16:59:14Z — claude
+ADR 0036 implemented on the owner's ruling: PoC A live acceptance is amended to Claude+Codex legs + Claude synthesis (`live-review.yaml` pinned by regression; plan §22 gains the "Amendments during G6 execution" table covering ADRs 0034–0036 and the 22-of-30 spend reconciliation; QUESTIONS all-three answer annotated — review R4's dissent vindicated; RISKS R27 realized-and-ruled). Grok stays in probes/fakes/deterministic tier; the all-three question returns on a future Grok CLI. Offline matcher over cycle-4 legs: both identify all three defects with exact categories, zero invented criticals — the R5 steering is proven on real leg output. Core 448+4, extra 460+3, compat 12. Next: gate, then the final go for the amended 3-call cycle (8 remain).
+
 ### 2026-08-24T16:52:31Z — claude
 Fourth G6 cycle (ADR 0035 beyond-allowance; `run-20260824-165045-d353`, 3 calls) failed exit 1 on the Grok leg only — with `--max-turns 40` verified in the recorded argv and a byte-identical outcome (`cancelled` at `num_turns: 2`, null field, empty per-turn snapshots): the turn-budget hypothesis is falsified and the cancellation cause is unreachable from the recipe. Claude (93.5s) and Codex (69.6s) delivered their third consecutive valid legs. 8 of 30 calls remain; per the ADR 0035 commitment the Grok gate question returns to the owner (amend to Claude+Codex for PoC A at 3 calls per cycle, or stop with G6 open).
 

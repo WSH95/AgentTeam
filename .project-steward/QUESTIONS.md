@@ -136,4 +136,9 @@ See `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and ADR 0018.
 - [x] First real use: code/dev teams; PoC A → B → C order; operational mode
   after PoC C (ADR 0018).
 - [x] Grok Build stays a required first-pass harness (reaffirmed; review R4 is
-  recorded as a dissent; its probes are day-one blockers).
+  recorded as a dissent; its probes are day-one blockers). *Amended
+  2026-08-24 (ADR 0036): after four owner-attended G6 cycles recorded Grok
+  FAIL-HARD (headless turn-cap; `--max-turns` falsified), the PoC A live
+  acceptance runs Claude + Codex legs; Grok stays in probes, fakes, and the
+  deterministic tier, and the all-three question returns on a future Grok
+  CLI version — review R4's dissent is vindicated on live evidence.*

@@ -89,6 +89,21 @@ def test_definition_and_task_steer_output_discipline() -> None:
     assert "after your review is complete" in task
 
 
+def test_live_request_runs_the_amended_leg_set() -> None:
+    # ADR 0036 (§18 ruling after four owner-attended cycles): PoC A live
+    # acceptance runs Claude + Codex legs with Claude synthesis; Grok's
+    # FAIL-HARD evidence is recorded and the all-three question returns on a
+    # future Grok CLI version. The deterministic tier still exercises all
+    # three harnesses through the fakes (direct-review.yaml is unchanged).
+    import yaml
+
+    request = yaml.safe_load(
+        (REPO_ROOT / "examples" / "run-requests" / "live-review.yaml").read_text(encoding="utf-8")
+    )
+    assert request["harnesses"] == ["claude-code", "codex"]
+    assert request["synthesis"] == {"enabled": True, "harness": "claude-code"}
+
+
 def test_the_oracle_lives_outside_the_leg_workspace() -> None:
     assert ORACLE_PATH.parent == TARGET.parent
     assert not (TARGET / "review-target.oracle.json").exists()
