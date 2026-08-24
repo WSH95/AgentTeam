@@ -21,6 +21,24 @@ from agentteam.resolution.profiles import (
 )
 
 
+def test_ci_vendor_profile_set_is_native_shaped_and_credential_free() -> None:
+    # G7 vendor-smoke config (plan section 16): the real npm-installed CLIs by
+    # bare PATH name (the Windows `.cmd` shim path — RISKS R30), no capability
+    # rows (doctor exit 1 signed-out/unverified is the designed CI green), and
+    # seeded conflict names so a leaked key on a runner fails the job closed.
+    repo_root = Path(__file__).resolve().parents[2]
+    loaded = load_profile_set(repo_root / "examples" / "profiles" / "ci-vendor.yaml")
+    assert [p.harness for p in loaded.profiles] == [HarnessId.CLAUDE_CODE, HarnessId.CODEX]
+    by_id = {p.harness: p for p in loaded.profiles}
+    assert by_id[HarnessId.CLAUDE_CODE].executable == "claude"
+    assert by_id[HarnessId.CODEX].executable == "codex"
+    assert "ANTHROPIC_API_KEY" in by_id[HarnessId.CLAUDE_CODE].environment.conflicts
+    assert "OPENAI_API_KEY" in by_id[HarnessId.CODEX].environment.conflicts
+    for profile in loaded.profiles:
+        assert profile.proxy_policy is ProxyPolicy.INHERIT
+        assert profile.capabilities == []
+
+
 def test_seed_covers_the_three_harnesses_with_conflict_data() -> None:
     seeded = seed_default_profiles()
     ids = [p.harness for p in seeded.profiles]

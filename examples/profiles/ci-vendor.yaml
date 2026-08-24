@@ -1,0 +1,29 @@
+# Native-shaped profile set for the G7 vendor-smoke CI job (plan section 16):
+# `atm profile doctor` against the real npm-installed `claude`/`codex` CLIs.
+# Bare command names resolve through PATH; on Windows that is the npm `.cmd`
+# shim, so the resolved-shim launcher branch runs against a real vendor
+# artifact (RISKS R30). Runners hold no credential: doctor exits 1 by design
+# (signed-out auth, no verified capability rows), while exit 2 means an
+# invalid profile or a set conflict variable (credential-shaped) and fails
+# the job. Grok is absent: no verified non-interactive installer
+# (2026-08-24; revisit on a new Grok CLI release — RISKS R27/R33).
+# Relative config_home values resolve against this file's directory.
+schema_version: 1
+kind: harness-profile-set
+default_harness: claude-code
+profiles:
+  - harness: claude-code
+    executable: claude
+    config_home: .agentteam-local/vendor-smoke/claude-code
+    proxy_policy: inherit
+    environment:
+      config_home_variable: CLAUDE_CONFIG_DIR
+      conflicts: [ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_BASE_URL,
+                  CLAUDE_CODE_USE_BEDROCK, CLAUDE_CODE_USE_VERTEX]
+  - harness: codex
+    executable: codex
+    config_home: .agentteam-local/vendor-smoke/codex
+    proxy_policy: inherit
+    environment:
+      config_home_variable: CODEX_HOME
+      conflicts: [CODEX_API_KEY, OPENAI_API_KEY, OPENAI_BASE_URL]
