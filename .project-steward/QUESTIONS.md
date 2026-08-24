@@ -39,17 +39,18 @@ vendor-smoke 12/12 at `0864742` (two real Windows bugs caught and fixed),
 pinned secret scan at the enumerated baseline, the owner-reviewed sanitized
 bundle committed (`docs/evidence/m1a-live-2026-08-24/`), and the M1b draft
 proposed-not-approved. Next milestone work (M1b) requires its own reviewed
-plan and explicit owner approval. **The M1b plan is at draft r2
-(2026-08-24)**: r1 (`14dc218`) was independently reviewed — verdict "do
-not approve yet", seven blocking findings plus three hygiene items,
-recorded verbatim at
-`docs/reviews/2026-08-24-m1b-plan-review-at-14dc218.md` — and r2 resolves
-all ten (plan §21 resolution table; ADR 0039). HB-03 constraint semantics
-are deferred out of M1b entirely (owner decision, ADR 0039; the question
-below stays open); the ClawTeam exit-criterion wording (plan §10)
-finalizes at approval. Next: owner approval as the G0 DECISIONS entry
-naming the file + r2's commit SHA, or a confirmation re-review of r2 at
-its frozen SHA first.
+plan and explicit owner approval. **The M1b plan is at draft r3
+(2026-08-24)** after two independent review rounds, both recorded
+verbatim in `docs/reviews/` (r1 at `14dc218`: 7 blocking + 3 hygiene,
+resolved by r2 at `54728c8`, ADR 0039; r2 at `54728c8`: 6 blocking + 3
+medium, resolved by r3, ADR 0040). Owner decisions so far: HB-03
+constraint semantics deferred out of M1b entirely (ADR 0039; the question
+below stays open); `MemberResultV1` introduced now as the provider-neutral
+member result, and the stable `~/.agentteam/clawteam/` process root
+restored per ADR 0015 (ADR 0040). The ClawTeam exit-criterion wording
+(plan §10) finalizes at approval. Next: owner approval as the G0
+DECISIONS entry naming the file + r3's commit SHA, or another
+confirmation pass at r3's frozen SHA first.
 
 ## Answered during G5 owner setup
 

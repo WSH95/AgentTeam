@@ -103,7 +103,9 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
 - [ ] Prepare and approve a separate plan for TeamTemplate/TeamRun foundations, task/message/archive contracts, and the CoordinationSubstrate protocol
   - [x] Plan expanded to full draft r1 2026-08-24 (`14dc218`; 21 M1a-style sections: contracts, gates M1b G0–G7, test matrix, zero-live-call budget, exit-criterion measurement rule, stop rules)
   - [x] Independent review of r1 delivered 2026-08-24 — "do not approve yet": 7 approval-blocking findings + 3 hygiene items, all re-verified against the tree and confirmed; recorded verbatim at `docs/reviews/2026-08-24-m1b-plan-review-at-14dc218.md` (`9802775`)
-  - [x] r2 resolves all ten findings (this commit; plan §21 resolution table; ADR 0039 — HB-03 constraints deferred out of M1b by owner decision). NOT approved — next: owner G0 approval naming the file + r2's SHA, or a confirmation re-review at r2's frozen SHA first
+  - [x] r2 resolves all ten findings (`54728c8`; plan §21 resolution table; ADR 0039 — HB-03 constraints deferred out of M1b by owner decision)
+  - [x] Second independent review (of r2 at `54728c8`) delivered 2026-08-24 — "do not approve yet": 6 implementation-blocking + 3 medium findings, all re-verified and confirmed; recorded verbatim at `docs/reviews/2026-08-24-m1b-plan-review-at-54728c8.md` (`e89a75f`)
+  - [x] r3 resolves all nine findings (this commit; plan §21 r2→r3 table; ADR 0040 — owner chose MemberResultV1 now + the stable ClawTeam process root per ADR 0015; blinded handoffs on declared-independence edges). NOT approved — next: owner G0 approval naming the file + r3's SHA, or another confirmation pass at r3's frozen SHA
 - [ ] Implement TeamRun orchestration and the optional ClawTeam provider behind the qualified compatibility boundary; keep harness launching on the built-in direct runner
 - [ ] Preserve one AgentTeam-owned process data root with opaque team namespaces; claim namespace separation only
 

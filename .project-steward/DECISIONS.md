@@ -843,3 +843,44 @@ flip in the following commit), or a confirmation re-review of r2 at its
 frozen SHA first — the owner's choice. Implementation stays blocked until
 G0. Zero live calls were spent in M1b planning; 5 of the M1a 30 remain
 untouched.
+
+## 0040 — 2026-08-24 — M1b r2 independently reviewed: r3 resolves the findings; MemberResultV1 and the stable ClawTeam root adopted
+
+**Context**: The second independent review — of r2 at `54728c8` — returned
+"do not approve yet": six implementation-blocking gaps and three medium
+corrections (recorded verbatim in
+`docs/reviews/2026-08-24-m1b-plan-review-at-54728c8.md`, commit
+`e89a75f`). The executing session re-verified every finding before
+resolution; all nine confirmed — among them two self-contradictions in
+the r2 text (the pending team record could not validate against its own
+required substrate/snapshot fields; step 11 ordered the manifest before
+the terminal record while the §11.4 invariant requires the reverse), the
+structurally review-shaped member results (`HarnessAdapter.parse` returns
+`NormalizedReviewV1`, so the `implementer` would have had to emit review
+JSON), automatic handoffs contradicting the fixture's declared
+reviewer/implementer independence (`no_message_edge`), the missing
+green-CI completion path for a `failed-routed` ClawTeam disposition, and
+the per-run ClawTeam data root breaking the seam's one-root-per-process
+rule.
+**Decision**: (1) The r2 review is an immutable dated record in
+`docs/reviews/`. (2) Plan revision r3 resolves all nine findings; the
+r2 → r3 resolution table is plan §21. (3) On finding 3 the owner chose
+the larger path: **introduce `MemberResultV1` now** — a provider-neutral,
+vendor-facing member-result contract (`summary`/`deliverables`/`risks`;
+the schema inventory becomes three new + two regenerated files), with an
+additive harness output-contract dispatch that leaves the live-proven
+review path untouched, member-declared deliverables validated, hashed,
+archived, and materialized for successors, and live vendor acceptance of
+the new schema recorded as an explicit M1c handoff (M1b stays
+zero-live-call). (4) On correction M3 the owner-approved plan adopts the
+**stable `~/.agentteam/clawteam/` process root** with per-run opaque
+namespaces — restoring the ADR 0015 one-root design that r2 had
+accidentally deviated from. (5) Declared-independence edges get blinded
+handoffs (artifact materialization without rationale, no message edge
+created by the run layer itself), aligning the lifecycle with the
+normative TC-03 means.
+**Consequences**: r3 is proposed, NOT approved. Next: owner approval as
+the G0 DECISIONS entry naming the plan file and r3's commit SHA (status
+flip in the following commit), or another confirmation pass at r3's
+frozen SHA — the owner's choice. Implementation stays blocked until G0.
+Zero live calls spent; 5 of the M1a 30 remain untouched.
