@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T18:13:29Z — claude
+Post-wrap owner challenge answered with evidence (ADR 0037): a fresh file-level survey of all seven `~/Documents/00000` reference projects plus a digest of the M0 record reaffirmed the build-vs-reuse strategy — coordination/messaging were never claimed as new (ClawTeam adopted behind the qualified seam, M1b exit criterion pending; Telegram/A2A reuse staged at M1b/M1c/surfaces), the reference capabilities are disjoint and partly documentation-only, and the harness-composition layer G6 just proved live exists in none of them. No course change; reopening triggers unchanged.
+
 ### 2026-08-24T17:13:59Z — cli
 G6 closed: live PoC two-tier PASS under the ADR 0036 amended gate (Claude+Codex legs) after five owner-gated cycles and R1-R6 remediations; 25 of 30 calls spent; 12 commits pushed; hosted CI 9/9 at 58775a9
 

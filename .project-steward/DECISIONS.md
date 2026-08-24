@@ -734,3 +734,40 @@ the remaining ceiling.
 with the two-leg ensemble; the evidence bundle and G8 record must state the
 amendment and Grok's FAIL-HARD explicitly. Restoring the three-leg gate
 requires fresh probe evidence on a newer Grok CLI and an owner decision.
+
+## 0037 — 2026-08-24 — Build-vs-reuse reaffirmed post-G6 after an owner challenge and a fresh reference survey
+
+**Context**: After G6 closed, the owner challenged the strategy: why is
+AgentTeam not built on top of the `~/Documents/00000` reference projects
+(ClawTeam, ClawTeam-OpenClaw, the DSH team plugins, OpenClaw/Hermes
+ecosystems with A2A and Telegram), and is the new framework claimed to be
+better? A fresh file-level survey of all seven reference projects
+(2026-08-24) and a digest of the M0 record produced the answer.
+**Decision**: The recorded strategy stands, reaffirmed on fresh evidence.
+(1) The M0 record already concedes the premise: coordination and messaging
+are not new layers (fit-gap TE/MS roll-ups; "MS-01: rung 1 — nothing to
+build") and greenfield O8 was ranked last ("do not build a mailbox
+runtime" — the legacy ATM's own lesson). (2) The one genuinely overlapping
+codebase, ClawTeam, was adopted as a component, not a foundation: pinned
+optional extra behind the G4-qualified seam, staged as the M1b provider
+under the open written-exit-criterion question. (3) The fresh survey
+confirms the reference capabilities are disjoint: no project combines team
+orchestration + A2A + Telegram + vendor-CLI driving; ClawTeam is dormant
+since 2026-05-09 with zero Telegram code; the Telegram material
+(openclaw-multi-agent-kit) is documentation-only; the DSH plugins cannot
+drive external CLIs; OpenBot embeds its own model loops;
+agent-team-manager-dev's core is `export {};` with A2A as an unimplemented
+ADR. (4) PoC A uses no A2A by design (independent legs + synthesis); the
+A2A/Telegram reuse points activate at M1b/M1c/surfaces, where they are
+already scheduled. (5) The layer AgentTeam builds — portable definitions
+composed across harnesses with evidence-grade invocation records — exists
+in none of them ("no system composes harnesses"; every single-harness
+system blocked at TE-03), and the G6 pass is its first live proof. No
+"better than theirs" claim is made or needed: vendor CLIs are the reused
+agent engines, ClawTeam the reused coordination candidate.
+**Consequences**: The recorded reopening triggers stay authoritative
+(Q4 upstream PRs; Q6 Hermes; architecture-options §6 triggers; ADR 0036's
+Grok-CLI revisit). M1b must still write the ClawTeam exit criterion before
+PoC B and build the local deterministic provider first (ADR 0018). Any
+future "build on X instead" decision starts from this ADR's survey
+evidence, not from scratch.
