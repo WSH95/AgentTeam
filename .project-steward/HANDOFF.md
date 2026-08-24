@@ -1,44 +1,46 @@
 ---
-updated_at: 2026-08-24T13:40:07Z
+updated_at: 2026-08-24T13:52:55Z
 updated_by: codex
 session_status: active
 branch: main
-last_commit: 2f87517
+last_commit: 30c17b5
 ---
 # Handoff
 
 ## Now
 
-**M1a G5.R is implemented and locally verified; G6 has not started.** R3–R6
-and H9 are checked off in PLAN. Core mode passes 417 tests + 4 expected
-skips; the pinned optional-ClawTeam mode passes 429 + 3 skips and its focused
-compatibility suite passes 12. Both modes pass the complete local CI-parity
-path, including deterministic acceptance with both tiers green. The owner
-approved the complete G5.R semantic commit; the commit containing this
-handoff is that boundary. G6 remains separate and unstarted.
+**G5.R commit `30c17b5` is pushed, but hosted closure is reopened for one
+test-only Windows fix; G6 has not started.** CI run 32734735405 finished 7/9
+green: every Linux/macOS scaffold and all three optional-ClawTeam jobs passed,
+while both Windows scaffold jobs failed the same stuck-pipe test because it
+forced a POSIX `os.killpg` monkeypatch. Production Windows code was not
+implicated. The portable local correction is green with the focused 29 tests,
+full core 417+4, Ruff/format, and mypy/97.
 
 ## In flight
 
-Nothing. No process is running; implementation, two-mode validation, steward
-bookkeeping, and the owner-approved semantic commit are complete. The local
-environment was restored to core mode after the optional-extra verification.
+No process is running. The cross-platform test correction in
+`tests/integration/test_profile_probe.py` plus PLAN/PROGRESS/VERIFY/HANDOFF
+bookkeeping is uncommitted. The local environment remains in core mode.
 
 ## Next steps
 
-1. Before G6, review the exact attended command
+1. Review the small test/steward diff, then obtain owner approval to commit it
+   as `test(profile): make probe drain regression cross-platform`.
+2. Obtain separate push approval, push the follow-up, and require all nine
+   jobs green before marking G5.R complete again.
+3. Before G6, review the exact attended command
    `uv run atm run examples/run-requests/live-review.yaml`, the normal proxy
    environment, output/workspace targets, four-call normal path, retry ceiling,
    stop rules, and remaining 21-call M1a budget; obtain explicit owner
    confirmation immediately before execution.
-2. After any G6 run, inspect the owner-only archive and promote only manually
+4. After any G6 run, inspect the owner-only archive and promote only manually
    sanitized evidence; close G6 only if both acceptance tiers pass.
-3. Commit permission does not imply push permission. Push or hosted-CI work
-   requires its own explicit owner approval.
 
 ## Blockers
 
-No G5.R blocker. G6 remains intentionally gated on the pre-run review and a
-fresh attended-execution confirmation.
+Hosted G5.R closure is blocked on the corrective commit, its separately
+approved push, and a green 9/9 rerun. G6 remains prohibited until then.
 
 ## Key files
 
@@ -60,11 +62,16 @@ fresh attended-execution confirmation.
 - Sandboxed `uv build`/acceptance initially could not create uv cache lock
   files outside the workspace. Approved cache access (or a task-local
   `UV_CACHE_DIR` for the second acceptance run) completed the same commands.
+- CI run 32734735405 proved the mocked stuck-pipe test itself was POSIX-only:
+  Windows has no `os.killpg`. Testing the platform-independent drain helper
+  directly retains the bounded 10s/5s assertions; the separate real POSIX
+  descendant test retains group TERM/KILL coverage.
 
 ## Warnings
 
 - No owner credential file or `~/.agentteam/vendors/` content was read. No
-  live vendor/model call, G6 run, push, or remote mutation occurred.
+  live vendor/model call or G6 run occurred. The only remote mutation was the
+  explicitly approved fast-forward push `8cd9e38..30c17b5`.
 - `select_verified(..., cli_version=None)` is render-only behavior;
   `execute_run` rejects non-live plans and missing observed versions before
   archive creation.

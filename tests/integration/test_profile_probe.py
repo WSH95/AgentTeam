@@ -6,7 +6,6 @@ import hashlib
 import io
 import json
 import os
-import signal
 import stat
 import subprocess
 import sys
@@ -26,6 +25,7 @@ from agentteam.profile.probe import (
     _PROBE_SCHEMA,
     _TASK,
     ProbeCancelled,
+    _drain_terminated_probe_process,
     _Recipe,
     _run_probe_process,
     run_attended_probes,
@@ -367,7 +367,7 @@ def test_probe_timeout_kills_a_sigterm_surviving_descendant(tmp_path: Path) -> N
         assert marker.read_text(encoding="utf-8") == first
 
 
-def test_probe_final_pipe_drain_is_bounded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_probe_final_pipe_drain_is_bounded() -> None:
     class StuckProcess:
         pid = 424242
 
@@ -397,34 +397,15 @@ def test_probe_final_pipe_drain_is_bounded(tmp_path: Path, monkeypatch: pytest.M
         def kill(self) -> None:
             self.kill_calls += 1
 
-    process = StuckProcess()
-    monkeypatch.setattr(
-        "agentteam.profile.probe.subprocess.Popen",
-        lambda *_args, **_kwargs: process,
-    )
-    signals: list[int] = []
-    monkeypatch.setattr(
-        "agentteam.profile.probe.os.killpg", lambda _pid, sent: signals.append(sent)
-    )
-    recipe = _Recipe(
-        argv=["fake-probe"],
-        cwd=tmp_path,
-        env={},
-        stdin_text=None,
-        output_file=None,
-        redacted_command={},
-        instruction_markers={},
-        skill_markers={},
-        attempted_base=(),
-    )
-
-    raw = _run_probe_process(recipe, timeout_seconds=1, platform="linux")
-    assert raw.timed_out is True
-    assert raw.stdout == b""
-    assert raw.stderr == b"process pipes did not close after termination"
-    assert process.communicate_timeouts == [1, 10, 5]
+    process: Any = StuckProcess()
+    stdout, stderr = _drain_terminated_probe_process(process)
+    assert stdout == b""
+    assert stderr == b"process pipes did not close after termination"
+    assert process.communicate_timeouts == [10, 5]
     assert process.kill_calls == 1
-    assert signals == [signal.SIGTERM, signal.SIGKILL]
+    assert process.stdin.closed
+    assert process.stdout.closed
+    assert process.stderr.closed
 
 
 def test_codex_event_disagreement_is_telemetry_only_and_grok_text_is_selected(

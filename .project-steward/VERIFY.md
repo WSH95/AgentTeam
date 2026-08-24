@@ -14,10 +14,12 @@ owner-attended gates.
 | R6 problem persistence | PASS — invocation records and the regenerated V1 schema carry optional-default `problems`; normal and synthesis paths persist extractor/parser problems; Codex agreement is quiet while a deterministic live-shaped `-o`/JSONL mismatch remains telemetry on a succeeded invocation and survives sanitization |
 | H9 named gaps | PASS — exact Claude allowed/disallowed tool sets and forbidden flags, ADR 0028's negative fake branch, Grok snake-case `structured_output`, all adapter channel-error ladders, live-preflight missing/failed-version/symlink/synthesis branches, and real `typer.confirm` EOF→130 are covered |
 | Full local CI parity | PASS — core mode: `uv lock --check`, frozen sync, Ruff lint + format (101 files), strict mypy (97 files), **pytest 417 passed + 4 skips**, schema check + stable export, wheel/sdist build, CLI help/version, strict Assistant validation, three-harness render-only smoke, pinned hash `fb9e98a3…`, and deterministic acceptance both tiers. Optional-extra mode: the same checks, **pytest 429 passed + 3 skips**, and `tests/compatibility` **12 passed**. `git diff --check` is clean; the environment was restored to core mode |
-| Boundary | PASS — deterministic local fakes only; no credential/vendor-home read, live vendor/model call, G6 run, commit, push, or remote mutation. `AGENTS.md` and `CLAUDE.md` are untouched |
+| Hosted CI at `30c17b5` | **FAIL, local fix pending commit/push** — run [32734735405](https://github.com/WSH95/AgentTeam/actions/runs/32734735405) finished 7/9 green: all three optional-ClawTeam jobs and all four Linux/macOS scaffold jobs passed; both Windows scaffold jobs reached Tests and failed the same single test. `test_probe_final_pipe_drain_is_bounded` forced the POSIX path and attempted to monkeypatch absent `os.killpg`; production Windows code was not implicated. The local follow-up tests `_drain_terminated_probe_process` directly on every platform; focused 29 passed, full core 417+4, Ruff/format, and mypy/97 are green. A fresh 9/9 hosted run is required before G5.R re-closes |
+| Boundary | PASS — deterministic local fakes and credential-free hosted CI only; no owner credential/vendor-home read, live vendor/model call, or G6 run. Commit `30c17b5` was pushed to `origin/main` on explicit approval solely to run CI; no other remote mutation occurred. `AGENTS.md` and `CLAUDE.md` are untouched |
 
-Last verified: 2026-08-24 by Codex (G5.R deterministic remediation and two-mode
-local CI-parity run; no vendor/model call or credential read).
+Last verified: 2026-08-24 by Codex (G5.R deterministic remediation, two-mode
+local CI parity, and hosted run 32734735405 diagnosis; no vendor/model call or
+credential read).
 
 ## G5 independent review — 2026-08-24 (closure verified; two CI regressions fixed)
 
