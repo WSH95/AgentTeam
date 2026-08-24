@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T19:57:15Z — claude
+**M1b plan expanded to draft r1** (`docs/plans/m1b-team-foundation.md`, 77 → 874 lines, 21 M1a-style sections; the r0 checklist's "own session"): field-level team contracts (TeamTemplateV1, TeamRunRequestV1, run-record extended in place — no second record kind), gates M1b G0–G7 with mechanically checkable evidence, the CoordinationSubstrate protocol + local-deterministic and ClawTeam providers, the pinned exit-criterion measurement rule (production-code `wc -l`, shared seam excluded both sides, tests as context), a zero-live-call budget, the deterministic test plan on the unchanged 12-job CI shape, stop rules + falsification routing, and the §20 review charter + owner-decision list (HB-03 options, A recommended). Claim audit green: r0 exit-criterion blockquote carried byte-identical, 233/281 LOC baseline re-derived, every cited SHA/ADR/path verified; full suite 453 passed + 4 skipped (one `doctor --help` assertion needs a plain terminal — host env quirk: rich ANSI + a ROS-Foxy PYTHONPATH leak; not the tree). Docs-only, zero live calls, NOT approved. Next: owner read of r1, then the independent review in a fresh session against the frozen r1 commit SHA, then G0 approval.
+
 ### 2026-08-24T19:11:54Z — cli
 M1a closed as a semantic PASS (ADR 0038): G7 vendor-smoke 12/12 after two real Windows fixes, pinned secret scan at baseline, owner-reviewed evidence bundle committed, M1b draft proposed; 25 of 30 calls spent
 

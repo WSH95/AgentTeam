@@ -1,88 +1,107 @@
 ---
-updated_at: 2026-08-24T19:11:54Z
-updated_by: cli
-session_status: closed
+updated_at: 2026-08-24T19:57:15Z
+updated_by: claude
+session_status: active
 branch: main
-last_commit: 856d525
+last_commit: d40cb82
 ---
 # Handoff
 
 ## Now
 
-**M1a IS COMPLETE — closed as a semantic PASS (ADR 0038, 2026-08-24).** All
-eight gates are done. The live PoC passed both acceptance tiers under the
-ADR 0036 amended gate (Claude Code + Codex legs + Claude synthesis;
-`run-20260824-170359-58d9`); the final credential-free matrices plus the
-new vendor-smoke job are **12/12 green** at `0864742` (run 32765672784) —
-the vendor-smoke job caught and drove fixes for two real Windows product
-bugs on its first day (bare-name launcher resolution `1555c5d`;
-case-insensitive env baseline `0864742`), giving R30 its first real
-`.cmd`-shim evidence; the pinned history secret scan sits at the 3-hit
-enumerated benign baseline; the owner-reviewed sanitized evidence bundle is
-committed at `docs/evidence/m1a-live-2026-08-24/` with its sibling G8
-record; and the M1b draft (`docs/plans/m1b-team-foundation.md`, r0) is
-proposed and NOT approved. 25 of the 30-call live ceiling are spent; **5
-remain, each a future individual owner ceiling decision**.
+**The M1b plan is EXPANDED to draft r1 — proposed, NOT approved.** This
+session executed the r0 approval checklist's item 1 ("expand this draft to
+a full plan … in its own session"): `docs/plans/m1b-team-foundation.md`
+grew from the 77-line r0 skeleton (`856d525`) to a full 874-line,
+21-section plan in the M1a house style — field-level team contracts
+(`TeamTemplateV1`, `TeamRunRequestV1`, the run-record team-mode extension;
+no second run kind), gates M1b G0–G7 with mechanically checkable evidence,
+the `CoordinationSubstrate` protocol plus the local-deterministic (first)
+and ClawTeam (second, extra-only) providers, the pinned ClawTeam
+exit-criterion measurement rule, a **zero-live-call budget**, the
+deterministic test plan and CI mapping (12-job shape unchanged), stop
+rules with falsification routing, and a §20 approval checklist that
+doubles as the independent review's charter. The claim audit is green:
+the r0 exit-criterion blockquote is carried byte-identical, the 233/281
+LOC baseline re-derives exactly, and every cited SHA/ADR/path resolves.
+Full suite green: 453 passed + 4 skipped (matches the M1a-close counts;
+one `doctor --help` assertion is terminal-sensitive — see Warnings).
 
 ## In flight
 
-Nothing. The closure commit carrying this handoff is the last local work;
-after its push the tree and origin are identical.
+The commit carrying this handoff holds r1 plus this steward state. The
+owner said they will review r1 after the commit — that owner read is the
+immediate next event, before the independent review session.
 
-## Next steps (a NEW approval scope — nothing starts automatically)
+## Next steps (r0 checklist items 2–3; a NEW approval scope — nothing starts automatically)
 
-1. **M1b planning**: expand `docs/plans/m1b-team-foundation.md` in its own
-   session (contracts, gates, test matrix, budget, stop rules), run an
-   independent review (the `3407ec9`/`317bb52` precedent), and record owner
-   approval as a DECISIONS entry naming the file + SHA. The draft ClawTeam
-   exit criterion (≤1.5× local-provider LOC + caveats accepted in writing)
-   finalizes there. Local deterministic provider first (ADR 0018).
-2. Open questions that may ride along: Q4 (bounded ClawTeam upstream PRs),
-   Q6 (Hermes expansion trigger), HB-03 register amendment, R15/overlay
-   question before M3.
-3. Grok re-entry: on a new Grok CLI release, fresh probes + an owner
-   decision may restore the all-three live gate (ADR 0036; RISKS R27/R33).
-4. Follow-ups noted in reviews, none blocking: exec-bit flattening (R34),
-   owner-only sweep-helper extraction, chmod-failure reporting, npm-channel
-   drift watch on the vendor-smoke job.
+1. **Owner reads r1.** Owner answers may land for the §20 decision items —
+   HB-03 disposition (options A/B/C/defer; A recommended), the
+   exit-criterion measurement rule (§10), the CLI verb set (§7), the
+   zero-live budget (§11), reserved-field sets (§6). Edits fold in as r1
+   amendments (small) or r2 (structural).
+2. **Independent review in a FRESH session** against the frozen r1 commit
+   SHA (the `3407ec9`/`317bb52` precedent): read exclusively via
+   `git show <sha>:docs/plans/m1b-team-foundation.md` (+ the repo at that
+   SHA), write an immutable dated record
+   `docs/reviews/2026-08-<dd>-m1b-plan-review-at-<short-sha>.md` with the
+   house front matter, findings `Rn`/`Hn`; plan §20 lists what review must
+   confirm. Do NOT run the review in this session — independence needs a
+   fresh context.
+3. Resolve findings (revision r2 if needed) → **owner approval** as a
+   DECISIONS entry naming the plan file + approved commit SHA (G0) →
+   status line flips to `approved` in the following commit → only then
+   does implementation begin (plan §3 gates, §16 commit boundaries).
+4. Nothing is pushed. Every push needs its own explicit owner approval
+   (`never_push = true`).
 
 ## Blockers
 
-None. M1b needs its own reviewed plan and explicit owner approval before
-any implementation (PROJECT.md; plan §18).
+None mechanical. M1b implementation is blocked by design on the
+independent review and the G0 owner approval. The §20 owner decisions
+(HB-03, exit-criterion rule, verb set, field sets, budget) ride with the
+approval — the plan is written so A/B/defer on HB-03 land without
+contract churn.
 
 ## Key files
 
-- `docs/evidence/m1a-live-2026-08-24/` + `docs/evidence/m1a-live-2026-08-24.md`
-  — the committed acceptance evidence and its G8 record.
-- `docs/plans/m1b-team-foundation.md` — the unapproved M1b draft r0.
-- `.project-steward/DECISIONS.md` ADRs 0034–0038 — the complete G6→G8
-  decision trail (steering scope, §18 ruling, gate amendment,
-  build-vs-reuse reaffirmation, M1a closure).
-- `.project-steward/VERIFY.md` — gate-by-gate evidence, newest first (G8,
-  G7 incl. the pinned secret-scan command, five G6 cycles, G6.R sections).
-- `~/.agentteam/runs/` — raw archives, local-only forever.
+- `docs/plans/m1b-team-foundation.md` — **r1, the review target.**
+- `docs/plans/m1a-direct-harness-poc.md` — house style; every "M1a §N"
+  pointer in r1 targets it.
+- `docs/evidence/clawteam-qualification-2026-08-23.md` — the 233/281 LOC
+  baseline and the four caveats the exit criterion needs accepted in
+  writing.
+- `docs/discovery/team-execution-model.md` + `docs/discovery/evidence/glossary.md`
+  — the normative TC/TE content and vocabulary behind r1 §6/§8/§11.
+- `.project-steward/QUESTIONS.md` — the exit-criterion and HB-03 items now
+  point at plan §10/§20; both stay open until approval.
+- `.project-steward/PLAN.md` — M1b section carries the r1 sub-bullet;
+  gate rows are added only at/after G0.
 
 ## Tried and rejected (session highlights for a successor)
 
-- Grok text-channel fallback and `--max-turns`: both investigated and
-  falsified live; fail-hard held; the gate amendment was the evidence-based
-  outcome.
-- Weakening validators (attribution pairs, oracle categories) instead of
-  fixing steering: rejected each time; cycle 5 proved the steering live.
-- Building on ClawTeam/OpenClaw/Hermes instead of the thin layer: examined
-  end-to-end under an owner challenge (ADR 0037) — reuse is staged where it
-  belongs (M1b provider, later surfaces), not rebuilt.
+- Running the independent review in this same session: rejected —
+  independence requires a fresh context reviewing the frozen SHA
+  (precedent, and the plan's own §3 G0 row).
+- A separate `team-run-v1` schema/record kind: rejected up front — the
+  run record is extended in place (M1a §7 constraint; r1 §2 decision 3).
+- Counting test LOC inside the exit-criterion ratio: rejected in the
+  proposed rule (it would penalize writing tests); reported as context
+  instead (r1 §10).
 
 ## Warnings
 
-- **5 of 30 live calls remain**; ADR 0033 discipline binds every one.
-- Capability evidence is version-bound (Claude 2.1.241 / Codex 0.149.1 /
-  Grok 1.0.5); any CLI drift forces doctor/probe reassessment first.
-- Test counts moved this session: core 453+4 / extra ~465+3 + compat 12
-  (state the mode). Pinned package hash: `fd54eae7dbaa…`.
-- The vendor-smoke job installs npm CLIs at latest: vendor flag/channel
-  drift will surface there by design — treat a red as dated capability
-  evidence, not noise.
-- Raw run archives never leave `~/.agentteam/runs/`; promotion only via the
-  reviewed sanitizer path.
+- **5 of 30 live calls remain from M1a; r1 sets the M1b budget to ZERO.**
+  Any live urge during M1b routes to the M1c plan (r1 §11/§17), and every
+  live call stays an individual owner ceiling decision (ADR 0038).
+- r1 is NOT approved: no product code, no schema files, no register (v3.4)
+  amendment until G0. The HB-03 register amendment stays a docs-only
+  follow-up after the owner answers.
+- Local pytest on this host needs a plain terminal:
+  `env -u PYTHONPATH NO_COLOR=1 TERM=dumb uv run pytest` — a rich
+  terminal makes one `doctor --help` assertion fail on ANSI codes, and a
+  ROS-Foxy `PYTHONPATH` leak breaks collection outright. Neither is a
+  tree problem (CI 12/12 at `0864742` stands).
+- Capability evidence remains version-bound (Claude 2.1.241 /
+  Codex 0.149.1 / Grok 1.0.5); Grok re-entry still needs fresh probes +
+  an owner decision (ADR 0036).

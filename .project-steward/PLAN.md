@@ -101,6 +101,7 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
 ## M1b Team foundation (committed roadmap; outside the M1a approval scope)
 
 - [ ] Prepare and approve a separate plan for TeamTemplate/TeamRun foundations, task/message/archive contracts, and the CoordinationSubstrate protocol
+  - [x] Plan expanded to full draft r1 2026-08-24 (77 → 874 lines, 21 M1a-style sections: contracts, gates M1b G0–G7 with evidence, test matrix on the unchanged 12-job CI shape, zero-live-call budget, pinned exit-criterion measurement rule, stop rules + falsification routing; claim audit green): `docs/plans/m1b-team-foundation.md`, committed with this steward state. NOT approved — awaiting the independent review (fresh session at the frozen r1 SHA, the `3407ec9`/`317bb52` precedent), then owner approval as the G0 DECISIONS entry
 - [ ] Implement TeamRun orchestration and the optional ClawTeam provider behind the qualified compatibility boundary; keep harness launching on the built-in direct runner
 - [ ] Preserve one AgentTeam-owned process data root with opaque team namespaces; claim namespace separation only
 

@@ -39,8 +39,13 @@ vendor-smoke 12/12 at `0864742` (two real Windows bugs caught and fixed),
 pinned secret scan at the enumerated baseline, the owner-reviewed sanitized
 bundle committed (`docs/evidence/m1a-live-2026-08-24/`), and the M1b draft
 proposed-not-approved. Next milestone work (M1b) requires its own reviewed
-plan and explicit owner approval; the draft ClawTeam exit-criterion wording
-in `docs/plans/m1b-team-foundation.md` finalizes at that approval.
+plan and explicit owner approval. **The M1b plan is expanded to draft r1
+(2026-08-24)** — contracts, gates M1b G0–G7, test matrix, a zero-live-call
+budget, stop rules, and the §20 owner-decision list; it awaits the
+independent review (the `3407ec9`/`317bb52` precedent, in a fresh session
+against the frozen r1 commit SHA) and then owner approval (G0). The
+ClawTeam exit-criterion wording (plan §10, measurement rule pinned) and
+the HB-03 disposition (plan §20, options) finalize at that approval.
 
 ## Answered during G5 owner setup
 
@@ -131,6 +136,10 @@ See `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and ADR 0018.
   the ClawTeam provider stays only if provider + workarounds are ≤ 1.5× the local
   deterministic provider's LOC and the two-roster / on-exit-noise caveats are
   accepted in writing; otherwise the local provider becomes the product path.
+  *2026-08-24: M1b plan r1 §10 carries the r0 wording verbatim plus a pinned
+  measurement rule (production code only, `wc -l`; shared seam excluded from
+  both sides; test LOC reported as context, not counted); finalizes at M1b
+  approval, decision before PoC B.*
 - [ ] HB-03 precedence: the frozen register says user > Assistant > default; the
   living documents say user > Assistant > team > default. Amend the register
   (v3.4) or the glossary, and decide whether a team-level *constraint*
@@ -139,7 +148,12 @@ See `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and ADR 0018.
   with `team` reserved. **Still open after G1 (2026-08-23):** the plan allows
   the register amendment only after this answer, so G1 left `product-intent.md`
   HB-03 untouched; the amendment becomes a small docs-only follow-up whenever
-  the owner answers (it does not block G2).
+  the owner answers (it does not block G2). *2026-08-24: M1b plan r1 §7/§20
+  carry the resolution options (A filter-then-prefer, recommended; B
+  preference-layer-only; C constraints-above-user, recommended against;
+  or defer) — `constraints` stays a reserved-empty TeamTemplateV1 field
+  until the owner answers; the register amendment stays a docs-only
+  follow-up outside the M1b plan's commits.*
 - [ ] User-specific preferences in the Base definition vs User-Overlay-only
   (`assistant-domain-model.md` §13 Q1; review R15) — decide before overlay work.
 - [x] Tiebreak assumptions (a)–(l): historical, session-authored panel inputs,
