@@ -101,7 +101,9 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
 ## M1b Team foundation (committed roadmap; outside the M1a approval scope)
 
 - [ ] Prepare and approve a separate plan for TeamTemplate/TeamRun foundations, task/message/archive contracts, and the CoordinationSubstrate protocol
-  - [x] Plan expanded to full draft r1 2026-08-24 (77 → 874 lines, 21 M1a-style sections: contracts, gates M1b G0–G7 with evidence, test matrix on the unchanged 12-job CI shape, zero-live-call budget, pinned exit-criterion measurement rule, stop rules + falsification routing; claim audit green): `docs/plans/m1b-team-foundation.md`, committed with this steward state. NOT approved — awaiting the independent review (fresh session at the frozen r1 SHA, the `3407ec9`/`317bb52` precedent), then owner approval as the G0 DECISIONS entry
+  - [x] Plan expanded to full draft r1 2026-08-24 (`14dc218`; 21 M1a-style sections: contracts, gates M1b G0–G7, test matrix, zero-live-call budget, exit-criterion measurement rule, stop rules)
+  - [x] Independent review of r1 delivered 2026-08-24 — "do not approve yet": 7 approval-blocking findings + 3 hygiene items, all re-verified against the tree and confirmed; recorded verbatim at `docs/reviews/2026-08-24-m1b-plan-review-at-14dc218.md` (`9802775`)
+  - [x] r2 resolves all ten findings (this commit; plan §21 resolution table; ADR 0039 — HB-03 constraints deferred out of M1b by owner decision). NOT approved — next: owner G0 approval naming the file + r2's SHA, or a confirmation re-review at r2's frozen SHA first
 - [ ] Implement TeamRun orchestration and the optional ClawTeam provider behind the qualified compatibility boundary; keep harness launching on the built-in direct runner
 - [ ] Preserve one AgentTeam-owned process data root with opaque team namespaces; claim namespace separation only
 

@@ -806,3 +806,40 @@ call is an individual owner ceiling decision. The QUESTIONS exit-criterion
 item stays open until M1b approval finalizes the wording. Future Grok
 re-entry requires fresh probe evidence on a newer CLI plus an owner
 decision (ADR 0036).
+
+## 0039 — 2026-08-24 — M1b r1 independently reviewed: r2 resolves the findings; HB-03 constraints deferred out of M1b
+
+**Context**: The expanded M1b plan r1 (`docs/plans/m1b-team-foundation.md`
+at `14dc218`) received its independent review per the r0 approval
+checklist. Verdict: do not approve yet — architecture direction sound,
+seven approval-blocking findings and three hygiene items (recorded
+verbatim in `docs/reviews/2026-08-24-m1b-plan-review-at-14dc218.md`,
+commit `9802775`). The executing session re-verified every finding against
+the tree at `14dc218` before any resolution work; all ten confirmed —
+among them the §1-vs-§3 ClawTeam completion contradiction; the `DecidedBy`
+enum change regenerating `harness-invocation-v1.schema.json` that r1
+called unchanged; `decided_by: team` unsatisfiable in the r1 acceptance
+fixture (every member reused `code-reviewer`, whose Assistant preference
+outranks the team layer); and the seam's hard-coded `atm-lead` breaking
+roster parity.
+**Decision**: (1) The review is an immutable dated record in
+`docs/reviews/` — closing the M1a-era gap of plan reviews leaving no
+review artifact. (2) Plan revision r2 resolves all ten findings; the
+r1 → r2 resolution table is plan §21. (3) On finding 3 the owner chose
+**Defer**: HB-03 team-constraint semantics are deferred out of M1b
+entirely — M1b ships the team preference layer only (user > Assistant >
+team > default), `constraints` stays a reserved, fail-closed field, and
+the HB-03 question (whether a team-level constraint binds above an
+Assistant preference) stays open in QUESTIONS.md with its recorded
+options; the register v3.4 amendment remains a docs-only follow-up after
+the owner answers. (4) The glossary's CoordinationSubstrate `stop`
+amendment (stop is a run-layer duty — stop-before-cleanup — not a
+provider method) rides with the future G0 approval ADR, not with r2's
+commit; normative discovery docs stay untouched until the protocol shape
+is approved.
+**Consequences**: r2 is proposed, NOT approved. Next: owner approval as
+the G0 DECISIONS entry naming the plan file and r2's commit SHA (status
+flip in the following commit), or a confirmation re-review of r2 at its
+frozen SHA first — the owner's choice. Implementation stays blocked until
+G0. Zero live calls were spent in M1b planning; 5 of the M1a 30 remain
+untouched.

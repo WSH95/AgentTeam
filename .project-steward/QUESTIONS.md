@@ -39,13 +39,17 @@ vendor-smoke 12/12 at `0864742` (two real Windows bugs caught and fixed),
 pinned secret scan at the enumerated baseline, the owner-reviewed sanitized
 bundle committed (`docs/evidence/m1a-live-2026-08-24/`), and the M1b draft
 proposed-not-approved. Next milestone work (M1b) requires its own reviewed
-plan and explicit owner approval. **The M1b plan is expanded to draft r1
-(2026-08-24)** — contracts, gates M1b G0–G7, test matrix, a zero-live-call
-budget, stop rules, and the §20 owner-decision list; it awaits the
-independent review (the `3407ec9`/`317bb52` precedent, in a fresh session
-against the frozen r1 commit SHA) and then owner approval (G0). The
-ClawTeam exit-criterion wording (plan §10, measurement rule pinned) and
-the HB-03 disposition (plan §20, options) finalize at that approval.
+plan and explicit owner approval. **The M1b plan is at draft r2
+(2026-08-24)**: r1 (`14dc218`) was independently reviewed — verdict "do
+not approve yet", seven blocking findings plus three hygiene items,
+recorded verbatim at
+`docs/reviews/2026-08-24-m1b-plan-review-at-14dc218.md` — and r2 resolves
+all ten (plan §21 resolution table; ADR 0039). HB-03 constraint semantics
+are deferred out of M1b entirely (owner decision, ADR 0039; the question
+below stays open); the ClawTeam exit-criterion wording (plan §10)
+finalizes at approval. Next: owner approval as the G0 DECISIONS entry
+naming the file + r2's commit SHA, or a confirmation re-review of r2 at
+its frozen SHA first.
 
 ## Answered during G5 owner setup
 
@@ -153,7 +157,12 @@ See `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and ADR 0018.
   preference-layer-only; C constraints-above-user, recommended against;
   or defer) — `constraints` stays a reserved-empty TeamTemplateV1 field
   until the owner answers; the register amendment stays a docs-only
-  follow-up outside the M1b plan's commits.*
+  follow-up outside the M1b plan's commits.* *2026-08-24, later (ADR
+  0039): the r1 review found option A unimplementable as planned and the
+  owner chose **Defer** — M1b ships the team preference layer only,
+  `constraints` stays a reserved fail-closed field, and this question
+  remains open with the options above for whenever the owner answers;
+  plan r2 §7/§19/§20 record the deferral.*
 - [ ] User-specific preferences in the Base definition vs User-Overlay-only
   (`assistant-domain-model.md` §13 Q1; review R15) — decide before overlay work.
 - [x] Tiebreak assumptions (a)–(l): historical, session-authored panel inputs,
