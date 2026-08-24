@@ -4,6 +4,20 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G8 M1a close — 2026-08-24 (**M1a CLOSED as a semantic PASS**, ADR 0038)
+
+| Check | Result |
+| --- | --- |
+| Evidence bundle | PASS — regenerated fresh from the passing archive, self-scanned clean, independently spot-checked (zero absolute paths, zero env values), **owner-reviewed and approved**, committed at `docs/evidence/m1a-live-2026-08-24/` (`f8b0779`) with the sibling G8 record `docs/evidence/m1a-live-2026-08-24.md` stating the ADR 0036 amendment, Grok's four-cycle FAIL-HARD, the regeneration command, and the 25-of-30 ledger. No raw or credential-shaped content is tracked (`.gitignore` rule intact) |
+| M1b handover | PASS — `docs/plans/m1b-team-foundation.md` draft r0 (`856d525`), proposed and NOT approved: local deterministic provider first, ClawTeam provider second behind the qualified seam, draft exit-criterion wording (≤1.5× LOC + caveats accepted in writing); implementation gated on its own reviewed plan + owner approval (§21 convention) |
+| Close rule | PASS — §14: G8 closes on semantic PASS (achieved; no waiver involved); §18: M1a's approval scope ends here, no M1b work begun |
+| Boundary | PASS — zero live/model calls in G7/G8; 5 of 30 remain, each a future individual owner ceiling decision |
+
+Last verified: 2026-08-24 by Claude — **M1a is complete**: one portable
+Assistant definition executed unchanged across vendor harnesses with both
+acceptance tiers PASS, deterministic evidence 12/12 green on hosted CI, and
+a reviewed sanitized evidence bundle in the repository.
+
 ## G7 final CI matrices + vendor smoke — 2026-08-24 (closed)
 
 | Check | Result |

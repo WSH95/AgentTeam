@@ -27,7 +27,7 @@ Detailed execution plan (approved 2026-08-21): `~/.claude/plans/i-am-starting-a-
 - [x] Mark the detailed M0 PoC proposal provisional and re-baselining-required; do not schedule a specific draft source or implementation
 - [x] Run documentation regression checks and close M0.1 handoff
 
-## M1a AgentTeam direct-harness PoC (approved — G0 done 2026-08-23)
+## M1a AgentTeam direct-harness PoC (approved — G0 done 2026-08-23; **CLOSED 2026-08-24 as a semantic PASS**, ADR 0038)
 
 Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS 0021):
 [`docs/plans/m1a-direct-harness-poc.md`](../docs/plans/m1a-direct-harness-poc.md).
@@ -96,7 +96,7 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
   - [x] Fourth cycle (ADR 0035 beyond-allowance; owner final go at the gate) failed exit 1 on the Grok leg only, with `--max-turns 40` verified in argv and an identical `cancelled`@`num_turns: 2` null result — the turn-budget hypothesis is falsified; Claude/Codex legs valid for the third consecutive cycle. 8 of 30 calls remain; the §18 gate question returns to the owner (VERIFY "G6 fourth live cycle")
   - [x] Fifth cycle (first under the ADR 0036 amended gate; owner final go) **PASSED both tiers, exit 0**: Claude leg 119.9s + Codex leg 69.7s + Claude synthesis 40.1s, all valid on attempt 1 with zero problems; synthesis attributed six merged findings with valid source pairs; manifest, recursive modes, and sanitizer all clean. G6 closed; 5 of 30 calls remain
 - [x] G7 — final CI matrices: credential-free core OS×Python matrix, optional ClawTeam compatibility matrix, and the vendor-smoke job; history secret scan repeated (closed 2026-08-24: vendor-smoke landed at `dd2ec0f` and caught two real Windows product bugs on its first runs — bare-name launcher resolution `1555c5d`, case-insensitive env baseline `0864742`; final run 32765672784 **12/12 green** with npm-installed Claude 2.1.241 / Codex 0.149.1 verified through real `.cmd` shims; pinned secret scan at `dd2ec0f` and `0864742` = exactly the 3-hit enumerated benign baseline; VERIFY "G7") 
-- [ ] G8 — close M1a (reviewed sanitized evidence bundle committed; M1b draft names the local deterministic provider first and the ClawTeam exit criterion) and stop before TeamRun implementation
+- [x] G8 — close M1a (reviewed sanitized evidence bundle committed; M1b draft names the local deterministic provider first and the ClawTeam exit criterion) and stop before TeamRun implementation (closed 2026-08-24, ADR 0038: owner-reviewed bundle at `docs/evidence/m1a-live-2026-08-24/` + sibling G8 record stating the ADR 0036 amendment and Grok FAIL-HARD (`f8b0779`); M1b draft r0 proposed-not-approved (`856d525`); **M1a closed as a semantic PASS**; 25 of 30 calls spent; no M1b work in this scope)
 
 ## M1b Team foundation (committed roadmap; outside the M1a approval scope)
 

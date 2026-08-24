@@ -771,3 +771,38 @@ Grok-CLI revisit). M1b must still write the ClawTeam exit criterion before
 PoC B and build the local deterministic provider first (ADR 0018). Any
 future "build on X instead" decision starts from this ADR's survey
 evidence, not from scratch.
+
+## 0038 — 2026-08-24 — G8 closes M1a: the direct-harness PoC is complete
+
+**Context**: All M1a gates are done. G6 closed 2026-08-24 with the live PoC
+passing BOTH acceptance tiers (`run-20260824-170359-58d9`: mechanical
+cond-1/6/7/8 and semantic cond-2/3/4/5/9 all true; three invocations valid
+on attempt 1, zero retries, exit 0). G7 closed the same day: final
+credential-free matrices plus the new vendor-smoke job are 12/12 green at
+`0864742` (run 32765672784), after the job's first two runs each caught a
+real Windows product bug (bare-name launcher resolution `1555c5d`;
+case-insensitive env baseline `0864742`); the pinned history secret scan at
+`dd2ec0f` and `0864742` returned exactly the 3-hit enumerated benign
+baseline.
+**Decision**: M1a is **closed as a semantic PASS** under the owner-amended
+gate — and, as ADR 0036 requires, this G8 record states explicitly: the
+passing live ensemble is the **Claude Code and Codex legs plus Claude Code
+synthesis**; **Grok's leg was amended out after four owner-attended cycles
+of FAIL-HARD** (headless turn-cap, `cancelled` at `num_turns: 2`,
+`--max-turns 40` falsified in-argv; zero real reviews at grok 1.0.5), while
+Grok remains in profiles, probes, fakes, and the compatibility surface with
+the all-three question returning on a future Grok CLI release. The
+owner-reviewed sanitized evidence bundle is committed at
+`docs/evidence/m1a-live-2026-08-24/` with its sibling record
+`docs/evidence/m1a-live-2026-08-24.md` (regeneration command, acceptance
+map, 25-of-30 call ledger); raw archives stay local-only. The M1b draft
+`docs/plans/m1b-team-foundation.md` (r0, proposed, NOT approved) names the
+local deterministic coordination provider first and carries the draft
+ClawTeam exit-criterion wording; per plan §18, M1a's approval scope ends
+here and no M1b work begins without its own reviewed plan and explicit
+owner approval.
+**Consequences**: 5 of the 30-call live ceiling remain; every future live
+call is an individual owner ceiling decision. The QUESTIONS exit-criterion
+item stays open until M1b approval finalizes the wording. Future Grok
+re-entry requires fresh probe evidence on a newer CLI plus an owner
+decision (ADR 0036).

@@ -33,8 +33,14 @@ the ADR 0033 amendment. **G6 closed 2026-08-24** after five owner-gated live
 cycles: R1–R6 remediations (ADR 0034/0035), the ADR 0036 gate amendment
 (Claude + Codex legs; Grok FAIL-HARD recorded, revisited on a future CLI),
 and a fifth-cycle two-tier PASS (`run-20260824-170359-58d9`); 25 of the
-30-call ceiling spent, 5 remain. G7 is next; every push stays separately
-approved; evidence-bundle promotion is the G8 step.
+30-call ceiling spent, 5 remain. **G7 and G8 closed the same day
+(ADR 0038): M1a is COMPLETE as a semantic PASS** — final matrices +
+vendor-smoke 12/12 at `0864742` (two real Windows bugs caught and fixed),
+pinned secret scan at the enumerated baseline, the owner-reviewed sanitized
+bundle committed (`docs/evidence/m1a-live-2026-08-24/`), and the M1b draft
+proposed-not-approved. Next milestone work (M1b) requires its own reviewed
+plan and explicit owner approval; the draft ClawTeam exit-criterion wording
+in `docs/plans/m1b-team-foundation.md` finalizes at that approval.
 
 ## Answered during G5 owner setup
 
