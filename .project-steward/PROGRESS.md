@@ -4,6 +4,12 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T14:00:41Z — codex
+Owner approved the evidence-only commit `docs(steward): record green G5.R hosted CI`; the commit containing this entry records the retained 7/9 failure, corrective `e722c15`, and green 9/9 run 32735583747. It is not pushed, and G6 remains unstarted.
+
+### 2026-08-24T13:58:24Z — codex
+Corrective commit `e722c15` was pushed on explicit approval; CI run 32735583747 is 9/9 green (six OS×Python scaffold jobs and three OS ClawTeam jobs, including both Windows suites and deterministic acceptance). G5.R is re-closed, G6 remains unstarted, and this hosted-evidence bookkeeping awaits its own commit decision.
+
 ### 2026-08-24T13:52:55Z — codex
 Pushed `2f87517..30c17b5` on explicit approval; CI run 32734735405 finished 7/9 green, with both Windows scaffold jobs failing one test-only POSIX `os.killpg` monkeypatch. The portable helper-level correction is locally green (focused 29, core 417+4, Ruff/format, mypy/97) and awaits separate commit/push approval; G5.R is reopened and G6 remains blocked.
 
