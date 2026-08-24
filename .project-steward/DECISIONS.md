@@ -412,3 +412,35 @@ in the G4 closure commit.
 **Consequences**: The commands table now names the G6 live entry point; the
 live run itself stays behind G5 logins and the G6 gate with its call budget.
 No other AGENTS.md content changes; the guardrail process stays in force.
+
+## 0026 — 2026-08-24 — G5 probes are attended, version-bound, and evidence-first
+
+**Context**: G5 must prove native subscription authentication and real
+instruction/Skill delivery without allowing a probe retry, fallback, stale CLI
+row, or raw capture to silently become live-readiness evidence. Claude also
+needs a persistent config-home Skill channel without racing another AgentTeam
+process or deleting an owner's unmanaged directory.
+**Decision**: `profile init` is credential-blind and owner-only; the no-call
+doctor checks install/version/home/flag/auth readiness without mutating the
+profile. `doctor --probe` requires a TTY, preflights all three native profiles,
+prompts on stderr immediately before every call, runs in profile order with a
+hard two-call/harness ceiling and `min(profile timeout, 180s)`, and persists a
+pending/terminal owner-only capture before atomically updating only assessed
+capability rows. Random markers live only in instruction and Skill channels;
+adapters consume the first current `verified` channel in fixed ladders. Grok
+auth is verified only by a successful structured probe. Live runs use the
+persistent resolved vendor homes and reject stale/incomplete rows before a
+model call; render-only keeps synthetic homes. Claude config-home Skills use an
+exclusive marked-directory lease held through invocation and cleaned in
+`finally`. A second call assesses only unresolved rows, so a fallback failure
+cannot erase evidence proven by call 1. The shell-free runtime process runner
+uses `subprocess.Popen` with nonblocking pipe/process polling because this
+sandbox intermittently lost short-lived asyncio child-watcher notifications;
+tree-kill, timeout, and cancellation semantics remain covered by tests.
+**Consequences**: `HarnessProfileSetV1` remains schema version 1 and owner
+profile settings/custom rows survive probe updates. Cancellation exits 130 and
+keeps completed evidence; two failed calls leave G5 open. Raw captures are
+never promoted automatically. Deterministic implementation does not close G5:
+the owner still must log into all three dedicated homes, approve each of the
+3–6 live calls, review/sanitize representative output, and record the actual
+versions and selected channels before G6.

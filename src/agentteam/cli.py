@@ -2,8 +2,8 @@
 
 M1a plan section 8 defines the public contract. G3 provides the deterministic
 surface (`assistant validate`, `profile init/validate/doctor`, and
-`atm run --render-only`); launching arrives with G4 and probing with G5, so
-`--help` never lists behaviour that does not exist yet.
+`atm run --render-only`); G4 added launching and G5 adds attended native-auth
+preflight probes.
 """
 
 from __future__ import annotations

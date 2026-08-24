@@ -115,7 +115,7 @@ work named in its stop rule.
 | G2 | Python foundation and public repository | Frozen `uv.lock`; Python package builds; checked-in schemas reproduce; `atm --help` and `atm --version` pass; pre-first-push checklist passed (history secret scan, LICENSE and third-party notices, `docs/provenance.md`, repository/distribution-name checks); public `WSH95/AgentTeam` created with the MIT licence and the scaffold pushed after explicit approval; the **scaffold smoke matrix** (lock, Ruff, mypy, scaffold tests, build, schema reproduction, `--help`/`--version`) green on Ubuntu/Windows/macOS |
 | G3 | Direct harness core | Claude, Codex, and Grok adapters pass argv/env/parser tests against deterministic fake executables, including Skill-channel rendering, harness-selection resolution with `decided_by`, and the Windows-only `.cmd` shim fake; these tests are added to CI; no model call |
 | G4 | Deterministic PoC | Complete fan-out/synthesis state machine passes locally, including solo mode, selection/exclusion precedence, three Skills rendered per harness, and example-package hash identity; optional ClawTeam seam passes its local compatibility suite and writes its qualification report; the deterministic-acceptance, hash-identity, and optional ClawTeam jobs are added to CI |
-| G5 | Native-auth preflight and probes | Owner completes one interactive login per dedicated vendor config home; `atm profile doctor` reports sanitized status only; bounded day-one probes (at most two calls per harness, outside the acceptance cycle) write capability verification levels into the profile; Grok authentication stays `unverified` until its first live leg if no status command exists |
+| G5 | Native-auth preflight and probes | Owner completes one interactive login per dedicated vendor config home; `atm profile doctor` reports sanitized status only; bounded day-one probes (at most two calls per harness, outside the acceptance cycle) write capability verification levels into the profile; Grok authentication stays `unverified` until a successful structured probe because no status command exists |
 | G6 | Ubuntu live PoC | Three subscription-backed legs plus fresh Claude synthesis meet section 14 — mechanical conditions (architecture gate) and semantic conditions (product-useful gate) recorded separately — within the call/time bounds |
 | G7 | Final CI matrices | Core jobs pass on Ubuntu/Windows/macOS with Python 3.11 and 3.13; optional ClawTeam jobs pass on all three OSes with Python 3.11; the vendor-smoke job (npm-installed Claude Code and Codex `--version`/`--help` through the real launchers, no credentials) passes; the history secret scan is repeated |
 | G8 | M1a close | Verification and the reviewed sanitized evidence bundle are current; no secret/raw evidence is tracked; semantic PASS recorded — or an owner-recorded waiver that closes M1a as failed/abandoned, never as PASS; the M1b draft names the local deterministic provider first and the ClawTeam exit criterion; M1b remains separately planned |
@@ -550,8 +550,8 @@ Harness isolation remains:
   `--system-prompt-override` replaces the default system prompt and is used
   only if appending fails), `--json-schema` structured output; other controls
   (for example leader mode or web search) are disabled only if the probe shows
-  they exist; active authentication stays `unverified` until the first live
-  leg because Grok has no status command.
+  they exist; active authentication stays `unverified` until a successful
+  structured G5 probe because Grok has no status command.
 
 Day-one probes at G5: one trivial structured-output prompt per harness that
 verifies the instruction channel, the Skills channel, schema acceptance, and

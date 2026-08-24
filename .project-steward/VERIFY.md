@@ -1,8 +1,26 @@
 # Verification
 
-How to check the project is healthy. There is no build, product code, or
-automated product test suite yet; the M1a G2 scaffold introduces them (and the
-AGENTS.md command table changes only then, with its own shown diff).
+How to check the project is healthy. The commands in `AGENTS.md` are the
+current credential-free local block; live model calls are always separate,
+owner-attended gates.
+
+## G5 deterministic implementation verification — 2026-08-24 (live gate open)
+
+| Check | Result |
+| --- | --- |
+| Credential-free block | PASS — `ruff check .`; `ruff format --check .` (101 files); strict `mypy src tests` (97 files); `pytest -q --tb=short` (**385 passed, 3 Windows-only skips on Ubuntu**); `python -m agentteam.schema check`; `uv build` produced `agentteam-0.1.0a0` wheel + sdist; `git diff --check` clean |
+| Profile initialization | PASS deterministically — refuses overwrite/symlinked homes/unmarked nonempty Claude Skill roots and existing vendor configs; creates profile/vendor/Skill directories 0700 and files 0600 on POSIX; profile writes are atomic; Codex is seeded for file-backed ChatGPT-only login, Grok compatibility discovery is disabled, and POSIX/PowerShell login commands are tested |
+| No-call doctor | PASS deterministically — executable/version/home/expected-version/help-flag/conflict checks, sanitized Claude/Codex auth status parsing, Grok probe-only auth, names-only JSON, no profile mutation, and exit 1 vs 2 paths are covered |
+| Attended probes | PASS against stdlib-only fakes — all harnesses preflight before any call; TTY required; confirmation immediately precedes each invocation; profile order and ≤2 calls/harness enforced; prompt decline/Ctrl-C → 130; primary/fallback markers, signed-out/missing flags, malformed output, timeout, Codex `-o` vs JSONL disagreement, both Grok output locations, partial evidence, and two-call exhaustion are covered |
+| Persistence and runtime integration | PASS — captures are pending-first then terminal under owner-only `probes/YYYY-MM-DD/<id>/...`, with redacted command, raw streams/output, hashes, and sanitized result; assessed rows update atomically without disturbing owner settings or never-assessed rows; live runs require current version-bound verified native-auth/channels and persistent homes; render-only remains synthetic; Claude config-home Skills hold an exclusive managed lease through invocation and clean in `finally` |
+| Build note | PASS after the sandboxed isolated build could not fetch a missing Hatchling requirement; the explicitly approved `uv build` rerun with dependency-network access succeeded. No package was published. |
+| Boundary | PASS — tests invoke deterministic local fakes only. This session made no vendor login, credential-file read/copy, vendor model call, live fixture promotion, remote push, or G6 run. G5 remains open until the owner completes the dedicated logins and 3–6 individually confirmed probes, reviews captures, and records actual versions/channels. |
+
+The runtime/profile boundary is committed as `549804f`; the profile lifecycle
+and bounded probe boundary is the next local semantic commit. Neither commit
+has been pushed in this session.
+
+Last verified: 2026-08-24 by Codex (credential-free; deterministic fakes only).
 
 ## G4 evidence — 2026-08-23 (gate closed)
 

@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T04:46:50Z — codex
+G5 credential-free implementation complete locally: hardened owner-only/atomic profile initialization, sanitized no-call install/auth/readiness diagnostics, sequential TTY-gated probes with individual confirmations and a two-call ceiling, random channel markers, owner-only pending/terminal captures, atomic partial capability persistence, cancellation exit 130, and deterministic fake coverage for primary/fallback/auth/output/error paths. Full block: Ruff lint/format, mypy (97 files), schema reproduction, pytest 385 passed + 3 Ubuntu-skipped Windows-only tests, and wheel/sdist build PASS. No login, credential read, vendor model call, fixture promotion, push, or G6 run occurred; G5 remains open for the owner-attended 3–6 calls.
+
 ### 2026-08-24T03:52:14Z — codex
 G5 runtime checkpoint: live preflight now requires current version-bound verified channels, live runs use persistent profile homes, render-only remains synthetic, Claude config-home Skills use an exclusive managed lease, and adapter ladders consume only probe-verified channels. Added deterministic readiness, fallback, persistent-home, parser-authority, and lease tests; no vendor calls made.
 

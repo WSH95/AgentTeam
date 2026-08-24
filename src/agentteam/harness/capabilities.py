@@ -70,14 +70,20 @@ def readiness_requirements(harness: HarnessId, *, needs_skills: bool) -> Readine
         if needs_skills:
             claude_groups.append(CLAUDE_SKILL_LADDER)
         return ReadinessRequirements(
-            required=("headless-json", "structured-output"), one_of=tuple(claude_groups)
+            required=("headless-json", "structured-output", "native-auth"),
+            one_of=tuple(claude_groups),
         )
     if harness is HarnessId.CODEX:
         codex_groups: list[tuple[str, ...]] = [CODEX_INSTRUCTION_LADDER]
         if needs_skills:
             codex_groups.append(CODEX_SKILL_LADDER)
         return ReadinessRequirements(
-            required=("headless-jsonl", "structured-output", "output-last-message"),
+            required=(
+                "headless-jsonl",
+                "structured-output",
+                "output-last-message",
+                "native-auth",
+            ),
             one_of=tuple(codex_groups),
         )
     grok_groups: list[tuple[str, ...]] = [GROK_INSTRUCTION_LADDER, GROK_OUTPUT_LADDER]

@@ -12,7 +12,11 @@ plan names only the categories, so the concrete names live here as data
 
 from __future__ import annotations
 
+import contextlib
+import os
 import shutil
+import sys
+import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -70,6 +74,7 @@ _SEED_CAPABILITIES: dict[HarnessId, list[tuple[str, Verification]]] = {
     HarnessId.CLAUDE_CODE: [
         ("headless-json", Verification.OBSERVED),
         ("structured-output", Verification.OBSERVED),
+        ("native-auth", Verification.UNVERIFIED),
         ("append-system-prompt", Verification.OBSERVED),
         ("append-system-prompt-file", Verification.UNVERIFIED),
         ("skills-config-home", Verification.UNVERIFIED),
@@ -80,6 +85,7 @@ _SEED_CAPABILITIES: dict[HarnessId, list[tuple[str, Verification]]] = {
         ("headless-jsonl", Verification.OBSERVED),
         ("structured-output", Verification.OBSERVED),
         ("output-last-message", Verification.OBSERVED),
+        ("native-auth", Verification.UNVERIFIED),
         ("jsonl-final-agent-message", Verification.UNVERIFIED),
         ("instructions-workspace-agents-md", Verification.OBSERVED),
         ("instructions-model-instructions-file", Verification.OBSERVED),
@@ -152,10 +158,66 @@ def load_profile_set(path: Path) -> HarnessProfileSetV1:
         raise ProfileError(f"{path}: {details}") from None
 
 
-def write_profile_set(path: Path, profile_set: HarnessProfileSetV1) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+def write_profile_set(
+    path: Path, profile_set: HarnessProfileSetV1, *, platform: str | None = None
+) -> None:
     payload = profile_set.model_dump(mode="json")
-    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    atomic_write_text(path, yaml.safe_dump(payload, sort_keys=False), platform=platform)
+
+
+def ensure_owner_directory(path: Path, *, platform: str | None = None) -> None:
+    """Create an owner-only directory without accepting a symlink at the target."""
+    path = Path(path)
+    missing: list[Path] = []
+    current = path
+    while not current.exists():
+        if current.is_symlink():
+            raise ProfileError(f"unsafe symlinked directory: {current}")
+        missing.append(current)
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+    if current.is_symlink() or path.is_symlink():
+        raise ProfileError(
+            f"unsafe symlinked directory: {current if current.is_symlink() else path}"
+        )
+    path.mkdir(parents=True, exist_ok=True)
+    if not path.is_dir():
+        raise ProfileError(f"not a directory: {path}")
+    if (platform or sys.platform) != "win32":
+        for directory in reversed(missing):
+            with contextlib.suppress(OSError):
+                directory.chmod(0o700)
+        with contextlib.suppress(OSError):
+            path.chmod(0o700)
+
+
+def atomic_write_text(path: Path, text: str, *, platform: str | None = None) -> None:
+    """Atomically replace one owner-only UTF-8 file in its destination directory."""
+    path = Path(path)
+    ensure_owner_directory(path.parent, platform=platform)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
+    )
+    temporary = Path(temporary_name)
+    try:
+        if (platform or sys.platform) != "win32":
+            os.fchmod(descriptor, 0o600)
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            descriptor = -1
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+        if (platform or sys.platform) != "win32":
+            with contextlib.suppress(OSError):
+                path.chmod(0o600)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        with contextlib.suppress(OSError):
+            temporary.unlink()
 
 
 def resolve_profile_path(profile_file: Path, value: str) -> Path:

@@ -62,6 +62,10 @@ class ClaudeAdapter:
         instructions = read_instruction_text(ctx)
         task = read_task_text(ctx)
         schema_min = vendor_schema_min(schema_name_for(ctx))
+        # Every adapter owns preparation of its invocation cwd. Direct runs
+        # normally copy a workspace first, but adapter round-trips and other
+        # callers may render against a fresh output-scoped root.
+        ctx.workspace_root.mkdir(parents=True, exist_ok=True)
         instruction_channel = select_verified(ctx.profile, CLAUDE_INSTRUCTION_LADDER)
         if instruction_channel is None:
             raise RenderError(

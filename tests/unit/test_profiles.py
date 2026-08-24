@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import stat
+import sys
 from pathlib import Path
 
 import pytest
@@ -46,6 +48,10 @@ def test_write_and_load_round_trip(tmp_path: Path) -> None:
         HarnessId.CODEX,
         HarnessId.GROK,
     ]
+    if sys.platform != "win32":
+        assert stat.S_IMODE(path.stat().st_mode) == 0o600
+        assert stat.S_IMODE(path.parent.stat().st_mode) == 0o700
+    assert not list(tmp_path.glob(".profiles.yaml.*.tmp"))
 
 
 def test_load_rejects_unknown_fields(tmp_path: Path) -> None:

@@ -60,6 +60,10 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
   - [x] Pushed on explicit approvals; six CI legs green incl. the Windows `.cmd` suite (run 32674468887 at `37219bb`; VERIFY "G3 evidence")
 - [x] G4 — pass the deterministic direct-runner PoC locally (incl. solo mode, selection precedence, three Skills per harness, example-package hash identity) and qualify the optional, exactly pinned ClawTeam import/coordination seam without using its subprocess backend; write its qualification report (closed 2026-08-23: commits `e699c91`/`48cac73`/`b8d5f9d`; all nine CI checks green at `b8d5f9d`, run 32681299831; 354 tests with the extra, 342 + clean skip without; both acceptance tiers PASS deterministically; VERIFY "G4 evidence")
 - [ ] G5 — complete owner-driven dedicated native-auth profile setup and the bounded day-one probes (verification levels recorded)
+  - [x] Runtime/profile integration: persistent authenticated homes for live runs, synthetic render-only homes, version-bound verified-only readiness, fixed adapter ladders, and an exclusive managed Claude Skill lease (`549804f`)
+  - [x] Credential-free implementation: secure `profile init`, sanitized no-call doctor, attended `doctor --probe`, owner-only pending/terminal captures, atomic per-call capability updates, deterministic fakes, and local validation (385 passed, 3 Ubuntu-skipped Windows tests)
+  - [ ] Owner runs `profile init`, each printed native login command, and the no-call doctor against the dedicated homes
+  - [ ] Owner confirms the three harness probes individually (up to six calls), reviews raw local captures, promotes only sanitized fixtures, and closes G5 only if every required readiness row passes
 - [ ] G6 — pass the Ubuntu subscription-backed live PoC
 - [ ] G7 — final CI matrices: credential-free core OS×Python matrix, optional ClawTeam compatibility matrix, and the vendor-smoke job; history secret scan repeated
 - [ ] G8 — close M1a (reviewed sanitized evidence bundle committed; M1b draft names the local deterministic provider first and the ClawTeam exit criterion) and stop before TeamRun implementation

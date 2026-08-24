@@ -1,10 +1,9 @@
 # AgentTeam
 
 **Status: alpha.** AgentTeam is being built gate by gate from an approved
-plan. The repository holds the discovery/planning documentation and the first
-implementation slices of gate G2 (Python packaging, the `atm` CLI skeleton,
-and hosted-CI smoke checks). There is no released package and no public
-distribution; interfaces and records are not stable yet.
+plan. The deterministic direct runner and the G5 native-auth preflight/probe
+tooling are implemented; owner-attended live verification is still pending.
+There is no released package and interfaces and records are not stable yet.
 
 AgentTeam provides portable, harness-independent **Assistant definitions**
 (reusable specialised colleagues) and reusable **Team templates**, executed as
@@ -21,9 +20,9 @@ which remains a source of requirements, experiments, and evidence only.
 | Independent review of the discovery baseline | [`docs/reviews/`](docs/reviews/2026-08-23-m0-review-at-3407ec9.md) | dated record |
 | M1a direct-harness PoC plan, revision r3 | [`docs/plans/m1a-direct-harness-poc.md`](docs/plans/m1a-direct-harness-poc.md) | approved for implementation (DECISIONS 0021) |
 | Project state: charter, plan, decisions, questions, risks, verification, handoff | [`.project-steward/`](.project-steward/) | current |
-| Product scaffold: packaging, `atm` CLI skeleton, unit tests, CI smoke matrix | `pyproject.toml`, [`src/agentteam/`](src/agentteam/), [`tests/`](tests/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | alpha (M1a G2); the CLI has `--help`/`--version` only |
+| Product CLI, packaging, tests, CI | `pyproject.toml`, [`src/agentteam/`](src/agentteam/), [`tests/`](tests/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | alpha (M1a G5 implementation); validation, profile lifecycle, render-only, and direct runs |
 | V1 domain records + checked-in JSON Schemas | [`src/agentteam/domain/`](src/agentteam/domain/), [`schemas/`](schemas/README.md) | alpha (M1a G2); closed records, vendor-facing review/synthesis contracts |
-| Harness adapters, runner, live evidence | — | not yet (M1a gates G3–G8) |
+| Claude/Codex/Grok adapters and direct runner | [`src/agentteam/harness/`](src/agentteam/harness/), [`src/agentteam/run/`](src/agentteam/run/) | deterministic fake qualification complete; G5/G6 live evidence pending |
 
 ## Planned stack
 
@@ -65,6 +64,18 @@ uv run atm --version
 The nine V1 JSON Schemas under [`schemas/`](schemas/README.md) are generated
 from the Pydantic models; regenerate with
 `uv run python -m agentteam.schema export`.
+
+Native subscription setup is deliberately owner-attended:
+
+```text
+uv run atm profile init            # creates owner-only homes and prints login commands
+# run each printed vendor login command yourself
+uv run atm profile doctor          # no model call; sanitized install/login/readiness status
+uv run atm profile doctor --probe  # TTY required; confirms each of at most 2 calls/harness
+```
+
+Probe captures remain local under `~/.agentteam/probes/`; AgentTeam never
+reads or copies credential files and never promotes raw captures automatically.
 
 The optional coordination provider is installed with `--extra clawteam`
 (exact upstream revision; qualified at gate G4 — not needed for development).

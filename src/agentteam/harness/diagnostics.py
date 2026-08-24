@@ -21,6 +21,9 @@ def diagnostic_environment(
     """Minimal child environment plus the already-resolved config home."""
     baseline = WINDOWS_BASELINE if platform == "win32" else POSIX_BASELINE
     child = {name: parent[name] for name in baseline if name in parent}
+    for name in profile.environment.passthrough:
+        if name in parent:
+            child[name] = parent[name]
     child[profile.environment.config_home_variable] = profile.config_home
     return child
 

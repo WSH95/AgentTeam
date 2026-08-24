@@ -17,6 +17,8 @@ import re
 import sys
 import time
 
+from probe_support import HELP, emit_probe, is_probe, probe_mode
+
 REVIEW = json.loads("""
 {
   "schema_version": 1,
@@ -237,8 +239,19 @@ def main():
     if "--version" in sys.argv:
         sys.stdout.write(VERSION + "\n")
         return 0
+    if "--help" in sys.argv:
+        sys.stdout.write(
+            "--output-format\n" if probe_mode("claude") == "missing-flags" else HELP["claude"]
+        )
+        return 0
+    if sys.argv[1:4] == ["auth", "status", "--json"]:
+        logged_in = probe_mode("claude") != "signed-out"
+        sys.stdout.write(json.dumps({"loggedIn": logged_in}) + "\n")
+        return 0 if logged_in else 1
     stdin_text = read_stdin()
     observe(stdin_text)
+    if is_probe("claude", sys.argv):
+        return emit_probe("claude", sys.argv)
     mode = resolve_mode()
     if mode == "rate-limit":
         sys.stderr.write("429 Too Many Requests\n")

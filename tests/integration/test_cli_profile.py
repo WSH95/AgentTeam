@@ -9,6 +9,13 @@ import pytest
 from typer.testing import CliRunner
 
 from agentteam.cli import app
+from agentteam.domain.common import HarnessId
+from agentteam.resolution.profiles import (
+    load_profile_set,
+    resolve_config_home,
+    resolve_profile_executable,
+    write_profile_set,
+)
 
 runner = CliRunner()
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -22,7 +29,17 @@ def test_init_writes_profiles_and_config_homes(tmp_path: Path) -> None:
     assert config.is_file()
     for harness in ("claude-code", "codex", "grok"):
         assert (tmp_path / "vendors" / harness).is_dir()
+    codex = (tmp_path / "vendors" / "codex" / "config.toml").read_text()
+    assert 'cli_auth_credentials_store = "file"' in codex
+    assert 'forced_login_method = "chatgpt"' in codex
+    grok = (tmp_path / "vendors" / "grok" / "config.toml").read_text()
+    assert "[compat.cursor]" in grok and "[compat.claude]" in grok
+    assert grok.count("= false") == 12
+    assert (tmp_path / "vendors/claude-code/skills/.agentteam-managed").is_file()
     assert "login" in result.output.lower()
+    assert "claude auth login" in result.output
+    assert "codex login" in result.output
+    assert "grok login --oauth" in result.output
     assert "never" in result.output.lower()  # never automates a browser / copies credentials
 
 
@@ -45,17 +62,19 @@ def test_validate_ok_and_invalid(tmp_path: Path) -> None:
 
 
 def test_doctor_reports_fake_versions_and_exits_0() -> None:
+    before = CI_FAKE.read_bytes()
     result = runner.invoke(app, ["profile", "doctor", "--config", str(CI_FAKE)])
     assert result.exit_code == 0, result.output
     assert "2.1.241" in result.output  # fake claude --version
     assert "codex-cli 0.149.0" in result.output
     assert "grok 1.0.5" in result.output
+    assert CI_FAKE.read_bytes() == before
 
 
 def test_doctor_json_is_sanitized_names_only(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("FAKE_CONFLICT", "super-secret-value")
     result = runner.invoke(app, ["profile", "doctor", "--config", str(CI_FAKE), "--json"])
-    assert result.exit_code == 0, result.output
+    assert result.exit_code == 2, result.output
     payload = json.loads(result.output)
     text = json.dumps(payload)
     assert "FAKE_CONFLICT" in text  # the NAME is reported as set
@@ -64,6 +83,14 @@ def test_doctor_json_is_sanitized_names_only(monkeypatch: pytest.MonkeyPatch) ->
     assert claude["executable_resolved"] is True
     assert claude["version"].startswith("2.1.241")
     assert claude["conflicts_set"] == ["FAKE_CONFLICT"]
+    assert claude["auth_state"] == "unknown"
+    assert claude["readiness"]["ready"] is True
+    assert claude["probe"] == {
+        "status": "not-requested",
+        "calls_used": 0,
+        "capture_id": None,
+        "profile_updated": False,
+    }
 
 
 def test_doctor_missing_executable_exits_1(tmp_path: Path) -> None:
@@ -81,3 +108,29 @@ def test_doctor_missing_executable_exits_1(tmp_path: Path) -> None:
     result = runner.invoke(app, ["profile", "doctor", "--config", str(config)])
     assert result.exit_code == 1
     assert "not found" in result.output
+
+
+def test_doctor_reports_expected_version_mismatch_without_mutating_profile(
+    tmp_path: Path,
+) -> None:
+    source = load_profile_set(CI_FAKE)
+    profiles = []
+    for profile in source.profiles:
+        update: dict[str, object] = {
+            "executable": str(resolve_profile_executable(CI_FAKE, profile.executable)),
+            "config_home": str(resolve_config_home(CI_FAKE, profile.config_home)),
+        }
+        if profile.harness is HarnessId.CODEX:
+            update["expected_version"] = "codex-cli 999.0.0"
+        profiles.append(profile.model_copy(update=update))
+    config = tmp_path / "profiles.yaml"
+    write_profile_set(config, source.model_copy(update={"profiles": profiles}))
+    before = config.read_bytes()
+
+    result = runner.invoke(app, ["profile", "doctor", "--config", str(config), "--json"])
+
+    assert result.exit_code == 1
+    payload = json.loads(result.output)
+    codex = next(row for row in payload["profiles"] if row["harness"] == "codex")
+    assert codex["expected_version_mismatch"] is True
+    assert config.read_bytes() == before

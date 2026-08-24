@@ -1,116 +1,116 @@
 ---
-updated_at: 2026-08-24T03:52:14Z
+updated_at: 2026-08-24T04:46:50Z
 updated_by: codex
-session_status: closed
+session_status: active
 branch: main
-last_commit: 03635e7
+last_commit: 549804f
 ---
 # Handoff
 
 ## Now
 
-**M1a G4 is COMPLETE and closed (2026-08-23).** G1–G4 all closed. Public
-repository https://github.com/WSH95/AgentTeam, origin `main @ b8d5f9d`
-(**all nine CI checks green on the first push** — run 32681299831: six
-scaffold legs ubuntu/windows/macos × 3.11/3.13 plus the three-OS `clawteam`
-job). The tree carries only the G4 closure commit after this handoff.
+**M1a G5's credential-free implementation is complete locally; G5 itself is
+OPEN for owner-attended login/probe evidence.** G1–G4 are closed. The public
+remote remains at the last approved G4 push; this session has not pushed.
 
-G4 (per the owner-approved per-gate execution plan; every coding gate needs
-such a plan first — standing working agreement):
-- `e699c91` feat(run): the §12 state machine — pending archive before any
-  side effect (atomic writes, POSIX 0700/0600, Windows profile warn, SHA-256
-  manifest), per-leg isolated workspace copies + raw-bytes target hashing
-  with injection-derived exclusions, concurrent legs, one same-harness
-  transient-only retry, synthesis over labelled leg reports only
-  (`src/agentteam/synthesis/instructions.md`, LF-normalised instruction
-  hash, attribution validated), §14 matcher + mechanical/semantic tier
-  evaluators, the tested archive sanitizer, the live `atm run` path (exit
-  0/1/2/3/130), `RunRequestV1.acceptance.oracle` (additive, schema regen).
-- `48cac73` test(poc): `fixtures/review-target/` (3 seeded defects; labels
-  only in `fixtures/review-target.oracle.json`), example run requests
-  (direct-review / live-review), the acceptance suite (both tiers PASS
-  deterministically; exit-3 and exit-1 paths; ≤8-call budget; SIGINT→130),
-  pinned cross-OS package hash `fb9e98a3…`, two named CI steps. Plus a
-  redaction hardening the sanitizer caught: launcher argv prefixes are now
-  placeholdered in every command record.
-- `b8d5f9d` test(substrate): the §10 ClawTeam anti-corruption seam
-  (`src/agentteam/compat/clawteam.py`, pinned 0119833…): one data root per
-  process, opaque names, explicit file primitives, global bus replaced +
-  hook loader spent — hostile-hook fixture proves no user hook executes; 12
-  scenarios green on 3 OSes; report
-  `docs/evidence/clawteam-qualification-2026-08-23.md`; `clawteam` CI job;
-  core legs never install the extra (skip-clean proven).
-- **354 tests with the extra / 342 + clean skip without.** Deviations and
-  the full local block: VERIFY "G4 local verification" + "G4 evidence".
-- AGENTS.md carries the owner-approved `Live PoC` row + stack-line cleanup
-  (DECISIONS 0025).
+Two local semantic boundaries implement the supplied G5 plan:
+
+- `549804f fix(run): enforce authenticated homes and readiness` — live runs
+  resolve the persistent profile vendor homes; render-only stays synthetic;
+  current version-bound `verified` rows gate live calls; adapters use fixed
+  verified-only channel ladders; Claude config-home Skills use an exclusive
+  marked-directory lease held through invocation and cleaned in `finally`.
+- The feature boundary carrying this handoff — secure/atomic owner-only
+  `profile init`; correct Claude/Codex/Grok login commands and safe seed
+  configs; sanitized no-call install/auth/readiness doctor; TTY-gated
+  sequential `doctor --probe`; one confirmation per invocation, two-call
+  ceiling, random instruction/Skill markers, primary/fallback recipes,
+  owner-only pending/terminal captures, and atomic partial capability-row
+  updates. The shared shell-free process runner now polls Popen pipes/process
+  state rather than relying on a flaky sandbox child watcher.
+
+Credential-free validation is green: Ruff lint/format, strict mypy (97 files),
+schema reproduction, **385 passed + 3 Ubuntu-skipped Windows-only tests**, and
+wheel/sdist build. Exact evidence is in VERIFY "G5 deterministic
+implementation verification". No vendor login, credential read/copy, model
+call, live fixture promotion, G6 run, or push occurred.
 
 ## In flight
 
-Nothing. The G4 closure commit (steward files + AGENTS.md diffs) is local
-until the owner approves its push.
+Only the owner-attended portion of G5 remains. The feature boundary containing
+this handoff is local; each push still requires its own explicit owner
+approval. G6 is prohibited until all required probe rows are current and
+verified.
 
 ## Next steps
 
-1. **G5 — native-auth preflight and probes (owner-attended).** The owner
-   runs `atm profile init` (writes `~/.agentteam/profiles.yaml` + vendor
-   config homes) and performs one interactive login per vendor home
-   (`claude /login`, `codex login`, `grok` auth — each pointed at its
-   `~/.agentteam/vendors/<harness>` via the config-home env var; init
-   prints the instructions). Then implement `atm profile doctor --probe`:
-   at most **two calls per harness**, outside the acceptance cycle, writing
-   capability verification levels + `cli_version`/`verified_at` into the
-   profile. The probes settle the parked items: Claude Skill channel
-   (config-home skills vs `--plugin-dir` vs workspace) and
-   `--append-system-prompt-file`; Codex final-event shape; Grok
-   structured-output location and auth (Grok stays `unverified` until its
-   first live leg). Raw captures land in gitignored `~/.agentteam/probes/`.
-   G5 needs its own small per-gate plan first (working agreement).
-2. **G6 — Ubuntu live PoC** after G5: `uv run atm run
-   examples/run-requests/live-review.yaml` (the AGENTS.md Live PoC row);
-   one cycle ≤ 8 calls; reruns only with separate owner confirmation (≤2);
-   hard ceiling 30 calls. Exit 3 routes to definition/prompt work; the
-   sanitizer (`agentteam.run.sanitize`) is already tested for the G8
-   evidence bundle.
-3. Housekeeping: the G4 closure commit is unpushed (own approval); HB-03
-   register amendment still awaits the owner's QUESTIONS answer.
+1. Review the local G5 commits/diff. Do not push unless the owner separately
+   approves that push.
+2. On the owner host, run `uv run atm profile init` (default
+   `~/.agentteam/profiles.yaml`; init refuses overwrite) and run each printed
+   command yourself: `claude auth login`, `codex login`, and
+   `grok login --oauth`, each with its dedicated config-home variable already
+   rendered in the printed command. AgentTeam never opens a browser or reads
+   credential files.
+3. Run `uv run atm profile doctor`. An exit 1 for unprobed readiness rows is
+   expected after successful login; exit 2 means invalid/unsafe config and
+   must be fixed before any probe.
+4. Run `uv run atm profile doctor --probe` from a TTY. Confirm each vendor call
+   individually. Normal budget is three calls; fallbacks can raise the total
+   to six, never more than two per harness. Decline/Ctrl-C exits 130 and keeps
+   completed evidence.
+5. Review raw owner-only captures under
+   `~/.agentteam/probes/YYYY-MM-DD/<probe-id>/`. Promote only manually
+   sanitized representative Claude/Codex/Grok parser fixtures, then rerun the
+   credential-free block and record actual CLI versions, channels, output
+   locations, call counts, and sanitization in PLAN/VERIFY/DECISIONS/PROGRESS.
+   Close G5 only when every required readiness row passes.
+6. Start G6 only after G5 closes: `uv run atm run
+   examples/run-requests/live-review.yaml`, under the separately confirmed
+   acceptance-cycle budget and stop rules.
 
 ## Blockers
 
-- G5/G6 need the owner present for logins and live calls. Nothing blocks
-  planning G5.
+- The dedicated vendor logins and 3–6 model calls require the owner at a TTY.
+- No deterministic/code blocker remains for G5.
 
 ## Key files
 
-- `src/agentteam/run/` — the runner (preflight/archive/workspace/runner/
-  synthesis/acceptance/sanitize); `src/agentteam/compat/clawteam.py`;
-  `tests/{acceptance,compatibility}/`; `fixtures/review-target*`;
-  `examples/run-requests/`.
-- `docs/plans/m1a-direct-harness-poc.md` §11 (probes), §14 (live
-  conditions), §13 (evidence privacy) — the G5/G6 spec.
-- VERIFY "G4 evidence"/"G4 local verification" (deviations 1–16);
-  DECISIONS 0025; `docs/evidence/clawteam-qualification-2026-08-23.md`.
-- Run everything locally as `env -u PYTHONPATH uv run …` (ROS quirk); lint
-  is bare-dot exactly as CI; extra installed locally right now
-  (`uv sync --frozen --all-groups --extra clawteam`).
+- `src/agentteam/profile/{setup,doctor,probe,capture}.py` and
+  `src/agentteam/commands/profile.py` — G5 lifecycle and CLI.
+- `src/agentteam/run/preflight.py`, `src/agentteam/run/runner.py`,
+  `src/agentteam/harness/{capabilities,skills,process}.py` — live readiness,
+  persistent homes, lease, and process handling.
+- `tests/integration/test_profile_probe.py`,
+  `tests/integration/test_cli_profile.py`, `tests/unit/test_profile_setup.py`,
+  `tests/unit/test_probe_capture.py`, and `fixtures/fake-harness/` —
+  credential-free matrix.
+- `docs/plans/m1a-direct-harness-poc.md` §11/§13/§14; VERIFY "G5
+  deterministic implementation verification"; DECISIONS 0026.
 
 ## Tried and rejected
 
-- Never push without explicit approval; each push its own gate.
-- No model call in tests/CI; fakes only until G5/G6. Probes ≤2/harness.
-- Exit 3 is semantic-only; mechanical failures (incl. target mutation and
-  package re-hash) exit 1 with the stop-rule reason.
-- ClawTeam: never `--all-extras` on core legs; teams with empty `user`
-  (a user name prefixes inbox dirs and desynchronises send/receive); the
-  owner's `~/.clawteam` is refused by the seam and untouched by tests.
-- `Path("/abs/x")` is not absolute on Windows — never assert on it.
+- No automatic login/browser launch, API-key fallback, credential copying,
+  hidden retry, model substitution, synthesis, or automatic fixture promotion
+  is allowed in probes.
+- Do not use stale/observed/unverified capability rows for a live run; rerun
+  doctor/probes after a CLI version change.
+- Do not use an unmarked nonempty Claude Skill directory. The managed
+  config-home channel is leased cross-process and only managed payload is
+  cleaned.
+- The original asyncio child-watcher path intermittently hung on short-lived
+  fake children in this sandbox; Popen + nonblocking polling passed the full
+  deterministic suite while preserving shell-free/tree-kill semantics.
 
 ## Warnings
 
-- Editing `examples/assistants/code-reviewer/` changes the pinned package
-  hash (`tests/acceptance/test_hash_identity.py` documents regeneration).
-- The fakes' finding lines are coupled to `fixtures/review-target/` line
-  numbers and the oracle windows; `tests/acceptance/test_fixture_consistency.py`
-  is the net that catches drift.
-- Vendor-facing schema/channel choices remain probe-verified at G5; the
-  Grok parser tolerates both structured-output locations until then.
+- Raw probe stdout/stderr may contain sensitive workspace/vendor material even
+  though directories are owner-only. Never add or publish raw captures.
+- G5 live claims are Ubuntu owner-host claims only. Hosted CI stays fake and
+  credential-free; the revised runner still needs the next pushed Windows CI
+  evidence.
+- The checked-in fake profile uses disposable persistent homes created by the
+  pytest session fixture; run the test suite as one pytest process so parallel
+  pytest sessions do not race that shared fixture root.
+- Editing `examples/assistants/code-reviewer/` changes the pinned package hash;
+  changing fake findings can invalidate fixture/oracle line coupling.

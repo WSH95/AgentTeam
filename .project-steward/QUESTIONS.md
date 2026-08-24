@@ -20,12 +20,14 @@ legs green at `37219bb`, run 32674468887). **G4 done and closed 2026-08-23**
 **all nine CI checks green at `b8d5f9d`**, run 32681299831 — six scaffold
 legs plus the three-OS `clawteam` job; both deterministic acceptance tiers
 PASS; VERIFY "G4 evidence"; ClawTeam qualification report under
-`docs/evidence/`). The next gate is **G5** — owner-driven native-auth
-profile setup (interactive logins into `~/.agentteam/vendors/<harness>`) and
-the bounded day-one probes (`atm profile doctor --probe`, at most two calls
-per harness) that settle the parked channel questions and write verification
-levels into the profiles. G5 is owner-attended by nature; every push and
-every live call stays its own gate.
+`docs/evidence/`). **G5's credential-free implementation is complete locally**:
+secure profile initialization, sanitized no-call diagnostics, bounded attended
+probes/captures, and live-run readiness wiring are deterministic-test green.
+G5 remains open for owner-driven profile setup (interactive logins into
+`~/.agentteam/vendors/<harness>`) and the day-one probes (`atm profile doctor
+--probe`, at most two calls per harness) that settle the parked channel
+questions and write live verification levels. Every push and every live call
+stays its own gate.
 
 ## Answered in the 2026-08-22 product/architecture review
 

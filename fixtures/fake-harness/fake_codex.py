@@ -18,6 +18,8 @@ import re
 import sys
 import time
 
+from probe_support import HELP, emit_probe, is_probe, probe_mode
+
 REVIEW = json.loads("""
 {
   "schema_version": 1,
@@ -258,8 +260,17 @@ def main():
     if "--version" in sys.argv:
         sys.stdout.write(VERSION + "\n")
         return 0
+    if "--help" in sys.argv:
+        sys.stdout.write("--json\n" if probe_mode("codex") == "missing-flags" else HELP["codex"])
+        return 0
+    if sys.argv[1:3] == ["login", "status"]:
+        logged_in = probe_mode("codex") != "signed-out"
+        sys.stdout.write("Logged in using ChatGPT\n" if logged_in else "Not logged in\n")
+        return 0 if logged_in else 1
     stdin_text = read_stdin()
     observe(stdin_text)
+    if is_probe("codex", sys.argv):
+        return emit_probe("codex", sys.argv)
     mode = resolve_mode()
     if mode == "rate-limit":
         sys.stderr.write("429 Too Many Requests\n")

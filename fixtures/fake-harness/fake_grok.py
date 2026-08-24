@@ -18,6 +18,8 @@ import re
 import sys
 import time
 
+from probe_support import HELP, emit_probe, is_probe, probe_mode
+
 REVIEW = json.loads("""
 {
   "schema_version": 1,
@@ -254,8 +256,15 @@ def main():
     if "--version" in sys.argv:
         sys.stdout.write(VERSION + "\n")
         return 0
+    if "--help" in sys.argv:
+        sys.stdout.write(
+            "--output-format\n" if probe_mode("grok") == "missing-flags" else HELP["grok"]
+        )
+        return 0
     stdin_text = read_stdin()
     observe(stdin_text)
+    if is_probe("grok", sys.argv):
+        return emit_probe("grok", sys.argv)
     mode = resolve_mode()
     if mode == "rate-limit":
         sys.stderr.write("429 Too Many Requests\n")

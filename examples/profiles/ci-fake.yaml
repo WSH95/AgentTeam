@@ -11,11 +11,12 @@ profiles:
     config_home: .agentteam-local/vendors/claude-code
     environment:
       config_home_variable: CLAUDE_CONFIG_DIR
-      passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK]
+      passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK, FAKE_PROBE_MODE, FAKE_PROBE_MODE_CLAUDE]
       conflicts: [FAKE_CONFLICT]
     capabilities:
       - {name: headless-json, verification: verified, cli_version: "2.1.241 (Claude Code)", verified_at: "2026-08-23T00:00:00Z"}
       - {name: structured-output, verification: verified, cli_version: "2.1.241 (Claude Code)", verified_at: "2026-08-23T00:00:00Z"}
+      - {name: native-auth, verification: verified, cli_version: "2.1.241 (Claude Code)", verified_at: "2026-08-23T00:00:00Z"}
       - {name: append-system-prompt-file, verification: verified, cli_version: "2.1.241 (Claude Code)", verified_at: "2026-08-23T00:00:00Z"}
       - {name: skills-config-home, verification: verified, cli_version: "2.1.241 (Claude Code)", verified_at: "2026-08-23T00:00:00Z"}
   - harness: codex
@@ -23,12 +24,13 @@ profiles:
     config_home: .agentteam-local/vendors/codex
     environment:
       config_home_variable: CODEX_HOME
-      passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK]
+      passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK, FAKE_PROBE_MODE, FAKE_PROBE_MODE_CODEX]
       conflicts: [FAKE_CONFLICT]
     capabilities:
       - {name: headless-jsonl, verification: verified, cli_version: "codex-cli 0.149.0", verified_at: "2026-08-23T00:00:00Z"}
       - {name: structured-output, verification: verified, cli_version: "codex-cli 0.149.0", verified_at: "2026-08-23T00:00:00Z"}
       - {name: output-last-message, verification: verified, cli_version: "codex-cli 0.149.0", verified_at: "2026-08-23T00:00:00Z"}
+      - {name: native-auth, verification: verified, cli_version: "codex-cli 0.149.0", verified_at: "2026-08-23T00:00:00Z"}
       - {name: jsonl-final-agent-message, verification: verified, cli_version: "codex-cli 0.149.0", verified_at: "2026-08-23T00:00:00Z"}
       - {name: instructions-model-instructions-file, verification: verified, cli_version: "codex-cli 0.149.0", verified_at: "2026-08-23T00:00:00Z"}
       - {name: skills-workspace, verification: verified, cli_version: "codex-cli 0.149.0", verified_at: "2026-08-23T00:00:00Z"}
@@ -37,7 +39,7 @@ profiles:
     config_home: .agentteam-local/vendors/grok
     environment:
       config_home_variable: GROK_HOME
-      passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK]
+      passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK, FAKE_PROBE_MODE, FAKE_PROBE_MODE_GROK]
       conflicts: [FAKE_CONFLICT]
     capabilities:
       - {name: headless-json, verification: verified, cli_version: "grok 1.0.5 (fake)", verified_at: "2026-08-23T00:00:00Z"}
