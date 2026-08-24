@@ -884,3 +884,46 @@ the G0 DECISIONS entry naming the plan file and r3's commit SHA (status
 flip in the following commit), or another confirmation pass at r3's
 frozen SHA — the owner's choice. Implementation stays blocked until G0.
 Zero live calls spent; 5 of the M1a 30 remain untouched.
+
+## 0041 — 2026-08-24 — M1b r3 independently reviewed: r4 resolves the findings; adapter-owned snapshot deletion after verified copy-out
+
+**Context**: The third independent review — of r3 at `6d3f329`, whose
+plan-text SHA-256 the reviewer cited and the executing session
+re-verified (`8a75da96…c70e3e0`) — returned "do not approve yet": four
+implementation blockers and three medium corrections (recorded verbatim
+in `docs/reviews/2026-08-24-m1b-plan-review-at-6d3f329.md`, commit
+`e066937`; blocker 4's heading was lost in transit and is reconstructed
+in that record's disposition). All seven were re-verified against the
+tree before resolution — among them: `schema_name_for` knows only
+synthesis-vs-review and `write_review` is the only normalized-result
+writer, so a valid MemberResultV1 had no pipeline or archive home; the
+acceptance evaluator fails any leg whose target after-hash differs, so
+the fixture's implementer writing its deliverable would fail the green
+path; the abandon sweep terminalized tasks but not the required member
+execution bindings; the failed-routed branch still left the
+success-oriented ClawTeam suite red; and the qualification suite asserts
+`snapshots/<space>` survives successful cleanup, contradicting r3's
+cleanup description.
+**Decision**: (1) The r3 review is an immutable dated record in
+`docs/reviews/`. (2) Plan revision r4 resolves all seven findings; the
+r3 → r4 resolution table is plan §21. Highlights: the member-result
+pipeline is pinned end to end with `HarnessAdapter.parse()` untouched
+and a canonical `legs/inv-<member>/member-result.json` archive home;
+team-mode target semantics allow member-owned workspace mutation with
+declared-deliverable-only propagation while direct-mode immutability is
+unchanged; team-variant execution bindings become nullable-until-launch
+with lifecycle validators; the committed `CLAWTEAM_DISPOSITION` gates
+both the CLI and the success-oriented test suite under failed-routed;
+the fault taxonomy exempts finalization-phase provider operations and
+gains a `tasks()`-raise row; the containment allowlist is frozen to four
+enumerated locations and scans case-insensitively. (3) **Snapshot
+retention policy**: after a verified copy-out the ClawTeam adapter
+deletes the provider-side snapshot from the stable root (deletion
+failure is hygiene, green exits 0); a failed copy-out deliberately
+retains the provider-side snapshot as the surviving evidence, its path
+named in the failure detail.
+**Consequences**: r4 is proposed, NOT approved. Next: owner approval as
+the G0 DECISIONS entry naming the plan file and r4's commit SHA (status
+flip in the following commit), or another confirmation pass at r4's
+frozen SHA. Implementation stays blocked until G0. Zero live calls
+spent; 5 of the M1a 30 remain untouched.

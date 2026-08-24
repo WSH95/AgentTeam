@@ -1,27 +1,30 @@
-# AgentTeam M1b team-foundation plan — draft r3
+# AgentTeam M1b team-foundation plan — draft r4
 
-- Status: **draft r3, proposed 2026-08-24 — NOT approved.** r3 resolves the
-  six implementation-blocking findings and three medium corrections of the
-  second independent review (of r2;
-  `docs/reviews/2026-08-24-m1b-plan-review-at-54728c8.md`; resolutions
-  mapped in section 21), after r2 resolved the first-round review
-  (`docs/reviews/2026-08-24-m1b-plan-review-at-14dc218.md`).
+- Status: **draft r4, proposed 2026-08-24 — NOT approved.** r4 resolves
+  the four implementation blockers and three medium corrections of the
+  third independent review (of r3;
+  `docs/reviews/2026-08-24-m1b-plan-review-at-6d3f329.md`; resolutions
+  mapped in section 21), after r3 resolved the second round and r2 the
+  first (`docs/reviews/2026-08-24-m1b-plan-review-at-54728c8.md`,
+  `docs/reviews/2026-08-24-m1b-plan-review-at-14dc218.md`).
   Implementation starts only after owner approval as a `DECISIONS.md`
   entry naming this file and its commit SHA (the M1a §21 convention; ADR
   0021 precedent; the status line flips to `approved` in the following
   commit because a commit cannot name its own SHA). Per M1a plan §18,
   nothing here begins in the M1a approval scope.
-- Revision baseline: r2 was `54728c8` (first-round findings resolved;
-  reviewed again); r1 was `14dc218` (expanded full plan; reviewed);
-  r0 was `856d525` (`docs(plans): draft M1b team foundation (proposed;
-  G8 naming deliverable)`).
+- Revision baseline: r3 was `6d3f329` (second-round findings resolved;
+  reviewed again; text SHA-256 `8a75da96…c70e3e0` verified against the
+  reviewer's citation); r2 was `54728c8`; r1 was `14dc218`; r0 was
+  `856d525` (`docs(plans): draft M1b team foundation (proposed; G8
+  naming deliverable)`).
 - Prerequisites carried in: the G4-qualified ClawTeam seam
   (`docs/evidence/clawteam-qualification-2026-08-23.md`), ADR 0015 (exact
   pin, extra-only, subprocess backend never used), ADR 0018 (measurement
   decides), ADR 0037 (build-vs-reuse reaffirmed post-G6), ADR 0039 (r1
   review recorded; HB-03 constraints deferred out of M1b), ADR 0040 (r2
   review recorded; MemberResultV1 and the stable ClawTeam root chosen by
-  the owner).
+  the owner), ADR 0041 (r3 review recorded; the snapshot-retention
+  policy).
 - Sections marked **[finalize-at-approval]** carry proposed wording the
   owner finalizes at approval; every such item is listed once in section
   20.
@@ -142,9 +145,9 @@ the house format (commands, commit SHAs, CI run IDs).
 | G0 | Approve this plan | Independent reviews recorded in `docs/reviews/` (done for r1 at `14dc218` and r2 at `54728c8`; any further pass recorded the same way); findings resolved; owner approval as a DECISIONS entry naming this file and the approved commit SHA, committed before product source work; status flips to `approved` in the following commit |
 | G1 | Team contracts and schemas | `TeamTemplateV1`, `TeamRunRequestV1`, and `MemberResultV1` models land with `team-template-v1.schema.json`, `team-run-request-v1.schema.json`, and `member-result-v1.schema.json` checked in; `run-record-v1.schema.json` regenerated as the mode-discriminated `oneOf` (direct variant field-identical) and `harness-invocation-v1.schema.json` regenerated with `team` in the `DecidedBy` enum — **three new files, two regenerated, nothing else** (the section 8 protocol enum and DTOs are internal types, no schema files); all new kinds registered in `SCHEMA_MODELS` with `minimal_payloads()` entries (the run-record entry stays the direct payload; a separate parameterized variant fixture covers both modes); `uv run python -m agentteam.schema check` green (no missing/stale/orphan file); **jsonschema-level negative tests** reject invalid direct/team field combinations against the checked-in schema; `member-result-v1` passes the vendor-dialect intersection lint (section 14); the entire pre-M1b core suite passes unchanged (direct-mode regression); `atm team validate` passes on the committed example template |
 | G2 | CoordinationSubstrate protocol and local provider | `coordination/protocol.py` (with `SubstrateTaskStatus`, the DTOs, and the error taxonomy) and `coordination/local.py` land; the shared provider-conformance suite (section 14) is green over the local provider — space/member lifecycle with the lead recorded at creation, dependency auto-unblock, unknown-referent rejection, task-claim semantics, protocol-vocabulary enforcement, send/receive claim semantics, snapshot round-trip, cleanup postcondition (inoperability + snapshot survival), and two-space no-crossover; the static containment scan lands; the suite runs on the six-leg core CI job |
-| G3 | Team runner integration | `atm run` executes the committed `team-run-request` end to end on fake harnesses over the local provider per section 11: deterministic topological task registration, staged rendering (7a preflight stubs, 7b launch-time renders), launch-on-ready scheduling, member-result parsing with deliverable archiving and materialization, handoff transport (and blinding on declared-independence edges) through the substrate, the coordination ledger, and the failure-finalization contract; the **fault-injection matrix of section 14 is green** (terminal record, conditional cleanup-event assertions, unconditional `processes-stopped`, no orphans in every row); `--render-only` emits exactly the 7a stub renders without launching; the roster lives in the run record with `tasks[].substrate_id` mapping recorded; direct-mode runs and records remain byte-compatible |
+| G3 | Team runner integration | `atm run` executes the committed `team-run-request` end to end on fake harnesses over the local provider per section 11: deterministic topological task registration, staged rendering (7a preflight stubs, 7b launch-time renders), launch-on-ready scheduling, member-result parsing (the adapter's `StructuredExtractor` + `MemberResultV1.model_validate`, section 6 pipeline) with the validated result archived at `legs/inv-<member>/member-result.json` and its `member-result` artifact reference recorded, deliverable archiving and materialization under the section 11.2 target semantics, handoff transport (and blinding on declared-independence edges) through the substrate, the coordination ledger, and the failure-finalization contract; the **fault-injection matrix of section 14 is green** (terminal record, execution-binding consistency, conditional cleanup-event assertions, unconditional `processes-stopped`, no orphans in every row); `--render-only` emits exactly the 7a stub renders without launching (no invocation records created); the roster lives in the run record with `tasks[].substrate_id` mapping recorded; direct-mode runs and records remain byte-compatible |
 | G4 | Deterministic team-lifecycle acceptance | The section 13 acceptance is green through the CLI on all six core legs (3 OS × Python 3.11/3.13), including the ordering, transport-fidelity, ledger, and blinded-handoff conditions, at least one `decided_by: team` selection, and at least two distinct harnesses across members; no vendor executable is invoked anywhere in the job (fakes only) |
-| G5 | ClawTeam provider disposition | `coordination/clawteam.py` lands behind the extra; **either** the same conformance suite plus the section 13 lifecycle pass over the ClawTeam provider on the three-OS `clawteam` job — with containment tests holding (event-bus reset, the one process-scoped data root of section 9.2, opaque `atm-<hex8>` namespaces, owner `~/.clawteam` refused, no subprocess/tmux import), the seam's `create_space` carrying the logical lead, `members()` reconciling to the full roster, the `running ↔ in_progress` mapping and error translations pinned, caveat behaviors pinned (stop-before-cleanup ordering; roster reconciliation), and clean skip without the extra on the core legs — **or** the failed branch is applied: a dated failure record is written and routed to the section 10 decision, the provider registry marks `clawteam` **unsupported** (`substrate: clawteam` exits 2 citing the VERIFY record), the failing reproduction is retained in `tests/compatibility/` as a dated strict-xfail referencing that record, and required CI is green. Both outcomes close the gate; only the disposition differs |
+| G5 | ClawTeam provider disposition | `coordination/clawteam.py` lands behind the extra; **either** the same conformance suite plus the section 13 lifecycle pass over the ClawTeam provider on the three-OS `clawteam` job — with containment tests holding (event-bus reset, the one process-scoped data root of section 9.2, opaque `atm-<hex8>` namespaces, owner `~/.clawteam` refused, no subprocess/tmux import), the seam's `create_space` carrying the logical lead, `members()` reconciling to the full roster, the `running ↔ in_progress` mapping and error translations pinned, caveat behaviors pinned (stop-before-cleanup ordering; roster reconciliation), and clean skip without the extra on the core legs — **or** the failed branch is applied: a dated failure record is written and routed to the section 10 decision, the registry's committed `CLAWTEAM_DISPOSITION` marks `clawteam` **unsupported** (`substrate: clawteam` exits 2 citing the VERIFY record), the success-oriented provider suite is disposition-gated by a dated, VERIFY-cited module-level skip while the failing reproduction is retained as a dated strict-xfail (section 9.2), and required CI is green. Both outcomes close the gate; only the disposition differs |
 | G6 | Exit-criterion measurement | The pinned section 10 command is run and recorded in VERIFY: numerator and denominator LOC, the ratio against 1.5×, and test LOC reported as context; the accept/drop decision packet for the owner is prepared — the decision itself is taken by the owner before PoC B, not at this gate |
 | G7 | M1b close | VERIFY entries current for G1–G6; PLAN.md gate rows closed with SHAs/run IDs; **the ClawTeam disposition line is recorded in VERIFY: `parity-green | failed-routed | dropped-by-owner`** (section 1 item 3); the hosted matrix is green under whichever disposition holds; live-call ledger unchanged (5 of the M1a 30-call ceiling remain, zero spent in M1b); the M1c PoC B draft r0 is proposed-not-approved, naming its live budget ask, the exit-criterion decision status, and the member-result live-acceptance handoff (section 18); M1c remains separately planned |
 
@@ -182,7 +185,9 @@ New paths only; everything in M1a §6 stays where it is.
 src/agentteam/
   coordination/
     __init__.py        # provider registry: local always; clawteam when importable
-                       #   and not marked unsupported (the G5 failed branch)
+                       #   and not marked unsupported; carries the committed
+                       #   CLAWTEAM_DISPOSITION constant the CLI and the test
+                       #   gate both read (the G5 failed branch)
     protocol.py        # CoordinationSubstrate Protocol, SubstrateTaskStatus,
                        #   DTOs (SubstrateTask, SubstrateMessage, SubstrateInfo),
                        #   error taxonomy
@@ -367,6 +372,21 @@ decision 11, ADR 0040):
 - There is deliberately **no status field**: mechanical success is the
   run layer's judgment (M1a rule — exit 0 plus valid structured output);
   member-reported blocking/acking is M1c choreography.
+- **The output pipeline, end to end** (the internal interface, pinned):
+  `RenderContext` gains an `output_contract` discriminator
+  (`normalized-review` default | `member-result`; the existing synthesis
+  discriminator is untouched); `schema_name_for` returns
+  `member-result-v1.schema.json` when the contract says so, and delivery
+  uses the same per-vendor channels and `vendor_projection`.
+  **`HarnessAdapter.parse()` is not touched**: the team runner extracts
+  the structured payload through the adapter's existing
+  `StructuredExtractor` and validates it with
+  `MemberResultV1.model_validate` — a validation failure is an invocation
+  failure under the M1a mechanical rule. The validated result's canonical
+  archive home is `legs/inv-<member>/member-result.json`, written by a
+  new `RunArchive.write_member_result()` beside `write_review()` and
+  recorded as a `member-result` artifact reference on the invocation — so
+  the result survives regardless of raw-stream retention.
 - **Honest evidence boundary**: M1b proves member-result deterministically
   (schema lint, fakes, CI); **live vendor acceptance of the schema is an
   explicit M1c handoff** (section 18) because M1b makes zero live calls.
@@ -387,12 +407,22 @@ level** for non-Python consumers:
 - the **team variant** (`mode: team`) carries:
   - `template {ref, hash}` — the resolved TeamTemplate identity;
   - `members[]` (length ≥ 2) — the full roster; each entry is today's
-    `MemberRecordV1` (`name`, `assistant` ref + package hash, per-member
-    `effective_definition_hash`, `execution {kind, ref}`) extended with
-    `origin: persistent` (M1c adds `ephemeral`), `visibility: visible`
-    (hidden is M1c), and the member's recorded harness selection; a
-    variant validator pins every `execution.kind == invocation`
-    (section 2 decision 10);
+    `MemberRecordV1` shape (`name`, `assistant` ref + package hash,
+    per-member `effective_definition_hash`, `execution {kind, ref}`)
+    extended with `origin: persistent` (M1c adds `ephemeral`),
+    `visibility: visible` (hidden is M1c), and the member's recorded
+    harness selection — with one team-variant divergence: **`execution`
+    is nullable until launch** (`null` = the member never launched; the
+    direct variant keeps its required binding, so field-identity stands).
+    Lifecycle validators: `succeeded` requires every member's binding
+    present; `failed`/`cancelled` permit `null` exactly where the
+    member's owned task never reached `running` (swept `abandoned` from
+    `blocked`/`pending`); a present binding pins
+    `execution.kind == invocation` (section 2 decision 10). Per-member
+    workspace `target {before, after}` hashes are recorded on the
+    invocation **as facts** — team-mode mutation semantics are section
+    11.2's; the direct-mode immutability condition is not a team-mode
+    rule;
   - `substrate {kind: local | clawteam, namespace, snapshot {id, path,
     sha256}}` — the snapshot reference is the section 11.6 copy-out;
   - `tasks[]` — run-level task rows `{id, subject, status, owner,
@@ -677,14 +707,24 @@ launcher/keepalive/CLI chain; version/revision/isolation recorded via
 **`~/.agentteam/clawteam/`** (`AGENTTEAM_HOME`-relative; section 5.1),
 fixed once per process, with one opaque `atm-<hex8>` namespace per run —
 so multiple TeamRuns in one process (the test suite today; the M2 MCP
-server later) satisfy the seam's one-root rule. `cleanup` removes the
-run's namespace inside that root. The root lives **outside the run
-archive**: the archive's ClawTeam evidence is the run-layer snapshot
-copy-out and the message ledger (sections 11.5–11.6), and a cleanup
-failure leaves unmanaged local data outside any manifest — still
-hygiene-not-failure per section 11.4, recorded by the `provider-cleanup`
-event and stated here honestly. Tests point the provider at temporary
-roots via the seam's reset hatch.
+server later) satisfy the seam's one-root rule. **What cleanup actually
+leaves (qualification-verified):** successful upstream `cleanup` removes
+the namespace's team/task state but **retains `snapshots/<space>` in the
+root by upstream design** — the G4 suite asserts exactly that survival.
+The retention policy (ADR 0041): after a **verified** copy-out (sha256
+recorded in the run record), the provider adapter deletes the space's
+provider-side snapshot files from the root — adapter-owned deletion
+inside our own root, code in the numerator; a deletion failure is
+recorded like a cleanup failure (hygiene event, never masks, green path
+still exits 0). On a **failed** copy-out the provider-side snapshot is
+deliberately retained as the only surviving coordination evidence, and
+its root path is named in the failure detail. The root lives **outside
+the run archive**: the archive's ClawTeam evidence is the run-layer
+snapshot copy-out and the message ledger (sections 11.5–11.6), and any
+residual root data (failed cleanup or retained snapshots) is unmanaged
+local state outside any manifest — recorded by events, stated here
+honestly. Tests point the provider at temporary roots via the seam's
+reset hatch.
 
 **Adapter-resident translation** (all inside the exit-criterion
 numerator, which is correct and honest): the bidirectional status mapping
@@ -703,16 +743,24 @@ confined to `src/agentteam/compat/clawteam.py`, and the qualification
 document stays immutable** (a signature evolution under the same
 containments is a code change, not a re-qualification event).
 
-**The failed branch** (G5 disposition `failed-routed`): the provider
-registry marks `clawteam` unsupported — `substrate: clawteam` exits 2 at
-step-1 validation citing the VERIFY disposition record (structurally
-outside the fault matrix, whose scope is runs that wrote the pending
-record); the failing scenario is retained in `tests/compatibility/` as a
-**dated strict-xfail** referencing that record, so required CI stays
-green and the reproduction flips visibly if upstream behavior changes
-(the RISKS R02 xfail precedent; never a silent skip). Un-xfailing
-requires a re-qualification event; full removal rides the owner's
-section 10 drop decision.
+**The failed branch** (G5 disposition `failed-routed`): the registry's
+committed **`CLAWTEAM_DISPOSITION`** constant
+(`coordination/__init__.py`, set at G5 close in the same commit as the
+VERIFY entry) is the single fact both surfaces read. The CLI side:
+`substrate: clawteam` exits 2 at step-1 validation citing the VERIFY
+disposition record (structurally outside the fault matrix, whose scope is
+runs that wrote the pending record). The CI side: the success-oriented
+provider suite (`tests/compatibility/test_clawteam_provider.py`) is
+gated at module level by a **dated skip citing the same VERIFY record**
+— dated, reasoned, disposition-driven, never silent — while the failing
+scenario is retained as a **dated strict-xfail** so the reproduction
+flips visibly if upstream behavior changes (the RISKS R02 xfail
+precedent). The pre-existing qualification scenarios keep their own
+status honestly: a seam-level failure applies the same dated gating
+scoped to exactly the scenarios it breaks, recorded in the same VERIFY
+entry. Required CI is green under either disposition. Un-gating requires
+a re-qualification event; full removal rides the owner's section 10 drop
+decision.
 
 The qualification report's recorded caveats stand and are restated here
 because the exit criterion requires them accepted in writing (verbatim
@@ -864,12 +912,16 @@ normative sub-contracts.
   invocation is rendered at instantiation with a deterministic handoff
   **stub** (fixed marker text) purely to prove renderability — channel
   delivery, environment policy, argv guards — failing exit 2 before any
-  launch (M1a render-all-before-launch parity). Step 7b
-  (*final-render-before-each-launch*): when a task becomes `pending`, the
-  run layer composes the member's real task document and renders the
-  invocation; the archived render record is the launch-time render. A
-  **launch-time** render failure is exit-1 runtime (validation already
-  passed) and enters the section 11.3 cascade as that task's failure.
+  launch (M1a render-all-before-launch parity). **Stub renders create no
+  invocation records** — the pending invocation record is created at the
+  7b launch, per the M1a before-spawn discipline, so an unreached member
+  leaves a null execution binding (section 6), never a dangling pending
+  invocation. Step 7b (*final-render-before-each-launch*): when a task
+  becomes `pending`, the run layer composes the member's real task
+  document and renders the invocation; the archived render record is the
+  launch-time render. A **launch-time** render failure is exit-1 runtime
+  (validation already passed) and enters the section 11.3 cascade as that
+  task's failure.
 - Team invocation ids are `inv-<member-name>`; the archive reuses the
   `legs/` layout; the existing `leg-started`/`leg-retry`/`leg-finished`
   events are reused per member invocation.
@@ -892,13 +944,25 @@ normative sub-contracts.
   included); `done_when` = the successor task's interpolated subject. The
   template's `handoff` block selects which of these fields are required;
   one vocabulary applies uniformly to every edge.
+- **Team-mode target semantics** (direct-mode immutability is unchanged
+  and stays direct-only — the cond-1 evaluator and the shared-before-hash
+  notion belong to the direct acceptance path, which team mode never
+  runs): a member **may mutate its own isolated workspace copy** — that
+  is what producing a deliverable is; `target {before, after}` is
+  recorded per invocation as fact and is never a team-mode failure
+  condition. Propagation is exclusively via **declared deliverables**:
+  each declared path must resolve to a regular file inside the member's
+  workspace — no directories, no symlinks, no traversal, no duplicate
+  declarations, and no collision with the workspace's `handoff/<id>/`
+  paths (each violation exit-fails that invocation) — validated, hashed,
+  and archived. **Undeclared writes are permitted but inert**: visible in
+  the recorded after-hash, never propagated anywhere.
 - **Deliverable materialization**: before a successor's baseline
   workspace hash is computed, the run layer materializes the deliverables
   it received into the successor's isolated workspace under
   `handoff/<predecessor-task-id>/` (hash-verified copies of the archived
-  files) — so the mutation check is computed over the workspace including
-  the hand-off and stays intact, and the successor can actually read its
-  inputs.
+  files) — so the successor's recorded baseline includes the hand-off,
+  and the successor can actually read its inputs.
 - **Blinded handoff on declared-independence edges** (the normative
   TC-03 means: no message edge, blinded inputs): a dependency edge whose
   two members form a declared independence pair gets **no mailbox
@@ -958,11 +1022,18 @@ normative sub-contracts.
     the abandon sweep at finalization (section 11.4); the run finalizes
     `failed`, exit 1.
   - **Fault abort** (an infrastructure failure): any provider operation
-    raises, `wait` raises `WaitTimeoutError`, or a handoff claim comes up
-    short (section 11.2) → the run layer terminates in-flight member
-    process trees per M1a §9, marks those invocations `cancelled`, and
-    finalizes per section 11.4 (the sweep closes every non-terminal
-    task); run `failed`, exit 1.
+    raises **during lifecycle steps 6–9 — including the `tasks()` polling
+    underneath `wait`** — or `wait` raises `WaitTimeoutError`, or a
+    handoff claim comes up short (section 11.2) → the run layer
+    terminates in-flight member process trees per M1a §9, marks those
+    invocations `cancelled`, and finalizes per section 11.4 (the sweep
+    closes every non-terminal task); run `failed`, exit 1.
+    **Finalization-phase provider operations are explicitly exempt from
+    fault-abort semantics**: the copy-out compound (`snapshot` /
+    `read_snapshot`), `cleanup`, and the section 9.2 snapshot deletion
+    follow their own section 11.4 rows — a green-path copy-out failure
+    fails the run; a cleanup or deletion failure is hygiene and the green
+    run still exits 0.
 - Snapshot-time status parity is asserted exactly for run-level rows
   whose status is in `SubstrateTaskStatus`, via per-provider test-side
   bundle readers (the ClawTeam reader translates `in_progress → running`;
@@ -982,7 +1053,11 @@ zero terminations permitted) → best-effort snapshot copy-out iff a space
 was created → provider cleanup attempted iff a space was created → the
 abandon sweep (every still-non-terminal `tasks[]` row → `abandoned`, with
 its `task-abandoned` event) → terminal `run.json` with every row terminal
-(`completed | failed | abandoned`) → finalized manifest.** Nothing may
+(`completed | failed | abandoned`) **and every member's execution binding
+consistent** — present for every launched member, `null` exactly where the
+owned task never reached `running` (the section 6 lifecycle validators;
+the step-5, step-7a, cascade, fault-abort, and cancellation paths all
+resolve to one of the two) → finalized manifest.** Nothing may
 reorder stop before cleanup, skip the sweep, or write the manifest before
 the terminal record. The sweep is run-record-only (it never crosses the
 protocol) and is the single mechanism that discharges the all-terminal
@@ -1001,7 +1076,7 @@ Per phase:
 | Launch loop (7b–9) | failure cascade or fault abort per section 11.3; exit 1 |
 | Cancellation (SIGINT, any phase ≥ 4) | the team analog of the direct runner's cancellation finalizer: terminate process trees, non-terminal invocations `cancelled`, best-effort snapshot, cleanup attempted, sweep, run **`cancelled`** (the existing status — no new status value ships), manifest, exit 130 |
 | Final snapshot fails on the otherwise-green path (10) | run `failed`, exit 1 — the snapshot is section 13 acceptance evidence; a run without it did not meet its contract (`substrate.snapshot` null per section 6). On an already-failing path, a `snapshot-failed` event is recorded and the primary `failure_reason` is kept |
-| Cleanup fails (10) | recorded as a `provider-cleanup` event with a failure detail; **never** alters `failure_reason`; on the green path the run still exits 0 — cleanup is hygiene, the evidence is already durable, and failing a correct run for hygiene would incentivize masking |
+| Cleanup fails (10) | **finalization-exempt from fault abort** (section 11.3): recorded as a `provider-cleanup` event with a failure detail; **never** alters `failure_reason` or the run status; on the green path the run still finishes `succeeded`, exit 0 — the snapshot is already archived, cleanup is hygiene, and failing a correct run for hygiene would incentivize masking. The section 9.2 snapshot deletion follows the same rule |
 | Manifest write fails (11) | exit 1, archive left partial, error surfaced (M1a parity; the terminal record was already written) |
 
 ### 11.5 Message durability and the coordination ledger
@@ -1026,10 +1101,13 @@ in the successor's task document is the record.
 for both providers**: provider `snapshot(space, tag)` → `read_snapshot`
 of that id → an atomic write of the bundle to the canonical archive path
 `coordination/snapshot.json`; a raise at any of the three steps is a
-snapshot failure under the section 11.4 rows. The team record's
+snapshot failure under the section 11.4 rows (finalization-exempt from
+fault abort, section 11.3). The team record's
 `substrate.snapshot {id, path, sha256}` references the copy-out (without
 it the reference would dangle for the local provider too, since
-post-cleanup `read_snapshot` raises). Provider `cleanup` then runs under
+post-cleanup `read_snapshot` raises). After a verified copy-out, the
+ClawTeam adapter deletes the provider-side snapshot from the stable root
+per the section 9.2 retention policy. Provider `cleanup` then runs under
 the section 8 postcondition: the space becomes inoperable; the archived
 snapshot survives. Local provider: tombstone, nothing deleted, the whole
 space survives under `coordination/space/`; because **cleanup precedes
@@ -1112,7 +1190,9 @@ The milestone evidence (G4), run through the CLI on every core leg:
   5. per-member records — every member carries its own
      `effective_definition_hash` and one `invocation` execution binding,
      and every successful member invocation parsed a valid
-     `MemberResultV1`;
+     `MemberResultV1` **archived at `legs/inv-<member>/member-result.json`
+     with its `member-result` artifact reference** (present regardless of
+     raw-stream retention);
   6. team-decided, mixed selection — at least one member records
      `decided_by: team` (the `implementer`), and at least two distinct
      harnesses appear across members (TE-03 deterministic evidence);
@@ -1120,9 +1200,15 @@ The milestone evidence (G4), run through the CLI on every core leg:
      achieved: data-dir}` recorded honestly (ClawTeam leg: `namespace`)
      and the section 6 lifecycle nullability satisfied (`succeeded` ⇒
      namespace, achieved, and snapshot all present);
-  8. mutation check — every member bundle re-hashes identically; the
-     direct-run regression (`direct-review.yaml`) still passes unchanged
-     in the same job;
+  8. immutability and target facts — every member **bundle** re-hashes
+     identically and the **template** re-hashes identically (definition
+     immutability); workspace `target {before, after}` hashes are
+     recorded facts per the section 11.2 team-mode semantics — the
+     implementer's after-hash differs by design (its declared
+     deliverable), the reviewer's baseline includes its materialized
+     handoff, and no team-mode condition requires `after == before`; the
+     direct-run regression (`direct-review.yaml`, with its unchanged
+     direct-mode immutability condition) still passes in the same job;
   9. ordering — for every dependency edge (a, b): `task-completed(a)`
      precedes `leg-started(inv-<owner(b)>)` in `events.jsonl`, and
      exactly one `leg-started` exists per member (partial-order
@@ -1198,11 +1284,18 @@ verification block, including `uv run python -m agentteam.schema check`).
   roots) proving `clawteam` is importable only from
   `src/agentteam/compat/clawteam.py` and `agentteam.compat` only from
   `src/agentteam/coordination/clawteam.py` (plus `tests/compatibility/`),
-  **plus a textual-reference allowlist**: any occurrence of the token
-  `clawteam` in `src/agentteam/` outside the allowlisted files fails —
-  catching `from clawteam …`, dynamic imports, and import-free
-  ClawTeam-specific branches (the section 10 boundary, mechanically
-  enforced).
+  **plus a case-insensitive textual-reference scan over `src/agentteam/`
+  with a frozen, exactly-enumerated allowlist**: (a)
+  `src/agentteam/compat/` — any use; (b)
+  `src/agentteam/coordination/clawteam.py` — any use; (c)
+  `src/agentteam/coordination/__init__.py` — the registry identifier and
+  the `CLAWTEAM_DISPOSITION` metadata only; (d)
+  `src/agentteam/domain/team.py` — the `substrate.kind` literal only.
+  Any other occurrence of the token fails — catching `from clawteam …`,
+  dynamic imports, and import-free ClawTeam-specific branches. The
+  allowlist is data in the test, commented with the section 10 boundary,
+  so any expansion is diff-visible and reviewable against the LOC rule
+  (mechanical enforcement, not prose).
 - **Provider conformance** (`tests/coordination_suite.py`, a shared base
   class that is not collected directly): space/member lifecycle with the
   lead recorded at creation and `members()` returning the full roster;
@@ -1233,18 +1326,31 @@ verification block, including `uv run python -m agentteam.schema check`).
   before side effects, deterministic topological registration (a
   forward-reference skeleton registers in sorted order with exact
   `substrate_id` and `task-created` event-order assertions), per-member
-  workspaces, staged rendering (7a stubs; 7b launch-time), launch-on-ready
-  order, member-result parsing, deliverable validation/archiving/
-  materialization, handoff claim-and-embed, blinding, ledger-before-send,
-  stop → snapshot copy-out → cleanup ordering, archive finalization,
-  `--render-only`, exit codes, reserved fields fail closed.
+  workspaces, staged rendering (7a stubs, no invocation records; 7b
+  launch-time), launch-on-ready order, the member-result pipeline
+  (`output_contract` dispatch → schema delivery → `StructuredExtractor` +
+  `MemberResultV1.model_validate` → `write_member_result` + artifact
+  reference; the direct review path bit-identical), deliverable
+  validation/archiving/materialization under the section 11.2 target
+  semantics — with the full negative set: declared write (green),
+  undeclared write (inert, recorded in the after-hash), missing declared
+  path, directory, symlink, duplicate declaration, and `handoff/`-path
+  collision each exit-failing that invocation — handoff claim-and-embed,
+  blinding, ledger-before-send, stop → snapshot copy-out → cleanup
+  ordering, archive finalization, `--render-only`, exit codes, reserved
+  fields fail closed.
   `test_team_run_faults.py` — the **fault-injection matrix**, with a
   `FaultInjectingProvider` double (wraps the local provider, raises at a
-  named op). Provider rows cover **all eleven runtime-invoked
+  named op). Provider rows cover **all twelve runtime-invoked
   operations**: `create_space`, `info`, `add_member`, `create_task`,
-  `update_task`, `send`, `receive`, `wait` (timeout), `snapshot`,
-  `read_snapshot`, `cleanup` (`restore` is conformance-only and never
-  runtime-invoked — no row, by that sentence). Non-provider rows: member
+  `update_task`, `tasks` (raise — the polling operation underneath
+  `wait`, distinct from the timeout row; fault abort), `send`, `receive`,
+  `wait` (timeout), `snapshot`, `read_snapshot`, `cleanup` (**not** a
+  fault abort — finalization-exempt per section 11.3: the row pins a
+  green run that still finishes `succeeded` exit 0 with the
+  `provider-cleanup` failure event recorded and the snapshot already
+  archived) (`restore` is conformance-only and never runtime-invoked — no
+  row, by that sentence). Non-provider rows: member
   invocation failure post-retry (asserts the in-flight sibling
   **finishes**, its completion still reaches the provider, and
   dependents go `abandoned` eagerly); attempt timeout; launch-time render
@@ -1256,8 +1362,11 @@ verification block, including `uv run python -m agentteam.schema check`).
   `failed` exit 1, `snapshot-failed` event, null `substrate.snapshot` per
   section 6) and failing path (`snapshot-failed` event, primary
   `failure_reason` kept). Every row asserts: terminal `run.json` with
-  all-terminal `tasks[]` (the abandon sweep observed), **exactly one
-  `processes-stopped`** (unconditional), a `provider-cleanup` event
+  all-terminal `tasks[]` (the abandon sweep observed), **execution-binding
+  consistency** (a binding present for every launched member; `null`
+  exactly where the owned task never reached `running` — asserted on the
+  step-5, step-7a, cascade, fault-abort, and cancellation rows), **exactly
+  one `processes-stopped`** (unconditional), a `provider-cleanup` event
   **iff a space id was minted** (the `create_space` row asserts its
   absence, together with the null namespace/snapshot of section 6), no
   orphan process, and a clean manifest verification. The cascade rows use
@@ -1273,10 +1382,13 @@ verification block, including `uv run python -m agentteam.schema check`).
 - **Compatibility**: the ClawTeam provider suite stays in
   `tests/compatibility/` with the existing `importorskip` conftest and the
   owner-state guard, so the six core legs keep proving clean skip without
-  the extra; under a `failed-routed` disposition the failing scenario is
-  retained as a dated strict-xfail per section 9.2. No new pytest marker
-  is introduced (`--strict-markers`; the split stays directory + CI-job
-  based).
+  the extra. Under a `failed-routed` disposition the **whole
+  success-oriented provider suite is gated by the committed
+  `CLAWTEAM_DISPOSITION`** — a dated, VERIFY-cited module-level skip —
+  while the failing scenario is retained as a dated strict-xfail
+  (section 9.2), so the three-leg job is green under either disposition
+  and nothing is silently skipped. No new pytest marker is introduced
+  (`--strict-markers`; the split stays directory + CI-job based).
 - **Cross-platform**: the local provider's file semantics (atomic rename,
   ordering, permissions) run on all three OSes on the core job; any
   Windows/macOS deviation is fixed, never skip-listed silently (M1a §18
@@ -1296,8 +1408,9 @@ No new jobs; the 12-job shape holds:
 - **clawteam** (3 OS × Python 3.11, three legs): gains the ClawTeam
   provider conformance + lifecycle tests beside the existing 12
   qualification scenarios (updated for the seam's `leader` parameter);
-  stays green under either G5 disposition (parity, or the dated
-  strict-xfail of the failed branch).
+  stays green under either G5 disposition (parity, or the
+  disposition-gated suite plus the dated strict-xfail of the failed
+  branch, section 9.2).
 - **vendor-smoke** (3 OS): untouched — it proves credential-free vendor
   launcher plumbing, which M1b does not change; treat a red as dated
   capability evidence per the standing note.
@@ -1471,10 +1584,15 @@ section 21):
    references, `goal` interpolation, owner bijection, deterministic
    topological registration, the protocol status vocabulary with run-only
    terminals and residual projections, claim semantics, launch-on-ready
-   with staged rendering, member-result parsing with deliverable
-   archiving/materialization, handoff construction/transport/blinding,
-   the failure cascade and fault abort, and the finalization invariant
-   with the abandon sweep (sections 6, 8, 11);
+   with staged rendering (stub renders creating no invocation records),
+   the pinned member-result pipeline (`output_contract` →
+   `StructuredExtractor` + validation → `write_member_result`; `parse()`
+   untouched), the team-mode target semantics (member-owned mutation;
+   declared-deliverable-only propagation), nullable-until-launch
+   execution bindings with their lifecycle validators, handoff
+   construction/transport/blinding, the failure cascade and fault abort
+   (finalization ops exempt), and the finalization invariant with the
+   abandon sweep and binding consistency (sections 6, 8, 11);
 8. gate evidence is mechanically checkable and each gate names its VERIFY
    entry; the fault matrix (eleven provider ops, conditional assertions)
    is G3 evidence (sections 3, 14);
@@ -1553,7 +1671,7 @@ from this text.
   (11.1–11.3), wire shapes + `create_space(lead)`, the finalization
   invariant + ledger + copy-out (11.4–11.6), the fault matrix, and the
   static containment test.
-- **r3** (2026-08-24, this commit): resolves the second independent
+- **r3** (2026-08-24, `6d3f329`): resolved the second independent
   review (of r2; `docs/reviews/2026-08-24-m1b-plan-review-at-54728c8.md`;
   ADR 0040). Findings and resolutions:
 
@@ -1568,6 +1686,21 @@ from this text.
 | M1 — parity fixture cannot hold two run-record payloads | `minimal_payloads()` stays filename-keyed with the direct payload; `run_record_variant_payloads()` drives both variants + negatives | 6, 14, G1 |
 | M2 — containment scan insufficient | AST import scan + textual token allowlist over `src/agentteam/` (catches `from clawteam`, dynamic imports, import-free branches) | 2, 10, 14 |
 | M3 — per-run ClawTeam root broke the one-root rule | Stable `~/.agentteam/clawteam/` process root with per-run namespaces — **restores the ADR 0015 design**; multi-run processes supported (tests, M2 MCP); root outside the archive (ledger + copy-out are the archive evidence; "leftovers manifested" claims removed); tests use temp roots | 2, 5.1, 9.2, 11.6, 12, 18 |
+
+- **r4** (2026-08-24, this commit): resolves the third independent
+  review (of r3; `docs/reviews/2026-08-24-m1b-plan-review-at-6d3f329.md`;
+  ADR 0041; the reviewed r3 text's SHA-256 verified against the
+  reviewer's citation). Findings and resolutions:
+
+| Finding | Resolution | Sections |
+| --- | --- | --- |
+| B1 — MemberResultV1 lacked a decision-complete output pipeline | The pipeline pinned end to end: `RenderContext.output_contract` discriminator; `schema_name_for` returns the member-result schema; the team runner extracts via the adapter's existing `StructuredExtractor` and validates with `MemberResultV1.model_validate` (**`HarnessAdapter.parse()` untouched**); canonical archive home `legs/inv-<member>/member-result.json` via `RunArchive.write_member_result()` + a `member-result` artifact reference — survives raw-retention-off | 3 (G3), 6, 13, 14 |
+| B2 — deliverable creation vs the target-mutation contract | Team-mode target semantics defined: a member may mutate its own isolated workspace; `target {before, after}` recorded as fact, never a team-mode failure condition; direct-mode immutability and the cond-1 evaluator unchanged and direct-only; propagation exclusively via declared, validated regular files (no dirs/symlinks/traversal/duplicates/`handoff/` collisions); undeclared writes permitted-but-inert; the full negative set tested | 6, 11.2, 13, 14 |
+| B3 — the sweep closed tasks but not execution bindings | Team-variant `execution` nullable-until-launch with lifecycle validators (`succeeded` requires all; `failed`/`cancelled` permit null only for never-launched owners); 7a stub renders create no invocation records; the finalization invariant and the fault matrix assert binding consistency on the step-5/7a/cascade/abort/cancel paths | 6, 11.1, 11.4, 14 |
+| B4 — failed-routed still left the ClawTeam job red | The committed `CLAWTEAM_DISPOSITION` (registry) is the one fact the CLI and the test gate read: under failed-routed the success-oriented provider suite gets a dated, VERIFY-cited module-level skip; the reproduction stays strict-xfail; qualification scenarios gated only where a seam-level failure breaks them; required CI green under either disposition | 3 (G5), 5, 9.2, 14, 15 |
+| M5 — successful cleanup described inaccurately | Corrected per the qualification evidence: upstream cleanup retains `snapshots/<space>` in the root; policy (ADR 0041): adapter-owned deletion after a **verified** copy-out (failure = hygiene event, green exits 0); failed copy-out deliberately retains the provider-side snapshot, path named in the failure detail | 9.2, 11.6 |
+| M6 — taxonomy vs cleanup; missing `tasks()` row | Fault-abort scope pinned to lifecycle steps 6–9 (incl. the `tasks()` polling under `wait`); finalization ops (copy-out, cleanup, snapshot deletion) explicitly exempt with their own §11.4 rows; a `tasks()`-raise row added beside the timeout row (twelve provider rows); the cleanup row pins `succeeded`/exit 0 on green | 11.3, 11.4, 14 |
+| M7 — the containment allowlist was not frozen | Case-insensitive scan with an exactly-enumerated allowlist (compat/ any; coordination/clawteam.py any; coordination/__init__.py registry id + disposition only; domain/team.py kind literal only); the allowlist is diff-visible test data commented with the §10 boundary | 10, 14 |
 
 Amendments after approval follow the ADR 0022/0033 convention
 (in-document marker plus a dated amendment table) at amendment time.
