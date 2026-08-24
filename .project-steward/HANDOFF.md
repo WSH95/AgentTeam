@@ -1,109 +1,122 @@
 ---
-updated_at: 2026-08-24T12:20:00Z
-updated_by: claude
-session_status: active
+updated_at: 2026-08-24T12:12:22Z
+updated_by: cli
+session_status: closed
 branch: main
-last_commit: 5d27d2f
+last_commit: 8cd9e38
 ---
 # Handoff
 
 ## Now
 
-**G5 is closed (ADR 0031) and independently reviewed (ADR 0032).** The
-2026-08-24 review at `317bb52`
-(`docs/reviews/2026-08-24-g5-review-at-317bb52.md`) re-derived every
-owner-host claim from disk and confirmed the closure evidence is genuine:
-all five probe captures (45/45 recorded hashes recompute, 0700/0600
-throughout, every cited timing/exit matches), profile rows (Claude 5v/3o,
-Codex 7v/2o, Grok 8v/1o/1u, version-bound to the installed CLIs), a
-non-mutating no-call doctor exit 0, and exactly 9 attended calls
-(Claude 3 / Codex 2 / Grok 4), each traced to its owner approval — 21 of
-the 30-call M1a ceiling remain.
+**M1a G5 is closed (ADR 0031), independently reviewed (ADR 0032), and fully
+published with all nine hosted CI checks green.** At wrap time local `main`
+equals `origin/main` at `8cd9e38`; the wrap commit carrying this handoff is
+the only unpushed commit afterwards.
 
-The review also ran the **full CI step list locally in both dependency
-modes** — something G5's own verification never did — and found two
-CI-breaking regressions, both fixed on owner ruling in their own commits:
+What this session did (2026-08-24, on the owner's "resume and review G5"):
 
-- `739be1a` — `from typer import Abort` (was `from click import Abort`, an
-  undeclared dependency: typer 0.27.1 vendors Click, so core-mode installs
-  had no `click` and every `atm` command, mypy, and pytest died; the wrong
-  class also made a real prompt Ctrl-C exit 1 instead of the contractual
-  130).
-- `83f2b3b` — the CI deterministic-acceptance step now provisions the
-  disposable fake vendor homes that the new G5 live preflight requires
-  (green at G4 only because the gate predates it).
+- Resumed after the codex session's benign unclosed exit (it checkpointed
+  the G5 closure at `317bb52` and never ran wrap; no work was lost).
+- Independent review at `317bb52`
+  (`docs/reviews/2026-08-24-g5-review-at-317bb52.md`): the closure evidence
+  is **genuine** — all five probe captures re-verified (45/45 recorded
+  hashes recompute, 0700/0600, every cited timing/exit/row matches),
+  profiles and the non-mutating no-call doctor exact, and all 9 attended
+  calls (Claude 3 / Codex 2 / Grok 4) traced to explicit approvals.
+  **21 of the 30-call M1a ceiling remain.**
+- Found and fixed, each on explicit owner ruling and each pushed on its own
+  approval: `739be1a` (undeclared `click` dependency — typer 0.27 vendors
+  Click — broke every core-mode CI leg; also restores prompt Ctrl-C → 130),
+  `83f2b3b` (CI acceptance step provisions the fake vendor homes the new
+  preflight requires), `0dfbca9` (mypy `platform = "linux"` pin — win32
+  analysis rejected the POSIX-only branches), `5d27d2f` (Windows redaction:
+  JSON-escaped path spelling now redacted, with a cross-platform regression
+  test; two login-command tests assert the platform-appropriate form).
+- Plan amendment `cc81b51` (ADR 0033, owner-approved diff): §22 amendment
+  record + budget reconciliation.
+- Hosted evidence: run **32724844619 at `5d27d2f` — all nine checks green**
+  (six scaffold legs ubuntu/windows/macos × 3.11/3.13 + the three-OS
+  clawteam job); the three-run failure history is in VERIFY "G5 independent
+  review".
 
-Post-fix the complete step list passes with **0 failures**: core mode 392
-passed + 4 skips, extra mode 404 passed + 3 skips, compatibility 12,
-acceptance both tiers, owner `profiles.yaml` untouched by the whole suite.
+Verification state: full CI-parity step list passes locally in both
+dependency modes — core 392+4 skips, extra 405+3 skips (the +1 is the new
+redaction regression test), compatibility 12. Test counts are
+mode-dependent; always state the mode.
 
 ## In flight
 
-- Nothing is running. The plan amendment was approved and committed
-  (`cc81b51`, ADR 0033); `main` was pushed on the approved decisions
-  (`03635e7..cc81b51`, then fix pushes `0dfbca9` and `5d27d2f`, each
-  separately approved); **all nine CI checks are green at `5d27d2f`**
-  (run 32724844619) — the first complete hosted evidence for the G5 work,
-  including the first real-Windows execution of the G5 branches. The
-  three-run failure history (Windows mypy platform analysis → `0dfbca9`;
-  Windows-only redaction/test-form failures → `5d27d2f`) is in VERIFY.
-- The hosted-evidence steward commit is **local only**; pushing it needs
-  its own approval like every push.
+Nothing. No process is running, the worktree is clean, and everything
+through `8cd9e38` is pushed.
 
 ## Next steps
 
-1. Push the local hosted-evidence steward commit when the owner next
-   approves a push (nothing else is unpushed).
-2. (done) Plan amendment ADR 0033 committed; nine checks green at
-   `5d27d2f`.
-3. Resolve the PLAN "G5.R" pre-G6 tasks (review R3–R6 + the H9 test-gap
-   cluster): lease cleanup on every `_run_body` exit path, bounded probe
-   kill-escalation, channel-currency enforcement at consumption, persisted
-   live Codex `-o`/JSONL disagreement.
-4. Before G6: the existing pre-run review (exact live-PoC command,
-   four-call normal path, retry ceiling, stop rules, workspace/output
-   targets, expected evidence) plus explicit owner confirmation immediately
-   before execution; then `uv run atm run
-   examples/run-requests/live-review.yaml` in the normal proxy environment.
-5. G6 budget note: 21 calls remain under the 30-call ceiling — one 8-call
-   cycle plus one confirmed rerun fit; a second rerun would exceed the
-   ceiling and needs an explicit owner decision at that point.
+1. **Resolve the PLAN "G5.R" pre-G6 tasks** (review R3–R6 + the H9
+   test-gap cluster; fix shapes in the review doc §2): close managed-skills
+   leases on every `_run_body` exit path; bound the probe kill-escalation
+   (unconditional group SIGKILL + timeout on the final drain); enforce
+   channel currency at the consumption point; persist the live Codex
+   `-o`/JSONL disagreement. G6 does not start before these.
+2. **G6 pre-run review, then the live PoC**: review the exact command
+   (`uv run atm run examples/run-requests/live-review.yaml`, normal proxy
+   environment), the four-call normal path (three legs + fresh Claude
+   synthesis), retry ceiling, stop rules, workspace/output targets, and
+   expected evidence; obtain explicit owner confirmation immediately before
+   execution. Budget: one 8-call cycle plus one confirmed rerun fit the
+   remaining 21 calls; a **second** rerun would exceed the 30-call ceiling
+   and needs an explicit owner ceiling decision (ADR 0033).
+3. After a G6 run: review the owner-only archive, promote only manually
+   sanitized evidence, rerun the credential-free block, and close G6 only
+   if both mechanical and semantic acceptance tiers pass; otherwise retain
+   the failure and stop.
+4. Push the wrap commit (and anything later) only on its own explicit
+   owner approval.
 
 ## Blockers
 
-- None for the push. G6 is gated on the G5.R tasks and its own attended
-  execution confirmation.
+- None. G6 is gated on the G5.R tasks and its own attended execution
+  confirmation.
 
 ## Key files
 
-- `docs/reviews/2026-08-24-g5-review-at-317bb52.md` — the review record
-  (claims matrix A–N, findings R1–R8, hygiene H1–H13, owner rulings).
-- `src/agentteam/commands/profile.py`, `.github/workflows/ci.yml` — the two
-  fixes (`739be1a`, `83f2b3b`).
-- PLAN "G5.R" block, DECISIONS 0032 (and 0033 once approved), VERIFY "G5
-  independent review", RISKS R24/R32 notes.
+- `docs/reviews/2026-08-24-g5-review-at-317bb52.md` — review record: claims
+  matrix A–N, findings R1–R8 (fix shapes for the G5.R tasks live in §2),
+  hygiene H1–H13, owner rulings.
+- PLAN "G5.R" block; DECISIONS 0032/0033; VERIFY "G5 independent review"
+  (incl. the three-run hosted history); RISKS R24/R32 notes.
+- `src/agentteam/harness/rendering.py` (JSON-escaped redaction),
+  `src/agentteam/commands/profile.py` (typer Abort), `.github/workflows/
+  ci.yml` (acceptance-step home provisioning), `pyproject.toml`
+  ([tool.mypy] platform pin).
+- `src/agentteam/profile/{probe,doctor,capture,setup}.py`, `run/
+  {preflight,runner}.py`, `harness/{environment,skills,claude,codex,
+  grok}.py` — the reviewed G5 machinery.
 
 ## Tried and rejected
 
 - Do not re-argue ADR 0026–0031: the review verified traceability and
-  implementation, recorded no dissents, and the closure stands.
-- Do not treat VERIFY's "credential-free block" as CI parity: it omits the
-  CI-only steps (render smoke, hash pin, acceptance, export round-trip) and
-  its pytest mode (with the clawteam extra) hides core-mode breakage. The
-  review's two-mode full-step-list run is the pattern to keep.
-- The fake-home provisioning belongs in the CI step (mirroring
+  implementation and recorded no dissents; the closure stands.
+- Do not treat VERIFY's six-command "credential-free block" as CI parity:
+  it omits the CI-only steps and its with-extra pytest mode hides core-mode
+  breakage (exactly how the `click` regression hid). Run the full
+  `.github/workflows/ci.yml` step list in **both** dependency modes before
+  any push claim.
+- Fake-home provisioning belongs in the CI step (mirroring
   tests/conftest.py), not in a weakened preflight — the home-existence gate
   is doing its job.
+- Never assert POSIX-form login commands unconditionally in tests; win32
+  intentionally prints PowerShell-quoted commands.
 
 ## Warnings
 
 - Raw probe captures stay owner-only under `~/.agentteam/`; never track or
-  publish them. The review printed only hashes/metadata and never read
-  `vendors/`.
-- Capability evidence is version-bound: any vendor CLI upgrade makes
-  readiness stale and forces reassessment before a live run.
-- G5 claims are Ubuntu owner-host claims; hosted CI stays fake and
-  credential-free; the nine-green run 32724844619 at `5d27d2f` is the
-  hosted evidence for the G5 work.
-- Commit permission never implies push permission. The one approved push is
-  ADR 0032 item 5; every later push is a fresh owner decision.
+  publish them; never read `~/.agentteam/vendors/` (credential homes).
+- Capability evidence is version-bound (Claude Code 2.1.241, Codex 0.149.1,
+  Grok 1.0.5): any vendor CLI upgrade makes readiness stale and forces
+  doctor/probe reassessment before another live run.
+- mypy analysis is pinned to `platform = "linux"`: Windows *typing* is not
+  analyzed; Windows runtime behavior is proven by pytest on the Windows CI
+  legs.
+- Commit permission never implies push permission; every push is its own
+  explicit owner decision. G6 never starts automatically.

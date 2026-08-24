@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T12:12:22Z — cli
+Independent G5 review delivered and closed out: closure evidence verified genuine at 317bb52 (ADR 0032); four fixes landed and pushed on per-push approvals (739be1a typer/click, 83f2b3b CI acceptance homes, 0dfbca9 mypy platform pin, 5d27d2f Windows redaction+tests); plan amendment ADR 0033 (21 of 30 calls remain); all nine CI checks green at 5d27d2f (run 32724844619); hosted evidence recorded and pushed through 8cd9e38. Next: PLAN G5.R pre-G6 tasks, then the G6 pre-run review.
+
 ### 2026-08-24T12:20:00Z — cli
 G5 hosted evidence complete: **all nine CI checks green at `5d27d2f`** (run 32724844619). Three-run history recorded in VERIFY: 32722979375 at `cc81b51` 7/9 (Windows mypy win32 analysis → `0dfbca9` platform pin), 32723369374 at `0dfbca9` (first real-Windows Tests: sanitizer fail-closed on the json-escaped Codex path + two POSIX-form login assertions → `5d27d2f` redaction fix with cross-platform regression test + platform-branched assertions; suite 405+3), then all green. Each fix push separately owner-approved. This evidence commit stays local pending its own push approval.
 
