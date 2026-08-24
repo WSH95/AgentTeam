@@ -2,7 +2,7 @@
 
 Portable, harness-independent Assistant definitions and reusable Team templates, executed as fresh TeamRuns over existing agent harnesses (ClawTeam, Claude Code, Codex, OpenClaw, Hermes, ...). Supersedes the legacy ATM experiment; the product CLI remains `atm`.
 
-Primary language/stack: Python `>=3.11` with `uv` (implementation planned); Markdown documentation.
+Primary language/stack: Python `>=3.11` with `uv`; Markdown documentation.
 
 ## Source of truth
 
@@ -36,6 +36,7 @@ Primary language/stack: Python `>=3.11` with `uv` (implementation planned); Mark
 | Lint | `uv run ruff check .` |
 | Typecheck | `uv run mypy src tests` |
 | Schemas | `uv run python -m agentteam.schema check` |
+| Live PoC | `uv run atm run examples/run-requests/live-review.yaml` |
 <!-- PROJECT-STEWARD:END commands -->
 
 <!-- PROJECT-STEWARD:BEGIN task-backend -->

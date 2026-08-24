@@ -397,3 +397,18 @@ approval the same day.
 Ubuntu/Windows/macOS to close G2 (evidence in VERIFY). Every further push
 remains its own visible gate; nothing is published to any package registry in
 M1a.
+
+## 0025 — 2026-08-23 — G4 AGENTS.md edits: Live PoC command row and stack-line cleanup (owner-approved diffs)
+
+**Context**: AGENTS.md is a high-risk guarded file (managed-block edits only,
+shown diff + explicit approval). The M1a plan defers the `Live PoC` command
+row to G4, when `examples/run-requests/live-review.yaml` exists; the stack
+line still carried "(implementation planned)" from before G2.
+**Decision**: During G4 planning (2026-08-23, AskUserQuestion with both diffs
+shown) the owner approved **both** edits: (1) the managed commands block gains
+`| Live PoC | `uv run atm run examples/run-requests/live-review.yaml` |`;
+(2) the stack line drops "(implementation planned)". The edits land verbatim
+in the G4 closure commit.
+**Consequences**: The commands table now names the G6 live entry point; the
+live run itself stays behind G5 logins and the G6 gate with its call budget.
+No other AGENTS.md content changes; the guardrail process stays in force.

@@ -4,6 +4,42 @@ How to check the project is healthy. There is no build, product code, or
 automated product test suite yet; the M1a G2 scaffold introduces them (and the
 AGENTS.md command table changes only then, with its own shown diff).
 
+## G4 evidence — 2026-08-23 (gate closed)
+
+| Check | Result |
+| --- | --- |
+| Core matrix with the G4 suites | PASS — run 32681299831 (https://github.com/WSH95/AgentTeam/actions/runs/32681299831) at `b8d5f9d`: **all six scaffold legs green** (ubuntu/windows/macos × 3.11/3.13) on the first push — full pytest (incl. `tests/acceptance`), the pinned example-package hash identity step (cross-OS identity `fb9e98a3…`), and the deterministic-acceptance step (full fake ensemble via the CLI; run succeeded, both tiers PASS) |
+| Optional ClawTeam matrix | PASS — the **`clawteam` job green on all three OSes** (py3.11, `uv sync --frozen --all-groups --extra clawteam`, `tests/compatibility` only): the seam's 12 qualification scenarios incl. hostile-hook containment passed on real ubuntu/windows/macos runners; the core legs never install the extra and their pytest shows the suite skipping cleanly |
+| Failure history (evidence, not hidden) | none — first push green on all nine checks |
+| Boundaries | PASS — no model call, no vendor login, no credential; ClawTeam exercised in-process against temporary data roots only |
+
+G4 of the approved M1a plan is complete: the fan-out/synthesis state machine
+passes locally and in CI incl. solo mode, selection precedence, three Skills
+per harness, and example-package hash identity; the optional ClawTeam seam
+passes its compatibility suite on three OSes and its qualification report is
+committed; the deterministic-acceptance, hash-identity, and ClawTeam jobs are
+in CI.
+
+Last verified: 2026-08-23 by Claude (Fable 5) session.
+
+## G4 local verification — 2026-08-23 (pre-push)
+
+Execution followed the owner-approved G4 per-gate execution plan (design
+decisions D1–D12; strict red-first TDD throughout). Commits: `e699c91`
+feat(run), `48cac73` test(poc), `b8d5f9d` test(substrate).
+
+| Check | Result |
+| --- | --- |
+| Local block | PASS — `uv lock --check`; frozen sync; bare-dot `ruff check`/`format --check`; `mypy` strict (86 files, incl. the compat seam and both conftests); `pytest` **354 passed + 3 Windows-only skips** with the clawteam extra, **342 passed + 4 skips** in core mode (the compatibility suite skips cleanly); `uv build` (wheel ships `agentteam/synthesis/instructions.md`); `python -m agentteam.schema check` + export round-trip clean; both new CI steps executed locally verbatim (pinned hash assert; full fake ensemble via the CLI → both tiers PASS) |
+| G4 gate items (plan §3) | Complete fan-out/synthesis state machine green locally: §12 steps 4–12 (pending archive before side effects; per-leg isolated copies with verified hashes; all renders before any launch; concurrent legs; one same-harness transient-only retry; synthesis over labelled reports only; attribution validated; package re-hash; atomic finalize; stable exit codes 0/1/2/3/130); solo mode (`decided_by: assistant`, `kind: invocation`, synthesis skipped unless explicit); selection precedence; three Skills rendered per harness (injection records assert all `skill:*` parts); example-package hash identity pinned (`fb9e98a3…`); ClawTeam seam passes its 12-scenario local suite (hostile hooks contained) and the qualification report is written (`docs/evidence/clawteam-qualification-2026-08-23.md`); deterministic-acceptance + hash-identity steps and the `clawteam` job added to CI |
+| §14 acceptance (deterministic) | Both tiers PASS end-to-end over the committed fixture/oracle via the real CLI; `semantic-miss` and `invent-critical` exit 3 with mechanics green; target mutation and the package-mutation stop rule exit 1; the retried cycle stays at 6 ≤ 8 calls; oracle never copied into a leg workspace or synthesis input |
+| Safety asserts (tests) | no `env_values` key in any archived record; events carry no absolute paths; the sanitized bundle scans clean (no value, no source path, no raw stream) and every emitted record re-validates; POSIX archives 0o700/0o600; SIGINT finalizes cancelled records and exits 130; the compatibility suite never touches the owner's real `~/.clawteam` (session-scoped guard) and the seam refuses it outright |
+| Deviations (recorded per the G4 plan, D1–D12 + execution) | (1) `RunRequestV1.acceptance.oracle` additive optional field, schema regenerated; (2) request-file paths resolve request-relative, flag paths CWD-relative; (3) target hashing is a raw-bytes tree hasher with `files_written`-derived exclusions — not the V1 package contract; (4) mechanical failures (leg failure, target mutation, package re-hash mismatch) exit 1 — exit 3 is semantic-only, and the run record then stays `succeeded` with the verdict in the ensemble's semantic tier; (5) oracle carries `aliases`; oracle + archive manifest are internal models (schema set stays nine); (6) `instruction_hash` = LF-normalised SHA-256 of `synthesis/instructions.md`; (7) cond-7/cond-8 are structural in-record checks (artifact re-hash; `env_values`-key scan) — full disk reconstruction and value-absence are proven by tests and the sanitizer; (8) single-leg runs skip synthesis unless the request sets `synthesis` explicitly, and solo runs carry no acceptance tiers; (9) `extract_structured` is an internal adapter helper beyond the §9 four-method protocol; (10) fake `target_sha256` is informational, never compared to the computed tree hash; (11) §16 CI reading: acceptance + hash-identity as named core-matrix steps/tests, one new `clawteam` job, `scaffold` job id kept; (12) `ClawTeamCompat._reset_for_tests` escape hatch; no clawteam `filterwarnings` ignores were needed on py3.11; (13) `test_without_render_only_exits_2_until_g4` replaced by the live launch-path test; (14) launcher argv prefix (interpreter/executable paths) now redacted to the launcher token in every command record — a G3 gap the sanitizer's own scan caught; (15) ClawTeam teams are created with an empty `user` (a user name prefixes inbox directories and desynchronises send/receive); (16) mypy gains `explicit_package_bases` for the second conftest |
+| Probe items left for G5 (unchanged) | Claude skill-channel #1 + `--append-system-prompt-file`; Codex final-event shape (adapter uses `-o`); Grok structured-output location (parser tolerates both) + auth |
+
+Last verified: 2026-08-23 by Claude (Fable 5) session (fakes only; no vendor
+binary executed by tests; ClawTeam exercised in-process against temp roots).
+
 ## G3 evidence — 2026-08-23 (gate closed)
 
 | Check | Result |

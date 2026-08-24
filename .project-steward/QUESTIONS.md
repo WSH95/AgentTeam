@@ -14,14 +14,18 @@ must not guess. Answered items remain here for traceability.
 ## Current gate
 
 M1a r3 is **approved** (DECISIONS 0021). G1 done (ADR 0022); **G2 done and
-closed 2026-08-23** (ADR 0023/0024; VERIFY "G2 evidence": public
-https://github.com/WSH95/AgentTeam, six CI legs green at `d9440f8`). **G3 is done
-and closed 2026-08-23** (six legs green at `37219bb`, run 32674468887; VERIFY
-"G3 evidence"). The next gate is **G4** — the deterministic direct-runner PoC
-(state machine, solo mode, three-Skills example flow, cross-OS hash identity
-in CI) plus the optional ClawTeam seam qualification — and it starts with its
-own per-gate execution plan for approval. Every push and every live rerun
-stays its own gate.
+closed 2026-08-23** (ADR 0023/0024). **G3 done and closed 2026-08-23** (six
+legs green at `37219bb`, run 32674468887). **G4 done and closed 2026-08-23**
+(per-gate plan approved in-session; commits `e699c91`/`48cac73`/`b8d5f9d`;
+**all nine CI checks green at `b8d5f9d`**, run 32681299831 — six scaffold
+legs plus the three-OS `clawteam` job; both deterministic acceptance tiers
+PASS; VERIFY "G4 evidence"; ClawTeam qualification report under
+`docs/evidence/`). The next gate is **G5** — owner-driven native-auth
+profile setup (interactive logins into `~/.agentteam/vendors/<harness>`) and
+the bounded day-one probes (`atm profile doctor --probe`, at most two calls
+per harness) that settle the parked channel questions and write verification
+levels into the profiles. G5 is owner-attended by nature; every push and
+every live call stays its own gate.
 
 ## Answered in the 2026-08-22 product/architecture review
 

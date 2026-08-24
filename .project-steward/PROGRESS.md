@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T01:58:50Z — cli
+M1a G4 closed: deterministic direct-runner PoC + ClawTeam seam qualification. Commits e699c91 (feat/run: §12 state machine, archive, synthesis, acceptance tiers, sanitizer, live atm run), 48cac73 (test/poc: review-target+oracle, acceptance suite both tiers PASS, pinned cross-OS hash, CI steps), b8d5f9d (test/substrate: §10 seam, 12 scenarios on 3 OSes, qualification report, clawteam CI job). All nine CI checks green at b8d5f9d (run 32681299831). AGENTS.md Live PoC row + stack line per owner-approved diffs (DECISIONS 0025). Next: G5 owner logins + bounded probes.
+
 ### 2026-08-24T01:43:14Z — cli
 G4 commit C: ClawTeam seam qualified — 12 scenarios green locally (hostile hooks contained), qualification report written, clawteam CI job added, core skip-clean proven
 

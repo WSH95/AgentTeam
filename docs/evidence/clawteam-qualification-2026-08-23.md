@@ -82,9 +82,9 @@ on Python 3.11; no `filterwarnings` ignores were added.
 | OS | Python | Result | Evidence |
 | --- | --- | --- | --- |
 | Ubuntu (local) | 3.11 | 12 passed | local run 2026-08-23 |
-| ubuntu-latest (CI) | 3.11 | pending first push | CI run id recorded at G4 close |
-| windows-latest (CI) | 3.11 | pending first push | CI run id recorded at G4 close |
-| macos-latest (CI) | 3.11 | pending first push | CI run id recorded at G4 close |
+| ubuntu-latest (CI) | 3.11 | **12 passed** | run 32681299831 at `b8d5f9d` (first push, green) |
+| windows-latest (CI) | 3.11 | **12 passed** | run 32681299831 at `b8d5f9d` (first push, green) |
+| macos-latest (CI) | 3.11 | **12 passed** | run 32681299831 at `b8d5f9d` (first push, green) |
 
 ## Feed-forward to the M1b exit criterion (ADR 0018)
 
