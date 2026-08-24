@@ -9,8 +9,7 @@ from pathlib import Path
 
 from agentteam.domain.profile import HarnessProfileV1
 from agentteam.harness.environment import (
-    POSIX_BASELINE,
-    WINDOWS_BASELINE,
+    baseline_environment,
     inherited_proxy_names,
 )
 from agentteam.harness.launcher import resolve_launcher
@@ -23,8 +22,7 @@ def diagnostic_environment(
     platform: str,
 ) -> dict[str, str]:
     """Minimal child environment plus the already-resolved config home."""
-    baseline = WINDOWS_BASELINE if platform == "win32" else POSIX_BASELINE
-    child = {name: parent[name] for name in baseline if name in parent}
+    child = baseline_environment(parent, platform=platform)
     for name in profile.environment.passthrough:
         if name in parent:
             child[name] = parent[name]

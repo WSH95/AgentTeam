@@ -43,6 +43,32 @@ PARENT = {
 }
 
 
+def test_windows_baseline_matches_upper_cased_parent_keys() -> None:
+    # G7 vendor-smoke finding (run 32764994137): `dict(os.environ)` on
+    # Windows carries every key upper-cased, so the mixed-case baseline
+    # names (SystemRoot, SystemDrive) silently vanished from the child —
+    # and node.exe cannot even start without SystemRoot. Windows env names
+    # are case-insensitive at the OS level; the baseline match must be too.
+    parent = {
+        "PATH": "C:\\bin",
+        "SYSTEMROOT": "C:\\Windows",
+        "SYSTEMDRIVE": "C:",
+        "COMSPEC": "C:\\Windows\\system32\\cmd.exe",
+        "PATHEXT": ".COM;.EXE;.BAT;.CMD",
+        "USERPROFILE": "C:\\Users\\r",
+        "SECRET_THING": "x",  # must not leak
+    }
+    env, record = build_environment(_profile(), parent, platform="win32")
+    assert env["SystemRoot"] == "C:\\Windows"
+    assert env["SystemDrive"] == "C:"
+    assert env["COMSPEC"] == "C:\\Windows\\system32\\cmd.exe"
+    assert "SECRET_THING" not in env and "SYSTEMROOT" not in env  # canonical spelling once
+    assert "SystemRoot" in record.names
+
+    diagnostic = diagnostic_environment(_profile(), parent, platform="win32")
+    assert diagnostic["SystemRoot"] == "C:\\Windows"
+
+
 def test_posix_baseline_plus_config_home_and_passthrough_only() -> None:
     env, record = build_environment(_profile(), PARENT, platform="linux")
     assert env == {

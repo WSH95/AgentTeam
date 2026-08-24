@@ -38,6 +38,27 @@ PROXY_NAMES = frozenset(
 )
 
 
+def baseline_environment(parent: Mapping[str, str], *, platform: str) -> dict[str, str]:
+    """The platform baseline subset of ``parent``, canonically spelled.
+
+    Windows environment names are case-insensitive at the OS level, and a
+    plain ``dict(os.environ)`` carries them upper-cased — the mixed-case
+    baseline names (``SystemRoot``, ``SystemDrive``) must therefore match
+    case-insensitively on win32: a child without ``SystemRoot`` cannot even
+    start node.exe (G7 vendor smoke, run 32764994137).
+    """
+    baseline = WINDOWS_BASELINE if platform == "win32" else POSIX_BASELINE
+    if platform != "win32":
+        return {name: parent[name] for name in baseline if name in parent}
+    by_upper = {key.upper(): key for key in parent}
+    child: dict[str, str] = {}
+    for name in baseline:
+        actual = by_upper.get(name.upper())
+        if actual is not None:
+            child[name] = parent[actual]
+    return child
+
+
 class EnvironmentConflictError(ValueError):
     """A conflict variable is set; native runs fail closed (exit 2)."""
 
@@ -87,11 +108,7 @@ def build_environment(
     if offending:
         raise EnvironmentConflictError(offending)
 
-    baseline = WINDOWS_BASELINE if platform == "win32" else POSIX_BASELINE
-    child: dict[str, str] = {}
-    for name in baseline:
-        if name in parent:
-            child[name] = parent[name]
+    child = baseline_environment(parent, platform=platform)
     for name in profile.environment.passthrough:
         if name in parent:
             child[name] = parent[name]
