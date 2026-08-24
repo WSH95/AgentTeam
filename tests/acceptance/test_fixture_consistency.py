@@ -42,6 +42,53 @@ def test_oracle_windows_sit_inside_the_committed_files() -> None:
         assert defect.line_end <= line_count, defect.id
 
 
+def test_oracle_aliases_cover_live_observed_true_synonyms() -> None:
+    # Second G6 cycle (2026-08-24): legs located real defects under
+    # true-synonym labels the matcher rejected. The aliases absorb those;
+    # generic labels stay out of the acceptance bar (owner-approved G6.R5).
+    from agentteam.domain.review import ReviewFindingV1
+    from agentteam.run.acceptance import identifies
+
+    oracle = load_oracle(ORACLE_PATH)
+    by_id = {defect.id: defect for defect in oracle.defects}
+
+    def finding(category: str, file: str, line: int) -> ReviewFindingV1:
+        return ReviewFindingV1.model_validate(
+            {
+                "id": "x1",
+                "severity": "high",
+                "category": category,
+                "file": file,
+                "line": line,
+                "title": "t",
+                "rationale": "r",
+            }
+        )
+
+    assert identifies(
+        finding("mutation-of-caller-data", "src/notes.ts", 8), by_id["input-mutation"]
+    )
+    assert identifies(finding("caller-input-mutation", "src/notes.ts", 8), by_id["input-mutation"])
+    assert identifies(
+        finding("argument-injection", "src/publish.ts", 5), by_id["command-injection"]
+    )
+    assert not identifies(finding("correctness", "src/changelog.ts", 4), by_id["off-by-one"])
+
+
+def test_definition_and_task_steer_output_discipline() -> None:
+    # G6.R5: the discipline lives where the legs read it — the definition's
+    # working method and the shared task statement.
+    methods = (REPO_ROOT / "examples" / "assistants" / "code-reviewer" / "methods.md").read_text(
+        encoding="utf-8"
+    )
+    assert "kebab-case" in methods
+    assert "`correctness`" in methods  # named as a forbidden generic label
+    assert "only after the review is complete" in methods
+    task = (REPO_ROOT / "examples" / "run-requests" / "review-task.md").read_text(encoding="utf-8")
+    assert "kebab-case" in task
+    assert "after your review is complete" in task
+
+
 def test_the_oracle_lives_outside_the_leg_workspace() -> None:
     assert ORACLE_PATH.parent == TARGET.parent
     assert not (TARGET / "review-target.oracle.json").exists()

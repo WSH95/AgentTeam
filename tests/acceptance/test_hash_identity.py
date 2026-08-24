@@ -20,7 +20,7 @@ from agentteam.resolution.archive import hash_package
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PACKAGE = REPO_ROOT / "examples" / "assistants" / "code-reviewer"
 
-EXAMPLE_PACKAGE_HASH = "fb9e98a34a99f146d5519baf1ed7707e1267625ebd56a6e2fdac797123cb1b5a"
+EXAMPLE_PACKAGE_HASH = "fd54eae7dbaa570aed693332e10c7260e8974c5354026b2c087a0f8395c9c0fe"
 
 
 def test_the_committed_example_package_hash_is_pinned() -> None:

@@ -650,3 +650,34 @@ revision stays "r3 as amended"; no gate name or non-G5 bound changes.
 **Consequences**: Future amendments to approved plans follow the ADR 0022
 convention at amendment time, not retroactively. A second G6 rerun now
 requires an explicit owner ceiling decision, not just the rerun allowance.
+
+## 0034 — 2026-08-24 — G6 steering scope and the third-cycle allowance
+
+**Context**: The owner-confirmed second G6 cycle (`run-20260824-154050-7a98`)
+passed the mechanical tier live for the first time but failed at synthesis
+attribution (bare invocation ids in agreement sources — the committed
+instructions' own rule 3 said "every asserting leg in `sources`") and, in
+the first formal live semantic evaluation, on unsteered category vocabulary
+(real defects located under labels outside the oracle aliases) and Grok's
+zero-finding progress narration. 14 of the 30-call ceiling remain; ADR 0033
+made any further rerun an explicit owner ceiling decision.
+**Decision**: The owner selected the full G6.R5 steering scope: (1) the
+example Assistant definition's working method gains kebab-case
+defect-type-category, one-finding-per-defect, severity, and
+final-complete-output discipline (the pinned example-package hash changes
+from `fb9e98a3…` to `fd54eae7…`, re-pinned in the hash-identity test and
+CI); (2) `review-task.md` restates the discipline; (3) the committed oracle
+gains TRUE-synonym aliases only — `argument-injection` under
+command-injection; `mutation-of-caller-data` and `caller-input-mutation`
+under input-mutation — an approved acceptance-bar amendment, with generic
+labels (e.g. `correctness`) explicitly kept out and a regression pinning
+that. G6.R4 (same session) already unified the synthesis source-pair
+convention across instructions, task document, and delivered schema
+descriptions. The owner also authorized PREPARING a third live cycle (the
+ADR 0020 second-rerun allowance, ≤8 calls within the 14 remaining), with
+the final go given only at the repeated no-call gate.
+**Consequences**: The oracle amendment is part of the acceptance bar; future
+alias additions need the same explicit approval. A third-cycle failure for
+the same semantic reason returns to review (plan §18). The consumed
+one-rerun authorization and the held-push decision are recorded in
+VERIFY/PROGRESS.

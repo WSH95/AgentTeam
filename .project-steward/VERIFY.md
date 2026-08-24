@@ -4,6 +4,18 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G6.R5 leg-semantic steering — 2026-08-24 (implemented locally; owner-scoped)
+
+| Check | Result |
+| --- | --- |
+| Definition/task | PASS — `methods.md` now mandates precise kebab-case defect-type categories (generic labels named and forbidden), one finding per defect at its primary location, `critical`/`high` reserved for demonstrated located defects, and exactly-once final structured output; `review-task.md` restates the discipline (progress notes and unfinished-review empty findings are not valid results). Example-package hash re-pinned `fb9e98a3…` → `fd54eae7…` in `test_hash_identity.py` and `ci.yml` (the test file documents exactly this procedure); strict content validation green at the new hash |
+| Oracle aliases | PASS — owner-approved acceptance-bar amendment (ADR 0034): `argument-injection` under command-injection; `mutation-of-caller-data` and `caller-input-mutation` under input-mutation; a regression proves the live-observed synonyms now match the matcher and `correctness` still does not; oracle ids/windows untouched |
+| Full local CI parity | PASS — core **pytest 446 passed + 4 skips**, optional-extra **458 + 3**, `tests/compatibility` **12**; Ruff lint + format (102 files), strict mypy (98 files), schema check current, `git diff --check` clean; environment restored to core |
+| Boundary | PASS — deterministic only; no live/model call, no push; `AGENTS.md`/`CLAUDE.md` untouched. What only a live cycle can prove: model compliance with the steering |
+
+Last verified: 2026-08-24 by Claude (G6.R5 test-first under the owner-selected
+full scope; third-cycle preparation authorized with the final go at the gate).
+
 ## G6.R4 synthesis-attribution steering — 2026-08-24 (implemented locally)
 
 | Check | Result |

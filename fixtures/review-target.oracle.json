@@ -6,7 +6,7 @@
       "id": "command-injection",
       "file": "src/publish.ts",
       "category": "command-injection",
-      "aliases": ["shell-injection", "command-injection-vulnerability"],
+      "aliases": ["shell-injection", "command-injection-vulnerability", "argument-injection"],
       "line_start": 4,
       "line_end": 7
     },
@@ -22,7 +22,13 @@
       "id": "input-mutation",
       "file": "src/notes.ts",
       "category": "input-mutation",
-      "aliases": ["mutation", "side-effect", "parameter-mutation"],
+      "aliases": [
+        "mutation",
+        "side-effect",
+        "parameter-mutation",
+        "mutation-of-caller-data",
+        "caller-input-mutation"
+      ],
       "line_start": 6,
       "line_end": 10
     }

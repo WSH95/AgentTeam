@@ -92,7 +92,7 @@ jobs:
           uv run --no-sync python -c "
           from pathlib import Path
           from agentteam.resolution.archive import hash_package
-          pinned = 'fb9e98a34a99f146d5519baf1ed7707e1267625ebd56a6e2fdac797123cb1b5a'
+          pinned = 'fd54eae7dbaa570aed693332e10c7260e8974c5354026b2c087a0f8395c9c0fe'
           digest = hash_package(Path('examples/assistants/code-reviewer'))
           assert digest.package_hash == pinned, digest.package_hash
           print('example-package hash identity holds:', pinned)

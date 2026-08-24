@@ -1,9 +1,9 @@
 ---
-updated_at: 2026-08-24T15:48:28Z
+updated_at: 2026-08-24T16:10:36Z
 updated_by: claude
 session_status: active
 branch: main
-last_commit: 9b8d116
+last_commit: 355ff57
 ---
 # Handoff
 
@@ -28,27 +28,22 @@ remain**.
 
 ## In flight
 
-Nothing running. Next work is deterministic: G6.R4 (synthesis attribution
-steering), then the owner scopes G6.R5 and any further cycle.
+Nothing running. G6.R4 and G6.R5 are both closed and committed (ADR 0034:
+owner-selected full steering scope; package hash re-pinned
+`fb9e98a3…` → `fd54eae7…`; oracle true-synonym aliases approved). The owner
+authorized PREPARING the third live cycle, with the final go at the gate.
 
 ## Next steps
 
-1. Implement G6.R4 without live calls: synthesis instructions + task-builder
-   wording + schema `description` fields state the `invocation_id:finding_id`
-   pair convention for every `sources` list (bare ids only in
-   `asserted_by`/`not_asserted_by`); regressions; two-mode block.
-2. Put the G6.R5 scope to the owner: (a) Assistant-definition taxonomy /
-   severity / final-output discipline (changes the pinned package hash
-   `fb9e98a3…` — re-pin in ci.yml and records); (b) true-synonym-only oracle
-   aliases (an acceptance-bar change — owner approval required); (c) task or
-   definition steering against premature structured output (the Grok
-   narration). Never widen the oracle with generic labels.
-3. Only after R4 (and any approved R5 work) passes the credential-free block
-   and review: repeat the no-call gate and ask the owner for a NEW explicit
-   decision on a further cycle (ADR 0020 allows a second confirmed rerun;
-   ≤8 calls fits the 14 remaining). Never auto-rerun.
-4. Push decision still held (owner chose "hold" at 15:39Z): `main` is ahead
-   of origin by 4 commits after the failure-record commit.
+1. Repeat the no-call gate against the NEW pin: doctor (three ready at
+   2.1.241/0.149.1/1.0.5, zero conflicts), package `fd54eae7…` and target
+   `25f03027…` hashes, proxy names, subscription policy (rechecked 16:0xZ —
+   still valid this cycle).
+2. Ask the owner for the final explicit go on the third cycle (ADR 0020
+   second-rerun allowance, ≤8 calls; 14 remain). Anything but yes ⇒ wrap.
+3. On the run: same protocol and outcome routing as the second cycle; §18 —
+   a failure for the same semantic reason returns to review.
+4. Push decision still held (owner chose "hold" at 15:39Z).
 
 ## Blockers
 

@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T16:10:36Z — claude
+G6.R5 closed test-first under the owner-selected full scope (ADR 0034): the definition's working method now mandates kebab-case defect-type categories (generic labels forbidden by name), one finding per defect, severity discipline, and exactly-once final output; review-task.md restates it; the oracle gained true-synonym aliases only (argument-injection; mutation-of-caller-data, caller-input-mutation) with a regression proving `correctness` still never matches; package hash re-pinned `fb9e98a3…`→`fd54eae7…` in the hash-identity test and ci.yml. Core 446+4, extra 458+3, compat 12, all gates green; no live call. Next: repeat the no-call gate and ask the owner for the final go on the authorized third cycle.
+
 ### 2026-08-24T16:05:00Z — claude
 G6.R4 closed test-first: the synthesis instructions' contradictory rule ("every asserting leg in `sources`") is replaced by one `"<invocation-id>:<finding-id>"` pair convention across agreements and merged findings, the task builder restates it (the "Refer to legs only by invocation id" steering line is gone), and the delivered schema `description` fields now carry the convention to the model; canonical synthesis schema regenerated (+5 description lines). Core 444+4, extra 456+3, compat 12, all gates green; no live call. G6.R5 scope and any further cycle go to the owner next.
 
