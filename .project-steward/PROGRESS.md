@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T12:20:00Z — cli
+G5 hosted evidence complete: **all nine CI checks green at `5d27d2f`** (run 32724844619). Three-run history recorded in VERIFY: 32722979375 at `cc81b51` 7/9 (Windows mypy win32 analysis → `0dfbca9` platform pin), 32723369374 at `0dfbca9` (first real-Windows Tests: sanitizer fail-closed on the json-escaped Codex path + two POSIX-form login assertions → `5d27d2f` redaction fix with cross-platform regression test + platform-branched assertions; suite 405+3), then all green. Each fix push separately owner-approved. This evidence commit stays local pending its own push approval.
+
 ### 2026-08-24T11:55:00Z — cli
 Hosted CI at `cc81b51` (run 32722979375): 7/9 green; both Windows scaffold legs failed at Typecheck only — mypy's native win32 analysis rejects the G5 POSIX-only branches and flips win32 ignores to unused (~20 analysis errors; no Windows test ran). Fixed by pinning `[tool.mypy] platform = "linux"` (all legs now type-check the same view as the green Linux runs; Windows runtime stays proven by pytest on the Windows legs); local mypy Success/97 files; VERIFY records the failure history. Fix push awaits its own approval.
 

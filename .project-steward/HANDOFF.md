@@ -1,9 +1,9 @@
 ---
-updated_at: 2026-08-24T11:32:56Z
+updated_at: 2026-08-24T12:20:00Z
 updated_by: claude
 session_status: active
 branch: main
-last_commit: 83f2b3b
+last_commit: 5d27d2f
 ---
 # Handoff
 
@@ -39,25 +39,23 @@ acceptance both tiers, owner `profiles.yaml` untouched by the whole suite.
 
 ## In flight
 
-- **Plan amendment (ADR 0033) awaiting the owner's diff approval**: the
-  approved plan was amended in place during G5 with no amendment record,
-  and its "at most two probe calls per harness" / 30-call arithmetic no
-  longer reconciles with the ADR-gated spend (review R7). The drafted
-  amendment adds the §22 amendment record, a header note, and the budget
-  reconciliation (9 spent, 21 remain; the ceiling, not the reruns, binds).
-- **Push approved conditionally and the condition is met**: the owner
-  approved pushing `main` once the fixes landed and the two-mode block was
-  green (ADR 0032 item 5). The push and the nine-check CI watch follow the
-  review/steward commit (and the amendment commit if approved).
+- Nothing is running. The plan amendment was approved and committed
+  (`cc81b51`, ADR 0033); `main` was pushed on the approved decisions
+  (`03635e7..cc81b51`, then fix pushes `0dfbca9` and `5d27d2f`, each
+  separately approved); **all nine CI checks are green at `5d27d2f`**
+  (run 32724844619) — the first complete hosted evidence for the G5 work,
+  including the first real-Windows execution of the G5 branches. The
+  three-run failure history (Windows mypy platform analysis → `0dfbca9`;
+  Windows-only redaction/test-form failures → `5d27d2f`) is in VERIFY.
+- The hosted-evidence steward commit is **local only**; pushing it needs
+  its own approval like every push.
 
 ## Next steps
 
-1. Commit the plan amendment on the owner's diff approval (ADR 0033), or
-   record the rejection.
-2. Push `main` (approved under ADR 0032 item 5) and watch the nine hosted
-   checks (6 scaffold legs + 3 clawteam legs) at the pushed HEAD; record
-   the hosted evidence in VERIFY (a follow-up local commit — pushing that
-   evidence commit needs its own approval).
+1. Push the local hosted-evidence steward commit when the owner next
+   approves a push (nothing else is unpushed).
+2. (done) Plan amendment ADR 0033 committed; nine checks green at
+   `5d27d2f`.
 3. Resolve the PLAN "G5.R" pre-G6 tasks (review R3–R6 + the H9 test-gap
    cluster): lease cleanup on every `_run_body` exit path, bounded probe
    kill-escalation, channel-currency enforcement at consumption, persisted
@@ -105,7 +103,7 @@ acceptance both tiers, owner `profiles.yaml` untouched by the whole suite.
 - Capability evidence is version-bound: any vendor CLI upgrade makes
   readiness stale and forces reassessment before a live run.
 - G5 claims are Ubuntu owner-host claims; hosted CI stays fake and
-  credential-free; the pending push is the first hosted evidence for the
-  G5 work.
+  credential-free; the nine-green run 32724844619 at `5d27d2f` is the
+  hosted evidence for the G5 work.
 - Commit permission never implies push permission. The one approved push is
   ADR 0032 item 5; every later push is a fresh owner decision.
