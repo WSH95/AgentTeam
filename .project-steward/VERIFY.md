@@ -21,6 +21,19 @@ scope `549804f..317bb52`; owner-host evidence audited by the reviewer only,
 | Code vs ADR 0026–0030 contracts | PASS with recorded findings — ceilings, evidence semantics (call-2 unresolved-only vs authoritative downgrade), capture lifecycle, redaction (value-absence sweep), atomic locked profile updates, proxy inherit/deny, Claude/Grok argv all verified at cited lines; R3–R6 (lease leak on early-return paths, unbounded kill-escalation branch, stale-verified channel selection, discarded live Codex `-o`/JSONL disagreement) filed as PLAN G5.R pre-G6 tasks |
 | Boundary | PASS — nothing pushed at review time; no tracked capture/secret/proxy-value/absolute path in the range; no G6 run; AGENTS.md/CLAUDE.md untouched; review wrote only `docs/reviews/`, steward records, and the two owner-ruled fixes |
 
+Hosted evidence (failure history recorded, not hidden): the approved push
+`03635e7..cc81b51` triggered run 32722979375 — **7 of 9 checks green** (all
+Ubuntu/macOS scaffold legs and all three `clawteam` legs including Windows);
+both **Windows scaffold legs failed at Typecheck**: mypy analyzing with the
+runner's native `platform=win32` rejects the G5 POSIX-only branches
+(`fcntl.flock`, `os.killpg`, `os.fchmod`, `SIGKILL`), flips the win32
+type-ignores to unused, and marks POSIX statements unreachable (~20 analysis
+errors; no Windows test ever ran). Fix: `[tool.mypy] platform = "linux"` so
+all nine legs type-check the identical code view as the green local runs;
+Windows runtime behavior remains proven by pytest on the Windows legs.
+Local mypy after the pin: Success, 97 files. The fix push and its rerun are
+their own approval/evidence moment.
+
 Last verified: 2026-08-24 by Claude (Fable 5) independent review session
 (read-only evidence audit + credential-free local execution; no vendor model
 call; no credential or proxy value read).

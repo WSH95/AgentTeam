@@ -4,6 +4,12 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T11:55:00Z — cli
+Hosted CI at `cc81b51` (run 32722979375): 7/9 green; both Windows scaffold legs failed at Typecheck only — mypy's native win32 analysis rejects the G5 POSIX-only branches and flips win32 ignores to unused (~20 analysis errors; no Windows test ran). Fixed by pinning `[tool.mypy] platform = "linux"` (all legs now type-check the same view as the green Linux runs; Windows runtime stays proven by pytest on the Windows legs); local mypy Success/97 files; VERIFY records the failure history. Fix push awaits its own approval.
+
+### 2026-08-24T11:40:49Z — cli
+Amendment approved and committed (cc81b51, ADR 0033); pushed 03635e7..cc81b51 to origin/main on explicit approval (ADR 0032 item 5); nine-check CI run at cc81b51 in progress, watch running; hosted evidence to be recorded in VERIFY when the run completes.
+
 ### 2026-08-24T11:32:56Z — cli
 Independent G5 review delivered (`docs/reviews/2026-08-24-g5-review-at-317bb52.md`; ADR 0032): closure evidence verified genuine (all five captures, 45/45 hashes, 9 owner-gated calls, profiles/doctor exact); two CI-breaking regressions found by running the full CI step list locally and fixed on owner ruling — `739be1a` (typer-vendored-click Abort: core-mode CI + Ctrl-C exit 130) and `83f2b3b` (acceptance step provisions fake vendor homes). Full step list now 0 failures in both modes (core 392+4, extra 404+3, compat 12). R3–R6 filed as PLAN G5.R pre-G6 tasks; R7 plan amendment drafted for approval (ADR 0033 pending); owner conditionally approved the push after the green block.
 

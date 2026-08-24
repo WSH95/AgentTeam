@@ -97,6 +97,13 @@ select = ["E", "F", "I", "B", "UP", "W", "SIM", "RUF"]
 
 [tool.mypy]
 python_version = "3.11"
+# Pin the analysis platform so all nine CI legs type-check the same code view
+# as the local (Linux) runs: with the runner's native platform, win32 analysis
+# rejects the POSIX-only branches (fcntl/killpg/fchmod) and flips their
+# type-ignores to unused (found by CI run 32722979375 at cc81b51). Windows
+# runtime behavior is proven by pytest on the Windows legs, not by mypy's
+# platform model.
+platform = "linux"
 strict = true
 plugins = ["pydantic.mypy"]
 warn_unreachable = true
