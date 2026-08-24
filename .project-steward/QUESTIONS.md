@@ -29,7 +29,12 @@ every push and every future live call remains separately approved. The
 2026-08-24 independent review at `317bb52` verified the closure evidence,
 fixed two CI-breaking regressions (`739be1a`/`83f2b3b`; ADR 0032), and filed
 the PLAN "G5.R" pre-G6 tasks; the plan's call-budget wording is reconciled by
-the ADR 0033 amendment.
+the ADR 0033 amendment. **G6 closed 2026-08-24** after five owner-gated live
+cycles: R1–R6 remediations (ADR 0034/0035), the ADR 0036 gate amendment
+(Claude + Codex legs; Grok FAIL-HARD recorded, revisited on a future CLI),
+and a fifth-cycle two-tier PASS (`run-20260824-170359-58d9`); 25 of the
+30-call ceiling spent, 5 remain. G7 is next; every push stays separately
+approved; evidence-bundle promotion is the G8 step.
 
 ## Answered during G5 owner setup
 

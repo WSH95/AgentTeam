@@ -4,6 +4,21 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G6 fifth live cycle — 2026-08-24 (**PASS**; G6 closed under the amended gate)
+
+| Check | Result |
+| --- | --- |
+| Pre-run gate | PASS — doctor exit 0 (three profiles ready at the exact probe versions, zero conflicts, zero calls); package `fd54eae7…` + target `25f03027…` matched; proxy inherited; clean tree at `7e49c28`; fresh explicit owner final go under the ADR 0036 amended gate |
+| Cycle | **PASS, exit 0** — `run-20260824-170359-58d9`: exactly three calls (Claude leg 119.928s, Codex leg 69.711s, Claude synthesis 40.064s), all `schema_outcome: valid` on attempt 1 with empty problems, zero retries. 25 of 30 calls spent; **5 remain** |
+| Mechanical tier | **PASS** — cond-1 (independent fresh legs, one bundle, targets unmutated), cond-6 (package rehash), cond-7 (manifest), cond-8 (names-only records) |
+| Semantic tier | **PASS** — cond-2 (each leg identified command injection plus other seeded defects with actionable rationales), cond-3 (union covers all three), cond-4 (zero invented criticals), cond-5 (synthesis lists all defects with six merged findings, five agreements, one disagreement, every source a valid `invocation_id:finding_id` pair — the G6.R4 steering held live), cond-9 (tiers separate) |
+| Archive/privacy | PASS — manifest reconstructs with zero problems; recursive owner-only modes hold with zero violations (G6.R3's second in-vivo proof); the sanitizer bundle was produced and scanned CLEAN (held in the session scratchpad for owner review; promotion to `docs/evidence/m1a-live-<date>/` remains the G8 step); raw archive local-only and gitignored |
+| Boundary | PASS — one owner-confirmed cycle under the amended gate; no retry, no API-mode fallback, no push. Every G6 remediation (R1–R6) and the ADR 0034–0036 amendments are now live-validated |
+
+Last verified: 2026-08-24 by Claude — **G6 is closed**: the Ubuntu
+subscription-backed live PoC passed both acceptance tiers under the
+ADR 0036 amended gate (Claude + Codex legs + Claude synthesis).
+
 ## G6 fourth live cycle — 2026-08-24 (FAIL exit 1; `--max-turns` hypothesis falsified)
 
 | Check | Result |
