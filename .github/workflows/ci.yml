@@ -102,6 +102,12 @@ jobs:
           AGENTTEAM_HOME: ${{ runner.temp }}/agentteam-home
           FAKE_MODE: ok
         run: |
+          # The fake profile's config homes are disposable (tests/conftest.py
+          # provisions them for pytest and removes them afterwards); the G5
+          # live preflight requires them to exist before any launch.
+          mkdir -p examples/profiles/.agentteam-local/vendors/claude-code \
+                   examples/profiles/.agentteam-local/vendors/codex \
+                   examples/profiles/.agentteam-local/vendors/grok
           uv run --no-sync atm run examples/run-requests/direct-review.yaml \
             --config examples/profiles/ci-fake.yaml \
             --output-dir "$RUNNER_TEMP/acceptance-run"
