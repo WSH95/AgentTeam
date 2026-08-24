@@ -40,7 +40,10 @@ def build_synthesis_task(legs: Sequence[tuple[str, str, NormalizedReviewV1]]) ->
     lines = [
         "# Synthesis input: labelled leg reports",
         "",
-        "Merge the labelled reviews below. Refer to legs only by invocation id.",
+        "Merge the labelled reviews below. Every `sources` entry must be a",
+        '`"<invocation-id>:<finding-id>"` pair naming a real finding from these',
+        "reports; bare invocation ids belong only in `inputs`, `asserted_by`,",
+        "and `not_asserted_by`.",
         "",
     ]
     for invocation_id, harness, review in legs:

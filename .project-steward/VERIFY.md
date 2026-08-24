@@ -4,6 +4,18 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G6.R4 synthesis-attribution steering — 2026-08-24 (implemented locally)
+
+| Check | Result |
+| --- | --- |
+| Steering | PASS — the instructions' contradictory rules are gone: one pair convention (`"<invocation-id>:<finding-id>"` for every `sources` entry in agreements *and* merged findings; bare invocation ids only in `inputs`/`asserted_by`/`not_asserted_by`, with at least one source pair per asserting leg); the task document restates the convention and the old "Refer to legs only by invocation id" steering line is removed; the schema `description` fields now carry the convention inside the delivered document (the projection keeps `description` for exactly this purpose) |
+| Regressions | PASS — content pins on the instructions, the task builder output, and the delivered synthesis schema descriptions; canonical `synthesis-report-v1.schema.json` regenerated (+5 description lines) with a clean export round-trip; validator and fakes unchanged (already pair-correct) |
+| Full local CI parity | PASS — core mode **pytest 444 passed + 4 skips**; optional-extra **456 passed + 3 skips**; `tests/compatibility` **12 passed**; Ruff lint + format (102 files), strict mypy (98 files), schema check current, `git diff --check` clean; environment restored to core. No live call |
+
+Last verified: 2026-08-24 by Claude (G6.R4 test-first; the live-observed
+bare-id agreements now have three deterministic steering surfaces against
+them; only a live cycle can prove model compliance).
+
 ## G6 second live cycle — 2026-08-24 (FAIL exit 1; mechanical tier first live PASS)
 
 | Check | Result |

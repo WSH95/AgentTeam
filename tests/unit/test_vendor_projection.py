@@ -128,6 +128,19 @@ def test_delivered_construct_set_is_probe_proven_plus_documented_residue(name: s
     assert not (keywords & VENDOR_STRIP_KEYS)
 
 
+def test_delivered_synthesis_schema_carries_the_source_pair_steering() -> None:
+    # G6.R4: the conventions travel inside the delivered document — the
+    # projection keeps `description` for exactly this reason.
+    from agentteam.schema import vendor_schema
+
+    props = vendor_schema("synthesis-report-v1.schema.json")["properties"]
+    for group in ("agreements", "merged_findings"):
+        description = props[group]["items"]["properties"]["sources"].get("description", "")
+        assert "<invocation-id>:<finding-id>" in description, group
+    asserted = props["disagreements"]["items"]["properties"]["asserted_by"].get("description", "")
+    assert "bare invocation id" in asserted
+
+
 def test_vendor_functions_reject_non_vendor_names() -> None:
     from agentteam.schema import vendor_schema, vendor_schema_text
 

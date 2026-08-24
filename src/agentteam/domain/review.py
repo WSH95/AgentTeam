@@ -54,15 +54,25 @@ class NormalizedReviewV1(RecordModel):
     verdict: Verdict
 
 
+_SOURCE_PAIR_DESCRIPTION = (
+    'Each entry is a "<invocation-id>:<finding-id>" pair naming one real '
+    "finding from the labelled input reports — never a bare invocation id."
+)
+
+
 class AgreementV1(RecordModel):
     title: str
-    sources: list[str]
+    sources: list[str] = Field(description=_SOURCE_PAIR_DESCRIPTION)
 
 
 class DisagreementV1(RecordModel):
     title: str
-    asserted_by: list[str]
-    not_asserted_by: list[str]
+    asserted_by: list[str] = Field(
+        description="Each entry is a bare invocation id exactly as labelled in the input."
+    )
+    not_asserted_by: list[str] = Field(
+        description="Each entry is a bare invocation id exactly as labelled in the input."
+    )
 
 
 class MergedFindingV1(RecordModel):
@@ -73,7 +83,7 @@ class MergedFindingV1(RecordModel):
     line: int | None
     title: str
     rationale: str
-    sources: list[str]
+    sources: list[str] = Field(description=_SOURCE_PAIR_DESCRIPTION)
 
 
 class SynthesisReportV1(RecordModel):
@@ -81,7 +91,9 @@ class SynthesisReportV1(RecordModel):
 
     schema_version: SchemaVersion
     kind: Literal["synthesis-report"]
-    inputs: list[str]
+    inputs: list[str] = Field(
+        description="Exactly the invocation ids of the labelled input reports."
+    )
     agreements: list[AgreementV1]
     disagreements: list[DisagreementV1]
     merged_findings: list[MergedFindingV1]

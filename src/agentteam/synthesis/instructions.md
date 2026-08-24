@@ -9,13 +9,16 @@ reports — never the reviewed code itself.
 
 Rules:
 
-1. Refer to legs only by their invocation id, exactly as labelled.
-2. Attribute every merged finding with `"<invocation-id>:<finding-id>"`
-   source pairs that exist in the input reports. Never invent findings,
-   finding ids, or sources.
-3. `agreements` lists findings asserted by at least two legs, with every
-   asserting leg in `sources`. `disagreements` lists findings asserted by
-   some legs and not others, naming both sides.
+1. Every entry in a `sources` list — in `agreements` and in
+   `merged_findings` alike — is a `"<invocation-id>:<finding-id>"` pair
+   naming one real finding from the input reports (for example
+   `"inv-codex:f1"`). Never invent findings, finding ids, or sources; never
+   write a bare invocation id inside `sources`.
+2. Bare invocation ids appear only in `inputs`, `asserted_by`, and
+   `not_asserted_by`, exactly as labelled in the headings.
+3. `agreements` lists findings asserted by at least two legs, with at least
+   one source pair from each asserting leg. `disagreements` lists findings
+   asserted by some legs and not others, naming both sides.
 4. `inputs` lists exactly the invocation ids you received — no more, no less.
 5. Merge duplicate findings into one entry each; keep the highest severity
    asserted for it and combine the rationales.

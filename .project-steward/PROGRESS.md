@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T16:05:00Z — claude
+G6.R4 closed test-first: the synthesis instructions' contradictory rule ("every asserting leg in `sources`") is replaced by one `"<invocation-id>:<finding-id>"` pair convention across agreements and merged findings, the task builder restates it (the "Refer to legs only by invocation id" steering line is gone), and the delivered schema `description` fields now carry the convention to the model; canonical synthesis schema regenerated (+5 description lines). Core 444+4, extra 456+3, compat 12, all gates green; no live call. G6.R5 scope and any further cycle go to the owner next.
+
 ### 2026-08-24T15:48:28Z — claude
 Second G6 cycle run on fresh owner confirmation (`run-20260824-154050-7a98`, 4 calls, 221s): **mechanical tier passed live for the first time** — all three legs valid on attempt 1 (Grok 8.7s, Codex 62.9s, Claude 122.2s), proving R1–R3 in vivo (projected schemas accepted by Claude and Grok; recursive archive modes clean; manifest and sanitizer clean). Exit 1 from synthesis attribution: agreements used bare invocation ids where `invocation_id:finding_id` pairs are required (the task document itself steers toward that error) — filed G6.R4. First formal semantic evaluation FAILED (cond-2/3/4/5): unsteered category vocabulary (real defects located, labels outside aliases) and Grok's zero-finding progress narration — filed G6.R5 (owner-scoped). 14 of 30 calls remain; no retry, no push; any further cycle needs a new explicit owner decision.
 

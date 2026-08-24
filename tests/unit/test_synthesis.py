@@ -68,6 +68,25 @@ def test_committed_instructions_exist_and_speak_in_invocation_ids() -> None:
     assert "Never invent" in text
 
 
+def test_instructions_state_pair_sources_for_agreements_and_merged_findings() -> None:
+    # G6.R4: the live synthesis followed the old rule 3 ("every asserting leg
+    # in `sources`") verbatim and failed attribution — the convention must be
+    # one pair rule covering both lists, with bare ids confined elsewhere.
+    text = INSTRUCTIONS_FILE.read_text(encoding="utf-8")
+    assert '"<invocation-id>:<finding-id>"' in text
+    assert "`agreements` and in\n   `merged_findings`" in text or (
+        "`agreements` and in `merged_findings`" in text
+    )
+    assert "asserting leg in `sources`" not in text
+    assert "`asserted_by`" in text and "`not_asserted_by`" in text
+
+
+def test_task_document_states_the_source_pair_convention(payloads: Payloads) -> None:
+    document = build_synthesis_task([("inv-codex", "codex", _review(payloads, "b1"))])
+    assert '"<invocation-id>:<finding-id>"' in document
+    assert "Refer to legs only by invocation id" not in document
+
+
 def test_instruction_hash_is_lf_normalised_and_stable(tmp_path: Path) -> None:
     digest = instruction_hash()
     assert re.fullmatch(r"[0-9a-f]{64}", digest)
