@@ -6,6 +6,11 @@
   prescribes
 - Plan revision: **r3**, 2026-08-23 (r2 review findings resolved; r2 merged the
   independent proposal; see section 22)
+- Amended in place during G5 execution; amendments recorded 2026-08-24
+  (ADR 0033, review R7): section 22 carries the amendment table; the
+  section 12 across-M1a probe budget is superseded by the recorded spend
+  (nine attended calls under ADR 0028–0030; 21 of the 30-call ceiling
+  remain)
 - Revision baseline: `7ea1c0e` (r2 was `972aa95`; r1 was `9aff78f`,
   `docs(plan): propose AgentTeam M1a direct harness PoC`)
 - Supersedes: `docs/plans/m1-agentteam-direct-slice.md` (independent proposal,
@@ -622,6 +627,15 @@ reruns, each separately confirmed by the owner — a hard ceiling of 30 calls
 (owner-approved 2026-08-23). AgentTeam never starts another cycle
 automatically.
 
+*Amended 2026-08-24 (ADR 0033):* the two-probe-calls-per-harness bound is
+per assessment, not the M1a total (ADR 0030 introduced owner-approved
+authoritative reassessment). Under explicit owner gate revisions the
+attended G5 spend was nine calls — Claude 3, Codex 2, Grok 4
+(ADR 0028/0029/0030) — leaving **21 of the 30-call hard ceiling**. One
+acceptance cycle plus one confirmed rerun fit within it; a second rerun
+would exceed the ceiling, and the ceiling — not the rerun allowance —
+binds.
+
 ## 13. Evidence and privacy
 
 Gitignored local run state contains `run.json`, resolved request and bundle
@@ -798,8 +812,10 @@ approval; the first push (the scaffold, at G2) is itself an approval moment.
 - Record vendor flag drift in dated profile data/tests rather than hidden
   branching.
 - Stop at the eight-call or 15-minute attempt bound, at two probe calls per
-  harness, and after the initial acceptance cycle unless the owner separately
-  confirms a rerun (at most two); the hard ceiling is 30 calls.
+  harness per assessment (ADR 0030), and after the initial acceptance cycle
+  unless the owner separately confirms a rerun (at most two); the hard
+  ceiling is 30 calls and binds before the rerun allowance (section 12
+  amendment, ADR 0033).
 - If output exposes a secret, keep it local, rotate outside AgentTeam, and do
   not commit/upload it.
 - After two failures for the same live semantic reason, return to review rather
@@ -943,3 +959,22 @@ and required corrections; architecture choices confirmed. Resolved in r3:
 | One Member with one harness binding vs three legs + synthesis | `execution {kind: invocation \| ensemble, ref}`; one `EnsembleRecordV1` per Member in the cycle; `team-execution-model.md` §4 amended ("one execution at a time") | 7, 12 |
 | Windows launcher coverage; `PATH` missing | Explicit launcher policy (resolve `.cmd` shims to `node` + script; fail-closed allowlist otherwise); Windows-only `.cmd` fake; `PATH`/`SystemDrive` in the baseline; vendor-smoke CI job | 9, 15, 16 |
 | Other: `effective_definition_hash` computed, not client-supplied; required Skills fail before launch; probe captures gitignored + reviewed promotion; waiver closes as failed/abandoned, never PASS; complete selection algorithm; V1 archive contract; Q5 in M4; budget = 1 cycle + ≤2 owner-confirmed reruns, ceiling 30 | as listed | 2, 7, 11, 12, 14, 15, 18, 19 |
+
+### Amendments during G5 execution (recorded 2026-08-24, ADR 0033)
+
+The G5 sessions amended this approved document in place under the substance
+of ADRs 0026–0030 without bumping the revision or recording the amendments
+here; the 2026-08-24 independent review
+(`docs/reviews/2026-08-24-g5-review-at-317bb52.md`, finding R7) surfaced the
+gap and this record reconciles it. The text remains r3 as amended; gate
+names and every non-G5 bound are unchanged.
+
+| Section | Amendment | Decision | Commit |
+| --- | --- | --- | --- |
+| §3 (G5 row), §11 | Grok auth verified only by a successful structured probe (no status command) | ADR 0026 | `695a4a4` |
+| §7 | verified/observed/unverified row semantics; assessed-rows-only updates; readiness = required base + one current verified channel per ladder; a successful primary stops without promoting unused fallbacks | ADR 0026/0031 | `5efce91` |
+| §8 | `doctor --probe` gains repeatable `--harness` (with the `claude` alias) and `--reprobe-ready`; forced reassessment is authoritative and downgrades on failure; invalid combinations exit 2 | ADR 0030 | `5efce91` |
+| §11 | standard profiles inherit the owner's terminal proxy unchanged (incl. `NO_PROXY`); explicit `deny` stays fail-closed; names-only reporting | ADR 0027 | `5efce91` |
+| §11 | Claude's built-in `Skill` tool pre-approved while write/shell/web tools stay denied | ADR 0028 | `5efce91` |
+| §11 | Grok: `--prompt-file` never with bare `-p`; explicit Skill slash-name references; `structuredOutput`/`structured_output` map to one field channel | ADR 0029 | `5efce91` |
+| §12, §18 | probe-call budget reconciliation: nine attended calls spent (Claude 3 / Codex 2 / Grok 4); 21 of the 30-call ceiling remain; the ceiling binds before the rerun allowance | ADR 0033 | this commit |

@@ -108,7 +108,10 @@ See `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and ADR 0018.
   moment (ADR 0019). `gh` is authenticated (verified 2026-08-23).
 - [x] Live-call budget ceiling → one initial acceptance cycle after G5, at most
   two reruns each separately confirmed by the owner, probes ≤ 2 per harness,
-  hard ceiling 30 calls (ADR 0020).
+  hard ceiling 30 calls (ADR 0020). *2026-08-24, ADR 0033: the probe line
+  became per-assessment under ADR 0030; the attended G5 spend was nine calls
+  (Claude 3 / Codex 2 / Grok 4), so 21 of the 30 remain and the ceiling binds
+  before the rerun allowance.*
 - [x] Claude Skill channel under the isolated config home: the corrected second
   and final G5 invocation verified `$CLAUDE_CONFIG_DIR/skills/`; plugin and
   workspace fallbacks were not needed (ADR 0020/0028/0029).

@@ -627,3 +627,26 @@ hosted CI checks on the G5 work.
 work; G6 remains gated on the G5.R tasks and its own attended execution
 decision. Hygiene findings H1–H13 stay recorded in the review document;
 only items the owner acts on become tasks.
+
+## 0033 — 2026-08-24 — The approved M1a plan's G5 amendments are recorded and its probe budget reconciled
+
+**Context**: Review R7 (ADR 0032): during G5 the approved plan
+`docs/plans/m1a-direct-harness-poc.md` (r3, approved at `0f3e478` per
+ADR 0021) was amended in place in `695a4a4`/`5efce91` under the substance of
+ADRs 0026–0030, but no amendment record existed (the ADR 0022 convention),
+the header still claimed unamended r3, and four passages still said "at most
+two probe calls per harness" although the ADR-gated attended spend was nine
+calls — making the §12 across-M1a arithmetic (2×3 + 8 + 2×8 = 30)
+over-committed: 9 + 8 + 16 = 33 would breach the 30-call hard ceiling.
+**Decision**: The plan gains (shown to the owner as a diff and approved
+before commit): a header amendment note; a §22 "Amendments during G5
+execution" table mapping every amended section to its ADR and commit; a §12
+amendment paragraph restating the budget — the two-call bound is
+per-assessment (ADR 0030), nine calls are spent, **21 of the 30-call ceiling
+remain**, one acceptance cycle plus one confirmed rerun fit, and the
+ceiling binds before the rerun allowance; and the §18 stop rule updated to
+match. QUESTIONS' ADR 0020 budget record carries the same annotation. The
+revision stays "r3 as amended"; no gate name or non-G5 bound changes.
+**Consequences**: Future amendments to approved plans follow the ADR 0022
+convention at amendment time, not retroactively. A second G6 rerun now
+requires an explicit owner ceiling decision, not just the rerun allowance.
