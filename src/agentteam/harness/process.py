@@ -18,6 +18,7 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 
 from agentteam.domain.run import RetryClassification
@@ -82,6 +83,7 @@ async def run_process(spec: ProcessSpec) -> RawInvocationV1:
         start_new_session = True
 
     started = time.monotonic()
+    started_at = datetime.now(tz=UTC)
     process = await asyncio.create_subprocess_exec(
         *spec.argv,
         cwd=str(spec.cwd),
@@ -139,6 +141,8 @@ async def run_process(spec: ProcessSpec) -> RawInvocationV1:
         output_file_text=output_file_text,
         timed_out=timed_out,
         duration_ms=duration_ms,
+        started_at=started_at,
+        finished_at=datetime.now(tz=UTC),
     )
 
 

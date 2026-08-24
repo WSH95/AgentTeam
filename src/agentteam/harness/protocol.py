@@ -7,9 +7,10 @@ Recorded deviation from the plan's sketch: `parse` returns `ParsedLegV1`
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from agentteam.harness.types import (
+    ExtractedStructured,
     HarnessCapabilityReportV1,
     ParsedLegV1,
     RawInvocationV1,
@@ -34,3 +35,11 @@ class HarnessAdapter(Protocol):
     def parse(self, raw: RawInvocationV1) -> ParsedLegV1:
         """Validate vendor output into the normalized review model."""
         ...
+
+
+@runtime_checkable
+class StructuredExtractor(Protocol):
+    """Internal helper seam beyond the plan's four methods (recorded deviation):
+    the synthesis path validates a different schema over the same extraction."""
+
+    def extract_structured(self, raw: RawInvocationV1) -> ExtractedStructured: ...

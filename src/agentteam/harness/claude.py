@@ -24,12 +24,16 @@ from agentteam.harness.process import ProcessSpec, run_process
 from agentteam.harness.rendering import (
     build_command_record,
     guard_argv_length,
+    instruction_parts,
     read_instruction_text,
     read_task_text,
     resolve_for_render,
+    schema_name_for,
 )
 from agentteam.harness.skills import write_skills
 from agentteam.harness.types import (
+    ExtractedStructured,
+    FileWriteV1,
     HarnessCapabilityReportV1,
     ParsedLegV1,
     RawInvocationV1,
@@ -52,8 +56,12 @@ class ClaudeAdapter:
     def render(self, ctx: RenderContext) -> RenderedInvocationV1:
         instructions = read_instruction_text(ctx)
         task = read_task_text(ctx)
-        schema_min = vendor_schema_min("normalized-review-v1.schema.json")
-        skill_writes = write_skills(ctx, ctx.config_root / "skills", "config-home-skills")
+        schema_min = vendor_schema_min(schema_name_for(ctx))
+        skill_writes: list[FileWriteV1] = (
+            []
+            if ctx.synthesis is not None
+            else write_skills(ctx, ctx.config_root / "skills", "config-home-skills")
+        )
 
         env_values, env_record = build_environment(
             ctx.profile, ctx.parent_env, platform=ctx.platform
@@ -89,12 +97,7 @@ class ClaudeAdapter:
         argv, policy = resolve_for_render(ctx, rest)
         guard_argv_length(argv)
 
-        parts = [
-            RenderedPartV1(part="persona", channel="append-system-prompt-inline"),
-            RenderedPartV1(part="principles", channel="append-system-prompt-inline"),
-        ]
-        if ctx.definition.methods is not None:
-            parts.append(RenderedPartV1(part="methods", channel="append-system-prompt-inline"))
+        parts = instruction_parts(ctx, "append-system-prompt-inline")
         parts.append(RenderedPartV1(part="task", channel="stdin"))
         parts.append(RenderedPartV1(part="output-schema", channel="argv-inline"))
         parts += [RenderedPartV1(part=write.role, channel=write.channel) for write in skill_writes]
@@ -140,27 +143,46 @@ class ClaudeAdapter:
             )
         )
 
-    def parse(self, raw: RawInvocationV1) -> ParsedLegV1:
-        problems: list[str] = []
+    def extract_structured(self, raw: RawInvocationV1) -> ExtractedStructured:
         try:
             payload = json.loads(raw.stdout.decode("utf-8", errors="replace"))
         except json.JSONDecodeError as error:
-            return ParsedLegV1(
-                review=None,
-                schema_outcome=SchemaOutcome.MISSING,
+            return ExtractedStructured(
                 usage=UsageV1(),
                 observed=tokens_from_model_usage(None)[1],
                 problems=[f"stdout is not JSON: {error}"],
+                hard_failure=True,
             )
-        structured = payload.get("structured_output")
-        review, outcome, review_problems = review_from_object(structured)
-        problems.extend(review_problems)
+        if not isinstance(payload, dict):
+            return ExtractedStructured(
+                usage=UsageV1(),
+                observed=tokens_from_model_usage(None)[1],
+                problems=["vendor result is not a JSON object"],
+                hard_failure=True,
+            )
         usage, observed = tokens_from_model_usage(payload.get("modelUsage"))
         usage = cost_from_total_usd(usage, payload.get("total_cost_usd"))
+        return ExtractedStructured(
+            candidate=payload.get("structured_output"),
+            usage=usage,
+            observed=observed,
+        )
+
+    def parse(self, raw: RawInvocationV1) -> ParsedLegV1:
+        extracted = self.extract_structured(raw)
+        if extracted.hard_failure:
+            return ParsedLegV1(
+                review=None,
+                schema_outcome=SchemaOutcome.MISSING,
+                usage=extracted.usage,
+                observed=extracted.observed,
+                problems=extracted.problems,
+            )
+        review, outcome, review_problems = review_from_object(extracted.candidate)
         return ParsedLegV1(
             review=review,
             schema_outcome=outcome,
-            usage=usage,
-            observed=observed,
-            problems=problems,
+            usage=extracted.usage,
+            observed=extracted.observed,
+            problems=extracted.problems + review_problems,
         )

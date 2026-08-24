@@ -11,6 +11,7 @@ from agentteam.domain.run import (
     DegradedPartV1,
     LauncherPolicy,
     PlaceholderV1,
+    RenderedPartV1,
 )
 from agentteam.harness.launcher import resolve_launcher
 from agentteam.harness.types import RenderContext
@@ -33,7 +34,18 @@ class RenderError(ValueError):
 
 
 def read_instruction_text(ctx: RenderContext) -> str:
-    """Persona + principles + methods, concatenated in definition order."""
+    """Persona + principles + methods in definition order — or, in synthesis
+    mode, the committed synthesis instructions (a required part)."""
+    if ctx.synthesis is not None:
+        path = ctx.synthesis.instructions_file
+        if not path.is_file():
+            raise RenderError(
+                f"synthesis instructions file is missing: {path}",
+                undeliverable_required_parts=[
+                    DegradedPartV1(part="synthesis-instructions", reason="missing instruction file")
+                ],
+            )
+        return path.read_text(encoding="utf-8")
     parts: list[str] = []
     for rel in [ctx.definition.persona, ctx.definition.principles, ctx.definition.methods]:
         if rel is None:
@@ -48,6 +60,27 @@ def read_instruction_text(ctx: RenderContext) -> str:
             )
         parts.append(path.read_text(encoding="utf-8").strip() + "\n")
     return "\n".join(parts)
+
+
+def instruction_parts(ctx: RenderContext, channel: str) -> list[RenderedPartV1]:
+    """The injection-record rows for the instruction channel of one render."""
+    if ctx.synthesis is not None:
+        return [RenderedPartV1(part="synthesis-instructions", channel=channel)]
+    parts = [
+        RenderedPartV1(part="persona", channel=channel),
+        RenderedPartV1(part="principles", channel=channel),
+    ]
+    if ctx.definition.methods is not None:
+        parts.append(RenderedPartV1(part="methods", channel=channel))
+    return parts
+
+
+def schema_name_for(ctx: RenderContext) -> str:
+    return (
+        ctx.synthesis.schema_name
+        if ctx.synthesis is not None
+        else "normalized-review-v1.schema.json"
+    )
 
 
 def read_task_text(ctx: RenderContext) -> str:

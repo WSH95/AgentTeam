@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from pydantic import ConfigDict, Field
 
@@ -33,6 +34,20 @@ class InternalModel(RecordModel):
     """Base for internal working objects; may carry Paths (never serialised as contracts)."""
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+
+
+class SynthesisRenderV1(InternalModel):
+    """Synthesis-mode render override (plan section 12 step 11).
+
+    With it set, an adapter renders the committed synthesis instructions
+    instead of the definition's persona/principles/methods, requests the
+    synthesis-report schema instead of the review schema, and writes no
+    Skills — everything else (isolation, redaction, launcher policy) is the
+    normal leg path.
+    """
+
+    instructions_file: Path
+    schema_name: str = "synthesis-report-v1.schema.json"
 
 
 class RenderContext(InternalModel):
@@ -62,6 +77,7 @@ class RenderContext(InternalModel):
     invocation_id: str
     timeout_seconds: int
     profile_file: Path | None = None
+    synthesis: SynthesisRenderV1 | None = None
 
 
 class RawInvocationV1(InternalModel):
@@ -106,6 +122,22 @@ class RenderedInvocationV1(InternalModel):
     placeholders: list[PlaceholderV1]
     schema_channel: str
     timeout_seconds: int
+
+
+class ExtractedStructured(InternalModel):
+    """The vendor-specific structured-output candidate plus telemetry.
+
+    `parse` validates the candidate as a review; the synthesis path validates
+    the same candidate as a synthesis report. `hard_failure` marks vendor
+    results that are unusable before any schema question (non-JSON stdout, a
+    vendor error object) — `problems` already explains why.
+    """
+
+    candidate: Any = None
+    usage: UsageV1
+    observed: ObservedV1
+    problems: list[str] = Field(default_factory=list)
+    hard_failure: bool = False
 
 
 class ParsedLegV1(InternalModel):

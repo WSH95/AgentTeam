@@ -25,12 +25,15 @@ from agentteam.harness.process import ProcessSpec, run_process
 from agentteam.harness.rendering import (
     build_command_record,
     guard_argv_length,
+    instruction_parts,
     read_instruction_text,
     read_task_text,
     resolve_for_render,
+    schema_name_for,
 )
 from agentteam.harness.skills import write_skills
 from agentteam.harness.types import (
+    ExtractedStructured,
     FileWriteV1,
     HarnessCapabilityReportV1,
     ParsedLegV1,
@@ -50,13 +53,16 @@ class GrokAdapter:
     def render(self, ctx: RenderContext) -> RenderedInvocationV1:
         instructions = read_instruction_text(ctx)
         task = read_task_text(ctx)
-        schema_min = vendor_schema_min("normalized-review-v1.schema.json")
+        schema_min = vendor_schema_min(schema_name_for(ctx))
 
+        ctx.workspace_root.mkdir(parents=True, exist_ok=True)
         ctx.scratch_dir.mkdir(parents=True, exist_ok=True)
         prompt_file = ctx.scratch_dir / "prompt.md"
         prompt_file.write_text(instructions + "\n---\n\n# Task\n\n" + task, encoding="utf-8")
-        skill_writes = write_skills(
-            ctx, ctx.workspace_root / ".grok" / "skills", "workspace-grok-skills"
+        skill_writes: list[FileWriteV1] = (
+            []
+            if ctx.synthesis is not None
+            else write_skills(ctx, ctx.workspace_root / ".grok" / "skills", "workspace-grok-skills")
         )
 
         env_values, env_record = build_environment(
@@ -88,12 +94,7 @@ class GrokAdapter:
         argv, policy = resolve_for_render(ctx, rest)
         guard_argv_length(argv)
 
-        parts = [
-            RenderedPartV1(part="persona", channel="prompt-file-preamble"),
-            RenderedPartV1(part="principles", channel="prompt-file-preamble"),
-        ]
-        if ctx.definition.methods is not None:
-            parts.append(RenderedPartV1(part="methods", channel="prompt-file-preamble"))
+        parts = instruction_parts(ctx, "prompt-file-preamble")
         parts.append(RenderedPartV1(part="task", channel="prompt-file"))
         parts.append(RenderedPartV1(part="output-schema", channel="argv-inline"))
         parts += [RenderedPartV1(part=w.role, channel=w.channel) for w in skill_writes]
@@ -142,25 +143,29 @@ class GrokAdapter:
             )
         )
 
-    def parse(self, raw: RawInvocationV1) -> ParsedLegV1:
-        problems: list[str] = []
+    def extract_structured(self, raw: RawInvocationV1) -> ExtractedStructured:
         try:
             payload = json.loads(raw.stdout.decode("utf-8", errors="replace"))
         except json.JSONDecodeError as error:
-            return ParsedLegV1(
-                review=None,
-                schema_outcome=SchemaOutcome.MISSING,
+            return ExtractedStructured(
                 usage=UsageV1(),
                 observed=tokens_from_model_usage(None)[1],
                 problems=[f"stdout is not JSON: {error}"],
+                hard_failure=True,
             )
-        if isinstance(payload, dict) and payload.get("type") == "error":
-            return ParsedLegV1(
-                review=None,
-                schema_outcome=SchemaOutcome.MISSING,
+        if not isinstance(payload, dict):
+            return ExtractedStructured(
+                usage=UsageV1(),
+                observed=tokens_from_model_usage(None)[1],
+                problems=["vendor result is not a JSON object"],
+                hard_failure=True,
+            )
+        if payload.get("type") == "error":
+            return ExtractedStructured(
                 usage=UsageV1(),
                 observed=tokens_from_model_usage(None)[1],
                 problems=[f"vendor error: {payload.get('message', 'unknown')}"],
+                hard_failure=True,
             )
         candidate = payload.get("structured_output")
         if candidate is None:
@@ -170,8 +175,6 @@ class GrokAdapter:
                     candidate = json.loads(text)
                 except json.JSONDecodeError:
                     candidate = None
-        review, outcome, review_problems = review_from_object(candidate)
-        problems.extend(review_problems)
         usage, observed = tokens_from_model_usage(payload.get("modelUsage"))
         raw_usage = payload.get("usage")
         if isinstance(raw_usage, dict):
@@ -182,10 +185,23 @@ class GrokAdapter:
                 }
             )
         usage = cost_from_total_usd(usage, payload.get("total_cost_usd"))
+        return ExtractedStructured(candidate=candidate, usage=usage, observed=observed)
+
+    def parse(self, raw: RawInvocationV1) -> ParsedLegV1:
+        extracted = self.extract_structured(raw)
+        if extracted.hard_failure:
+            return ParsedLegV1(
+                review=None,
+                schema_outcome=SchemaOutcome.MISSING,
+                usage=extracted.usage,
+                observed=extracted.observed,
+                problems=extracted.problems,
+            )
+        review, outcome, review_problems = review_from_object(extracted.candidate)
         return ParsedLegV1(
             review=review,
             schema_outcome=outcome,
-            usage=usage,
-            observed=observed,
-            problems=problems,
+            usage=extracted.usage,
+            observed=extracted.observed,
+            problems=extracted.problems + review_problems,
         )

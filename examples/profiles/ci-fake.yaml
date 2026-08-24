@@ -11,7 +11,7 @@ profiles:
     config_home: .agentteam-local/vendors/claude-code
     environment:
       config_home_variable: CLAUDE_CONFIG_DIR
-      passthrough: [FAKE_OBSERVE, FAKE_MODE]
+      passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK]
       conflicts: [FAKE_CONFLICT]
     capabilities:
       - {name: headless-json, verification: verified}
@@ -21,7 +21,7 @@ profiles:
     config_home: .agentteam-local/vendors/codex
     environment:
       config_home_variable: CODEX_HOME
-      passthrough: [FAKE_OBSERVE, FAKE_MODE]
+      passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK]
       conflicts: [FAKE_CONFLICT]
     capabilities:
       - {name: headless-jsonl, verification: verified}
@@ -31,7 +31,7 @@ profiles:
     config_home: .agentteam-local/vendors/grok
     environment:
       config_home_variable: GROK_HOME
-      passthrough: [FAKE_OBSERVE, FAKE_MODE]
+      passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK]
       conflicts: [FAKE_CONFLICT]
     capabilities:
       - {name: headless-json, verification: verified}

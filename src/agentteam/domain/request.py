@@ -37,6 +37,23 @@ class EvidenceSettingsV1(RecordModel):
     )
 
 
+class AcceptanceSettingsV1(RecordModel):
+    """Optional semantic-acceptance evaluation (plan section 14).
+
+    The oracle is read only after synthesis (state-machine step 12); it is
+    never copied into a leg workspace and never given to a leg or to
+    synthesis. Without an oracle the semantic tier stays unevaluated.
+    """
+
+    oracle: str | None = Field(
+        default=None,
+        description=(
+            "Path to the labelled oracle JSON; a relative path resolves against "
+            "the request file's directory."
+        ),
+    )
+
+
 class LimitsV1(RecordModel):
     """May lower but never raise the section 9 caps."""
 
@@ -68,6 +85,7 @@ class RunRequestV1(RecordModel):
     effort_overrides: list[HarnessOverrideV1] = Field(default_factory=list)
     output_dir: str | None = None
     evidence: EvidenceSettingsV1 = Field(default_factory=EvidenceSettingsV1)
+    acceptance: AcceptanceSettingsV1 = Field(default_factory=AcceptanceSettingsV1)
     limits: LimitsV1 = Field(default_factory=LimitsV1)
 
     @model_validator(mode="after")

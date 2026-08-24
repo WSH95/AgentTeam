@@ -2,6 +2,27 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:agentteam:schema:run-request:v1",
   "$defs": {
+    "AcceptanceSettingsV1": {
+      "additionalProperties": false,
+      "description": "Optional semantic-acceptance evaluation (plan section 14).\n\nThe oracle is read only after synthesis (state-machine step 12); it is\nnever copied into a leg workspace and never given to a leg or to\nsynthesis. Without an oracle the semantic tier stays unevaluated.",
+      "properties": {
+        "oracle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Path to the labelled oracle JSON; a relative path resolves against the request file's directory.",
+          "title": "Oracle"
+        }
+      },
+      "title": "AcceptanceSettingsV1",
+      "type": "object"
+    },
     "EvidenceSettingsV1": {
       "additionalProperties": false,
       "properties": {
@@ -182,6 +203,9 @@
     },
     "evidence": {
       "$ref": "#/$defs/EvidenceSettingsV1"
+    },
+    "acceptance": {
+      "$ref": "#/$defs/AcceptanceSettingsV1"
     },
     "limits": {
       "$ref": "#/$defs/LimitsV1"

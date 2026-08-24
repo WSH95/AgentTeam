@@ -27,3 +27,6 @@ htmlcov/
 
 # Local vendor config homes created next to checked-in fake profiles
 .agentteam-local/
+
+# Editor-local configuration
+.vscode/

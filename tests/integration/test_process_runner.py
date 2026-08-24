@@ -7,6 +7,7 @@ import os
 import sys
 import textwrap
 import time
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -47,6 +48,31 @@ async def test_captures_stdout_stderr_exit_and_stdin(tmp_path: Path) -> None:
     assert raw.stderr == b"err"
     assert raw.timed_out is False
     assert raw.duration_ms >= 0
+
+
+async def test_stamps_aware_utc_timestamps(tmp_path: Path) -> None:
+    argv = _script(tmp_path, "quick.py", "print('hi')")
+    before = datetime.now(tz=UTC)
+    raw = await run_process(
+        ProcessSpec(argv=argv, env=_env(), cwd=tmp_path, stdin_text=None, timeout_seconds=30)
+    )
+    after = datetime.now(tz=UTC)
+    assert raw.started_at is not None
+    assert raw.finished_at is not None
+    assert raw.started_at.utcoffset() == timedelta(0)
+    assert raw.finished_at.utcoffset() == timedelta(0)
+    assert before <= raw.started_at <= raw.finished_at <= after
+
+
+async def test_timeout_path_still_stamps_timestamps(tmp_path: Path) -> None:
+    argv = _script(tmp_path, "sleepy.py", "import time; time.sleep(30)")
+    raw = await run_process(
+        ProcessSpec(argv=argv, env=_env(), cwd=tmp_path, stdin_text=None, timeout_seconds=1)
+    )
+    assert raw.timed_out is True
+    assert raw.started_at is not None
+    assert raw.finished_at is not None
+    assert raw.started_at <= raw.finished_at
 
 
 async def test_drains_large_concurrent_streams_without_deadlock(tmp_path: Path) -> None:

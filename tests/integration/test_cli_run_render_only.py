@@ -88,12 +88,14 @@ def test_claude_alias_is_accepted(tmp_path: Path) -> None:
     assert (out / "claude-code" / "invocation.render.json").is_file()
 
 
-def test_without_render_only_exits_2_until_g4(tmp_path: Path) -> None:
-    args = _base_args(tmp_path, tmp_path / "render")
+def test_without_render_only_the_run_launches(tmp_path: Path) -> None:
+    # The G3 refusal branch is gone: the same arguments now execute a real
+    # solo run against the fakes (full coverage in test_run_execute.py).
+    args = _base_args(tmp_path, tmp_path / "run-archive")
     args.remove("--render-only")
-    result = runner.invoke(app, args)
-    assert result.exit_code == 2
-    assert "G4" in result.output
+    result = runner.invoke(app, args, env={"FAKE_MODE": "ok"})
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "run-archive" / "run.json").is_file()
 
 
 def test_missing_output_dir_exits_2(tmp_path: Path) -> None:

@@ -21,12 +21,16 @@ from agentteam.harness.process import ProcessSpec, run_process
 from agentteam.harness.rendering import (
     build_command_record,
     guard_argv_length,
+    instruction_parts,
     read_instruction_text,
     read_task_text,
     resolve_for_render,
+    schema_name_for,
 )
 from agentteam.harness.skills import write_skills
 from agentteam.harness.types import (
+    ExtractedStructured,
+    FileWriteV1,
     HarnessCapabilityReportV1,
     ParsedLegV1,
     RawInvocationV1,
@@ -49,13 +53,17 @@ class CodexAdapter:
         ctx.workspace_root.mkdir(parents=True, exist_ok=True)
         agents_md = ctx.workspace_root / "AGENTS.md"
         agents_md.write_text(instructions, encoding="utf-8")
-        skill_writes = write_skills(
-            ctx, ctx.workspace_root / ".agents" / "skills", "workspace-agents-skills"
+        skill_writes: list[FileWriteV1] = (
+            []
+            if ctx.synthesis is not None
+            else write_skills(
+                ctx, ctx.workspace_root / ".agents" / "skills", "workspace-agents-skills"
+            )
         )
 
         ctx.scratch_dir.mkdir(parents=True, exist_ok=True)
         schema_file = ctx.scratch_dir / "output-schema.json"
-        schema_file.write_text(render_schema("normalized-review-v1.schema.json"), encoding="utf-8")
+        schema_file.write_text(render_schema(schema_name_for(ctx)), encoding="utf-8")
         output_file = ctx.scratch_dir / "final-message.json"
 
         env_values, env_record = build_environment(
@@ -91,12 +99,7 @@ class CodexAdapter:
         argv, policy = resolve_for_render(ctx, rest)
         guard_argv_length(argv)
 
-        parts = [
-            RenderedPartV1(part="persona", channel="workspace-agents-md"),
-            RenderedPartV1(part="principles", channel="workspace-agents-md"),
-        ]
-        if ctx.definition.methods is not None:
-            parts.append(RenderedPartV1(part="methods", channel="workspace-agents-md"))
+        parts = instruction_parts(ctx, "workspace-agents-md")
         parts.append(RenderedPartV1(part="task", channel="stdin"))
         parts.append(RenderedPartV1(part="output-schema", channel="file"))
         parts += [RenderedPartV1(part=w.role, channel=w.channel) for w in skill_writes]
@@ -149,7 +152,7 @@ class CodexAdapter:
             )
         )
 
-    def parse(self, raw: RawInvocationV1) -> ParsedLegV1:
+    def extract_structured(self, raw: RawInvocationV1) -> ExtractedStructured:
         problems: list[str] = []
         usage = UsageV1()  # cost stays unavailable for Codex, always
         observed = ObservedV1()
@@ -175,14 +178,22 @@ class CodexAdapter:
             candidate = _final_agent_message(events)
             if candidate is None:
                 problems.append("no -o file and no agent_message event found")
-        review, outcome, review_problems = review_from_object(candidate)
-        problems.extend(review_problems)
-        return ParsedLegV1(
-            review=review,
-            schema_outcome=outcome,
+        return ExtractedStructured(
+            candidate=candidate,
             usage=usage,
             observed=observed,
             problems=problems,
+        )
+
+    def parse(self, raw: RawInvocationV1) -> ParsedLegV1:
+        extracted = self.extract_structured(raw)
+        review, outcome, review_problems = review_from_object(extracted.candidate)
+        return ParsedLegV1(
+            review=review,
+            schema_outcome=outcome,
+            usage=extracted.usage,
+            observed=extracted.observed,
+            problems=extracted.problems + review_problems,
         )
 
 
