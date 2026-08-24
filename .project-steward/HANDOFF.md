@@ -1,37 +1,30 @@
 ---
-updated_at: 2026-08-24T18:13:29Z
+updated_at: 2026-08-24T18:46:24Z
 updated_by: cli
-session_status: closed
+session_status: active
 branch: main
-last_commit: 58775a9
+last_commit: dd2ec0f
 ---
 # Handoff
 
 ## Now
 
-**M1a G6 is CLOSED: the Ubuntu subscription-backed live PoC passed BOTH
-acceptance tiers**, and the closure push is hosted-CI green 9/9 (run
-32755012269 at `58775a9`). The passing cycle (`run-20260824-170359-58d9`,
-fifth of the session) ran under the ADR 0036 amended gate — Claude + Codex
-legs + Claude synthesis, three calls, all valid on attempt 1, zero retries;
-the synthesis attributed six merged findings with valid
-`invocation_id:finding_id` pairs. **25 of the 30-call ceiling are spent; 5
-remain — every further live call is an individual owner ceiling decision.**
-The session closed G6 through five owner-gated cycles: G6.R1–R3
-(schema-delivery projection, Grok error persistence, recursive owner-only
-archive — commit `9b8d116`), G6.R4 (synthesis pair-source steering,
-`355ff57`), G6.R5 (category/severity/final-output discipline + true-synonym
-oracle aliases, hash re-pinned `fb9e98a3…`→`fd54eae7…`, ADR 0034,
-`cd92bd7`), G6.R6 (`--max-turns 40`, falsified live, ADR 0035, `1ef11d3`),
-and the ADR 0036 gate amendment (`7e49c28`) after Grok's four-cycle
-FAIL-HARD (headless turn-cap, `cancelled` at `num_turns: 2`, cause
-unreachable from the recipe at grok 1.0.5).
+**M1a G7 is executing on the owner's instruction ("push it. then complete
+M1a (G7 & G8)").** Pushed `2a1c0dd`+`03182b5`, then landed the G7 commit
+`dd2ec0f` (`ci: verify direct and optional-provider plumbing`): the
+vendor-smoke job (npm `@anthropic-ai/claude-code` + `@openai/codex` on all
+three runners, doctor through the real launchers, exit-1-signed-out green,
+Grok skipped with a recorded note) plus `examples/profiles/ci-vendor.yaml`
+and a guard test (core 449+4). The pinned history secret scan at `dd2ec0f`
+returned exactly the 3-hit enumerated benign baseline (two fake `sk-` test
+fixtures, one enum source line). Zero live calls; 5 of 30 remain untouched.
 
 ## In flight
 
-Nothing. Everything through `58775a9` is committed AND pushed; only the
-wrap commit containing this handoff is local (unpushed, per push policy).
-`git status` is clean apart from the wrap-commit contents.
+Hosted CI run 32764172806 at `dd2ec0f` (12 jobs: 6 scaffold + 3 clawteam +
+3 vendor-smoke) is being watched. Next: record G7 evidence + closure
+commit, then G8 (bundle with owner-review checkpoint, companion record,
+M1b draft, ADR 0038, final push + wrap) per the approved plan.
 
 ## Next steps
 

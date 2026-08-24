@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T18:46:24Z — claude
+[auto-checkpoint] G7 executing: pushed `2a1c0dd`+`03182b5`, landed `dd2ec0f` (vendor-smoke job + ci-vendor.yaml + guard test; core 449+4 green), pinned secret scan at `dd2ec0f` = exactly the 3-hit benign baseline; watching 12-job hosted run 32764172806. G8 (bundle/owner review, companion record, M1b draft, ADR 0038) follows per the approved plan; zero live calls.
+
 ### 2026-08-24T18:13:29Z — claude
 Post-wrap owner challenge answered with evidence (ADR 0037): a fresh file-level survey of all seven `~/Documents/00000` reference projects plus a digest of the M0 record reaffirmed the build-vs-reuse strategy — coordination/messaging were never claimed as new (ClawTeam adopted behind the qualified seam, M1b exit criterion pending; Telegram/A2A reuse staged at M1b/M1c/surfaces), the reference capabilities are disjoint and partly documentation-only, and the harness-composition layer G6 just proved live exists in none of them. No course change; reopening triggers unchanged.
 

@@ -5,6 +5,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 from agentteam.domain.run import LauncherPolicy
 from agentteam.harness.launcher import check_allowlist, parse_cmd_shim, resolve_launcher
 
@@ -46,6 +48,45 @@ def test_windows_exe_is_launched_directly(tmp_path: Path) -> None:
     resolved = resolve_launcher(exe, ["--version"], platform="win32")
     assert resolved.policy is LauncherPolicy.NATIVE_EXE
     assert resolved.argv == [str(exe), "--version"]
+
+
+def test_windows_bare_name_resolves_through_path_to_the_cmd_shim(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # G7 vendor-smoke finding (run 32764172806): a profile's bare command
+    # name must PATH-resolve on win32 BEFORE the suffix branch —
+    # CreateProcess appends only `.exe`, so the unresolved bare name can
+    # never reach the npm `.cmd` shim it actually names, and both Windows
+    # rows failed every diagnostic capture.
+    shim = tmp_path / "claude.CMD"
+    shim.write_text(NPM_SHIM, encoding="utf-8")
+    monkeypatch.setattr(
+        "agentteam.harness.launcher.shutil.which",
+        lambda name: str(shim) if name == "claude" else None,
+    )
+    resolved = resolve_launcher(Path("claude"), ["--version"], platform="win32")
+    assert resolved.policy is LauncherPolicy.RESOLVED_CMD_SHIM
+    assert resolved.argv[0] == "node"  # the bundled %dp0% node.exe is absent in tmp
+    assert resolved.argv[1].endswith("cli.js")
+    assert resolved.argv[2:] == ["--version"]
+
+
+def test_windows_bare_name_not_on_path_stays_a_recorded_native_exe(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("agentteam.harness.launcher.shutil.which", lambda name: None)
+    resolved = resolve_launcher(Path("no-such-cli"), ["--version"], platform="win32")
+    assert resolved.policy is LauncherPolicy.NATIVE_EXE  # honest record; launch fails loudly
+
+
+def test_posix_bare_name_never_consults_which(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _forbidden(name: str) -> str:
+        raise AssertionError("shutil.which must not be consulted on POSIX")
+
+    monkeypatch.setattr("agentteam.harness.launcher.shutil.which", _forbidden)
+    resolved = resolve_launcher(Path("claude"), ["--version"], platform="linux")
+    assert resolved.policy is LauncherPolicy.POSIX_DIRECT
+    assert resolved.argv == ["claude", "--version"]
 
 
 def test_parse_cmd_shim_extracts_node_and_script() -> None:

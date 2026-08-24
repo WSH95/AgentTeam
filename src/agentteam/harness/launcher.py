@@ -15,6 +15,7 @@ branch taken are recorded on the invocation.
 from __future__ import annotations
 
 import re
+import shutil
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -90,6 +91,16 @@ def resolve_launcher(executable: Path, argv_rest: list[str], *, platform: str) -
         return ResolvedLauncher(
             argv=[str(executable), *argv_rest], policy=LauncherPolicy.POSIX_DIRECT
         )
+
+    # A bare command name must PATH-resolve here: CreateProcess appends only
+    # `.exe`, so an npm-installed CLI whose on-disk artifact is a `.cmd` shim
+    # is unreachable until the name resolves to that file (G7 vendor smoke,
+    # run 32764172806 — every Windows diagnostic capture failed).
+    if not suffix and executable.parent == Path("."):
+        found = shutil.which(str(executable))
+        if found is not None:
+            executable = Path(found)
+            suffix = executable.suffix.lower()
 
     if suffix in {".cmd", ".bat"}:
         try:
