@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from click import Abort
+from typer import Abort
 from typer.testing import CliRunner
 
 from agentteam.cli import app

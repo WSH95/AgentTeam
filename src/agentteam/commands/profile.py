@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import typer
-from click import Abort
+from typer import Abort
 
 from agentteam.commands.common import EXIT_CANCELLED, emit, fail
 from agentteam.domain.common import HarnessId
@@ -221,8 +221,10 @@ def _confirm_call(harness: HarnessId, call_number: int, description: str) -> boo
             err=True,
         )
     except Abort as error:
-        # Click normalizes Ctrl-C/EOF during a prompt to Abort. Convert it
-        # back so the probe engine can retain completed evidence and emit 130.
+        # typer.confirm raises typer's own Abort (typer 0.27 vendors Click, so
+        # external click.Abort is a different class and must not be caught
+        # here). Convert it back so the probe engine can retain completed
+        # evidence and emit 130.
         raise KeyboardInterrupt from error
 
 
