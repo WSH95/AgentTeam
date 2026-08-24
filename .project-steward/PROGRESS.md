@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T19:04:13Z — claude
+**G7 closed.** The vendor-smoke job earned its keep on day one: two 11/12 runs each exposed a real Windows product bug — bare command names never PATH-resolved on win32 (the npm `.cmd`-shim branch was unreachable; fixed `1555c5d`) and the case-sensitive env baseline dropped SystemRoot from child environments (node.exe cannot start; fixed `0864742` with a shared case-insensitive `baseline_environment`). Final run 32765672784 at `0864742` is **12/12 green** with npm-installed Claude 2.1.241 / Codex 0.149.1 verified through real resolved shims, signed-out, credential-free; Grok skipped per §16 with a recorded note. Pinned history secret scan repeated at `dd2ec0f` and `0864742`: exactly the 3-hit enumerated benign baseline. RISKS R30 mitigated. Core 453+4. Next: G8 (bundle + owner review, companion record, M1b draft, ADR 0038).
+
 ### 2026-08-24T18:46:24Z — claude
 [auto-checkpoint] G7 executing: pushed `2a1c0dd`+`03182b5`, landed `dd2ec0f` (vendor-smoke job + ci-vendor.yaml + guard test; core 449+4 green), pinned secret scan at `dd2ec0f` = exactly the 3-hit benign baseline; watching 12-job hosted run 32764172806. G8 (bundle/owner review, companion record, M1b draft, ADR 0038) follows per the approved plan; zero live calls.
 

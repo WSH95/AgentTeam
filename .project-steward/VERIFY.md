@@ -4,6 +4,44 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G7 final CI matrices + vendor smoke — 2026-08-24 (closed)
+
+| Check | Result |
+| --- | --- |
+| Core + provider matrices | PASS — already §16-final in shape since G4/G6 (6 scaffold legs 3 OS × py3.11/3.13; 3 ClawTeam legs); green in every run below |
+| Vendor-smoke job | **PASS after two genuine product findings** — the job's purpose realized on day one. Run [32764172806](https://github.com/WSH95/AgentTeam/actions/runs/32764172806) (11/12) exposed that a profile's bare command name never PATH-resolves on win32 (CreateProcess appends only `.exe`; the npm `.cmd`-shim branch was unreachable for exactly the configuration every real Windows profile would use) — fixed in `1555c5d` with three cross-platform launcher regressions. Run [32764994137](https://github.com/WSH95/AgentTeam/actions/runs/32764994137) (11/12) then exposed the case-sensitive Windows env baseline: `dict(os.environ)` upper-cases keys, so `SystemRoot`/`SystemDrive` vanished from the child environment and node.exe cannot initialize at all — fixed in `0864742` (`baseline_environment`, case-insensitive on win32, shared by `build_environment` and `diagnostic_environment`; POSIX byte-identical). Final run [32765672784](https://github.com/WSH95/AgentTeam/actions/runs/32765672784) at `0864742`: **12/12 green** — the Windows leg verified npm-installed Claude Code `2.1.241 (Claude Code)` and Codex `codex-cli 0.149.1` through resolved `.cmd` shims: install presence, versions, required flag surfaces, `auth signed-out` (positively credential-free). Grok skipped per §16 with a recorded note (no verified non-interactive installer as of 2026-08-24) |
+| History secret scan | PASS — pinned reproducible command (below) run at `dd2ec0f` and repeated at the final HEAD `0864742`: **exactly the 3-hit enumerated benign baseline** — deliberate fake `sk-…` fixtures (`f5e7cbb` tests/integration/test_cli_assistant.py, `4d6e082` tests/unit/test_package_load.py) and the enum source line `SECRETS = "secrets"` (`be5ce15` src/agentteam/domain/assistant.py). The G2 "0 hits" convention is upgraded to enumerated-baseline: any hit beyond these three blocks a push until reviewed; no allowlist is baked into the command |
+| Boundary | PASS — no vendor login, model call, API key, or secret permission anywhere in CI; the two fixes are product code driven by hosted evidence; pushes executed under the owner's "push it. then complete M1a" instruction |
+
+Pinned secret-scan command (run from the repository root):
+
+```bash
+git log -p --all | uv run --no-sync python -c "
+import re, sys
+from agentteam.domain.assistant import ProhibitedContentCheck
+from agentteam.resolution.package import _HEURISTICS
+secrets = _HEURISTICS[ProhibitedContentCheck.SECRETS]
+private_key = re.compile(r'-----BEGIN(?: [A-Z]+)* PRIVATE KEY-----')
+hits = 0
+commit = path = None
+for raw in sys.stdin.buffer:
+    line = raw.decode('utf-8', errors='replace')
+    if line.startswith('commit '):
+        commit = line.split()[1][:12]
+    elif line.startswith('+++ '):
+        path = line[4:].strip()
+    elif secrets.search(line) or private_key.search(line):
+        hits += 1
+        sys.stdout.write(f'{commit} {path}: {line[:160]}')
+print(f'secret-scan hits: {hits}')
+sys.exit(1 if hits else 0)
+"
+```
+
+Last verified: 2026-08-24 by Claude — **G7 is closed**: final matrices green
+12/12 at `0864742`, real-vendor Windows shim evidence recorded (R30), the
+secret scan pinned and repeated at the pushed HEAD.
+
 ## G6 fifth live cycle — 2026-08-24 (**PASS**; G6 closed under the amended gate)
 
 | Check | Result |
