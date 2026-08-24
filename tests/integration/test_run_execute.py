@@ -17,6 +17,7 @@ import yaml
 from typer.testing import CliRunner
 
 from agentteam.cli import app
+from agentteam.harness.skills import MARKER
 from agentteam.run.synthesis import instruction_hash
 
 runner = CliRunner()
@@ -64,6 +65,7 @@ def test_full_ensemble_run_succeeds_with_a_complete_archive(tmp_path: Path) -> N
     for harness in ("claude-code", "codex", "grok"):
         leg = _load(out / "legs" / f"inv-{harness}" / "invocation.json")
         assert leg["status"] == "succeeded"
+        assert leg["problems"] == []
         assert leg["target"]["after"] == leg["target"]["before"]
         assert (out / "legs" / f"inv-{harness}" / "review.normalized.json").is_file()
     ensemble = _load(out / "ensemble.json")
@@ -140,6 +142,62 @@ def test_schema_failure_is_never_retried(tmp_path: Path) -> None:
     assert leg["retry"]["attempt"] == 1
     assert leg["schema_outcome"] == "missing"
     assert not (out / "synthesis").exists()
+
+
+def test_live_codex_disagreement_is_persisted_as_telemetry(tmp_path: Path) -> None:
+    out = tmp_path / "run"
+    result = runner.invoke(
+        app,
+        [*_args(tmp_path, out), "--harness", "codex"],
+        env={"FAKE_MODE_CODEX": "event-mismatch"},
+    )
+    assert result.exit_code == 0, result.output
+    leg = _load(out / "legs/inv-codex/invocation.json")
+    assert leg["status"] == "succeeded"
+    assert leg["schema_outcome"] == "valid"
+    assert leg["problems"] == ["JSONL final agent_message disagrees with the authoritative -o file"]
+
+
+def test_workspace_copy_mismatch_closes_an_acquired_claude_skill_lease(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    from agentteam.run.workspace import hash_tree as original_hash_tree
+
+    def mismatching_hash(root: Path, *, exclude: frozenset[str] = frozenset()) -> str:
+        if root.as_posix().endswith("/legs/inv-codex/workspace") and not exclude:
+            return "0" * 64
+        return original_hash_tree(root, exclude=exclude)
+
+    monkeypatch.setattr("agentteam.run.runner.hash_tree", mismatching_hash)
+    out = tmp_path / "run"
+    result = runner.invoke(app, [*_args(tmp_path, out), *ALL_HARNESSES], env={"FAKE_MODE": "ok"})
+
+    assert result.exit_code == 1
+    assert "does not match the source" in result.output
+    skill_root = CI_FAKE.parent / ".agentteam-local/vendors/claude-code/skills"
+    assert sorted(path.name for path in skill_root.iterdir()) == [MARKER]
+
+
+def test_unexpected_prepare_exception_closes_an_acquired_claude_skill_lease(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    from agentteam.run import runner as runner_module
+
+    original_write = runner_module._Runner._write_rendered
+
+    def fail_on_codex(self: Any, invocation_id: str, rendered: Any) -> None:
+        if invocation_id == "inv-codex":
+            raise OSError("synthetic archive write failure")
+        original_write(self, invocation_id, rendered)
+
+    monkeypatch.setattr(runner_module._Runner, "_write_rendered", fail_on_codex)
+    out = tmp_path / "run"
+    result = runner.invoke(app, [*_args(tmp_path, out), *ALL_HARNESSES], env={"FAKE_MODE": "ok"})
+
+    assert result.exit_code == 1
+    assert isinstance(result.exception, OSError)
+    skill_root = CI_FAKE.parent / ".agentteam-local/vendors/claude-code/skills"
+    assert sorted(path.name for path in skill_root.iterdir()) == [MARKER]
 
 
 def test_target_mutation_is_a_mechanical_failure(tmp_path: Path) -> None:

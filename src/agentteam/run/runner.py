@@ -256,6 +256,7 @@ class _Runner:
             timeout_seconds=min(
                 self.resolved.timeout_seconds, plan.profile.timeouts.attempt_seconds
             ),
+            cli_version=plan.cli_version,
             profile_file=self.resolved.profile_path,
             synthesis=synthesis,
         )
@@ -339,12 +340,14 @@ class _Runner:
         schema_outcome = SchemaOutcome.NOT_REQUESTED
         usage = UsageV1()
         observed = ObservedV1()
+        problems: list[str] = []
         if raw.exit_code == 0 and not raw.timed_out:
             parsed = adapter.parse(raw)
             review = parsed.review
             schema_outcome = parsed.schema_outcome
             usage = parsed.usage
             observed = parsed.observed
+            problems = parsed.problems
             if review is not None:
                 refs.append(self.archive.write_review(invocation_id, review))
             status = (
@@ -373,6 +376,7 @@ class _Runner:
                 ),
                 "exit": ExitV1(code=raw.exit_code, signal=raw.signal),
                 "schema_outcome": schema_outcome,
+                "problems": problems,
                 "artifacts": refs,
                 "timing": TimingV1(
                     started_at=started,
@@ -458,6 +462,11 @@ async def execute_run(
         raise PreflightError(
             "execute_run requires live readiness checks; call preflight(..., live=True)"
         )
+    guarded_plans = [*resolved.legs]
+    if resolved.synthesis_leg is not None:
+        guarded_plans.append(resolved.synthesis_leg)
+    if any(plan.cli_version is None for plan in guarded_plans):
+        raise PreflightError("execute_run requires observed CLI versions from live preflight")
     runner = _Runner(resolved, environ=environ, platform=platform, home=home)
     runner.create_archive()
     try:
@@ -485,46 +494,53 @@ async def _run_body(runner: _Runner) -> RunOutcome:
     prepared: list[tuple[LegPlan, str, RenderedInvocationV1, HarnessInvocationV1, Path]] = []
     skill_leases: list[ManagedSkillsLease] = []
     try:
-        for plan in resolved.legs:
-            invocation_id = leg_invocation_id(plan.harness)
-            workspace_dir, _synthetic_config_home, scratch = runner.archive.working_dirs(
-                invocation_id
-            )
-            copy_workspace(Path(request.workspace), workspace_dir)
-            if hash_tree(workspace_dir) != source_hash:
-                return runner._finalize_run(
-                    status=RunStatus.FAILED,
-                    exit_code=1,
-                    failure_reason=f"workspace copy for {invocation_id} does not match the source",
+        try:
+            for plan in resolved.legs:
+                invocation_id = leg_invocation_id(plan.harness)
+                workspace_dir, _synthetic_config_home, scratch = runner.archive.working_dirs(
+                    invocation_id
                 )
-            if (
-                plan.harness.value == "claude-code"
-                and select_verified(plan.profile, CLAUDE_SKILL_LADDER) == "skills-config-home"
-            ):
-                lease = ManagedSkillsLease(
-                    Path(plan.profile.config_home), platform=runner.platform
-                ).acquire()
-                skill_leases.append(lease)
-            context = runner._render_context(
-                plan,
-                invocation_id,
-                workspace=workspace_dir,
-                config_root=Path(plan.profile.config_home),
-                scratch=scratch,
-                task_file=Path(request.task_file),
-                synthesis=None,
+                copy_workspace(Path(request.workspace), workspace_dir)
+                if hash_tree(workspace_dir) != source_hash:
+                    return runner._finalize_run(
+                        status=RunStatus.FAILED,
+                        exit_code=1,
+                        failure_reason=(
+                            f"workspace copy for {invocation_id} does not match the source"
+                        ),
+                    )
+                if (
+                    plan.harness.value == "claude-code"
+                    and select_verified(
+                        plan.profile,
+                        CLAUDE_SKILL_LADDER,
+                        cli_version=plan.cli_version,
+                    )
+                    == "skills-config-home"
+                ):
+                    lease = ManagedSkillsLease(
+                        Path(plan.profile.config_home), platform=runner.platform
+                    ).acquire()
+                    skill_leases.append(lease)
+                context = runner._render_context(
+                    plan,
+                    invocation_id,
+                    workspace=workspace_dir,
+                    config_root=Path(plan.profile.config_home),
+                    scratch=scratch,
+                    task_file=Path(request.task_file),
+                    synthesis=None,
+                )
+                rendered = get_adapter(plan.harness).render(context)  # step 6, before any launch
+                runner._write_rendered(invocation_id, rendered)
+                record = runner._pending_record(plan, invocation_id, rendered, source_hash)
+                prepared.append((plan, invocation_id, rendered, record, workspace_dir))
+        except (RenderError, EnvironmentConflictError, TargetError) as error:
+            return runner._finalize_run(
+                status=RunStatus.FAILED, exit_code=2, failure_reason=str(error)
             )
-            rendered = get_adapter(plan.harness).render(context)  # step 6, before any launch
-            runner._write_rendered(invocation_id, rendered)
-            record = runner._pending_record(plan, invocation_id, rendered, source_hash)
-            prepared.append((plan, invocation_id, rendered, record, workspace_dir))
-    except (RenderError, EnvironmentConflictError, TargetError) as error:
-        for lease in reversed(skill_leases):
-            lease.close()
-        return runner._finalize_run(status=RunStatus.FAILED, exit_code=2, failure_reason=str(error))
 
-    # step 7: all requested legs, concurrently, fresh sessions
-    try:
+        # step 7: all requested legs, concurrently, fresh sessions
         leg_outcomes = list(
             await asyncio.gather(
                 *(
@@ -705,11 +721,13 @@ async def _run_synthesis(
     schema_outcome = SchemaOutcome.NOT_REQUESTED
     usage = UsageV1()
     observed = ObservedV1()
+    problems: list[str] = []
     if raw.exit_code == 0 and not raw.timed_out:
         assert isinstance(adapter, StructuredExtractor)
         extracted = adapter.extract_structured(raw)
         usage = extracted.usage
         observed = extracted.observed
+        problems = extracted.problems
         try:
             report = SynthesisReportV1.model_validate(extracted.candidate)
             schema_outcome = SchemaOutcome.VALID
@@ -753,6 +771,7 @@ async def _run_synthesis(
             ),
             "exit": ExitV1(code=raw.exit_code, signal=raw.signal),
             "schema_outcome": schema_outcome,
+            "problems": problems,
             "artifacts": refs,
             "timing": TimingV1(
                 started_at=record.timing.started_at,

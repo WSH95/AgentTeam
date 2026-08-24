@@ -276,6 +276,10 @@ class HarnessInvocationV1(RecordModel):
     retry: RetryV1 = Field(default_factory=RetryV1)
     exit: ExitV1 = Field(default_factory=ExitV1)
     schema_outcome: SchemaOutcome = SchemaOutcome.NOT_REQUESTED
+    problems: list[str] = Field(
+        default_factory=list,
+        description="Parser and vendor-telemetry problems retained for evidence fidelity.",
+    )
     status: RunStatus
 
     @model_validator(mode="after")

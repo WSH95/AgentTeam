@@ -53,7 +53,18 @@ def test_golden_argv_and_channels(render_context_builder: Builder, tmp_path: Pat
     assert "--strict-mcp-config" in flags
     assert flags >= ["--permission-mode", "dontAsk"]
     allowed_index = flags.index("--allowedTools")
-    assert "Skill" in flags[allowed_index + 1].split(",")
+    assert set(flags[allowed_index + 1].split(",")) == {"Read", "Grep", "Glob", "LS", "Skill"}
+    disallowed_index = flags.index("--disallowedTools")
+    assert set(flags[disallowed_index + 1].split(",")) == {
+        "Write",
+        "Edit",
+        "NotebookEdit",
+        "Bash",
+        "WebFetch",
+        "WebSearch",
+    }
+    assert "--safe-mode" not in flags
+    assert "--bare" not in flags
     schema_index = flags.index("--json-schema")
     schema = json.loads(flags[schema_index + 1])
     assert schema["$id"] == "urn:agentteam:schema:normalized-review:v1"
@@ -107,6 +118,45 @@ def test_skill_channel_ladder_uses_plugin_then_workspace_fallbacks(
     )
     assert "--plugin-dir" not in workspace.argv
     assert any(write.channel == "workspace-claude-skills" for write in workspace.files_written)
+
+
+def test_instruction_ladder_skips_a_stale_verified_primary(
+    render_context_builder: Builder, tmp_path: Path
+) -> None:
+    ctx = render_context_builder("claude-code", tmp_path)
+    profile = ctx.profile.model_copy(
+        update={
+            "capabilities": [
+                row.model_copy(update={"cli_version": "stale-version"})
+                if row.name == "append-system-prompt-file"
+                else row
+                for row in ctx.profile.capabilities
+            ]
+        }
+    )
+    rendered = ClaudeAdapter().render(ctx.model_copy(update={"profile": profile}))
+    assert "--append-system-prompt-file" not in rendered.argv
+    assert "--append-system-prompt" in rendered.argv
+
+
+@pytest.mark.parametrize(
+    ("channels", "match"),
+    [
+        ({"skills-config-home"}, "instruction channel"),
+        ({"append-system-prompt-file"}, "Skill channel"),
+    ],
+)
+def test_missing_current_channel_fails_at_the_adapter(
+    render_context_builder: Builder,
+    tmp_path: Path,
+    channels: set[str],
+    match: str,
+) -> None:
+    ctx = render_context_builder("claude-code", tmp_path)
+    profile = _only_channels(ctx.profile, channels)
+    with pytest.raises(RenderError, match=match) as error:
+        ClaudeAdapter().render(ctx.model_copy(update={"profile": profile}))
+    assert "atm profile doctor --probe" in str(error.value)
 
 
 def test_model_and_effort_flags_appear_when_resolved(

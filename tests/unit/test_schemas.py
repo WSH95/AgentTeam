@@ -352,6 +352,8 @@ def test_harness_invocation_records_what_section_7_lists() -> None:
     ]
     assert _enum(schema, props["attendance"]) == ["attended", "unattended"]
     assert _enum(schema, props["auth_mode"]) == ["native-subscription"]
+    assert props["problems"]["type"] == "array"
+    assert "problems" not in schema["required"]  # omitted records default to an empty list
     assert _enum(schema, defs["UsageV1"]["properties"]["cost_source"]) == ["vendor", "unavailable"]
     launcher_policies = _enum(schema, defs["CommandV1"]["properties"]["launcher_policy"])
     assert "refused" in launcher_policies

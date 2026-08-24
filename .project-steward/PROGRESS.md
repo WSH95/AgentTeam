@@ -4,6 +4,12 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T13:40:07Z — codex
+Owner approved the complete G5.R semantic commit (`fix(harness): close G5 pre-G6 review findings`); the commit containing this entry includes product code, schema/fixtures, regressions, and steward state, with no push or G6 action.
+
+### 2026-08-24T13:27:37Z — codex
+[auto-checkpoint] G5.R pre-G6 remediation is implemented and locally green: R3–R6/H9 complete; core 417+4 skips, optional-extra 429+3 skips, compatibility 12, and both deterministic acceptance tiers pass; the full change set remains uncommitted, with no live/model call, G6 run, push, or remote mutation.
+
 ### 2026-08-24T12:12:22Z — cli
 Independent G5 review delivered and closed out: closure evidence verified genuine at 317bb52 (ADR 0032); four fixes landed and pushed on per-push approvals (739be1a typer/click, 83f2b3b CI acceptance homes, 0dfbca9 mypy platform pin, 5d27d2f Windows redaction+tests); plan amendment ADR 0033 (21 of 30 calls remain); all nine CI checks green at 5d27d2f (run 32724844619); hosted evidence recorded and pushed through 8cd9e38. Next: PLAN G5.R pre-G6 tasks, then the G6 pre-run review.
 

@@ -1,0 +1,23 @@
+{
+  "stopReason": "end_turn",
+  "sessionId": "snake-case-session",
+  "text": "see structured output",
+  "structured_output": {
+    "schema_version": 1,
+    "kind": "normalized-review",
+    "target_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "findings": [
+      {
+        "id": "f1",
+        "severity": "high",
+        "category": "input-validation",
+        "file": "src/input.ts",
+        "line": 9,
+        "title": "Input is accepted without validation",
+        "rationale": "The caller-controlled value is used before its shape is checked."
+      }
+    ],
+    "summary": "One high-severity validation finding.",
+    "verdict": "request-changes"
+  }
+}

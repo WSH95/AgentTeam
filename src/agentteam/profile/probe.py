@@ -836,15 +836,10 @@ def _run_probe_process(recipe: _Recipe, *, timeout_seconds: int, platform: str) 
     except subprocess.TimeoutExpired:
         timed_out = True
         _terminate_probe_process(process, platform=platform)
-        try:
-            stdout, stderr = process.communicate(timeout=10)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            stdout, stderr = process.communicate()
+        stdout, stderr = _drain_terminated_probe_process(process)
     except KeyboardInterrupt:
         _terminate_probe_process(process, platform=platform)
-        with contextlib.suppress(subprocess.TimeoutExpired):
-            process.communicate(timeout=10)
+        _drain_terminated_probe_process(process)
         raise
     finally:
         if process.poll() is None:
@@ -867,10 +862,29 @@ def _run_probe_process(recipe: _Recipe, *, timeout_seconds: int, platform: str) 
     )
 
 
+def _drain_terminated_probe_process(
+    process: subprocess.Popen[bytes],
+) -> tuple[bytes, bytes]:
+    """Drain a terminated probe without letting inherited pipes block forever."""
+    try:
+        return process.communicate(timeout=10)
+    except subprocess.TimeoutExpired:
+        with contextlib.suppress(OSError):
+            process.kill()
+    try:
+        return process.communicate(timeout=5)
+    except subprocess.TimeoutExpired:
+        for pipe in (process.stdin, process.stdout, process.stderr):
+            if pipe is not None:
+                with contextlib.suppress(OSError):
+                    pipe.close()
+        return b"", b"process pipes did not close after termination"
+
+
 def _terminate_probe_process(process: subprocess.Popen[bytes], *, platform: str) -> None:
-    if process.poll() is not None:
-        return
     if platform == "win32":
+        if process.poll() is not None:
+            return
         subprocess.run(
             ["taskkill.exe", "/T", "/F", "/PID", str(process.pid)],
             stdin=subprocess.DEVNULL,
@@ -883,11 +897,12 @@ def _terminate_probe_process(process: subprocess.Popen[bytes], *, platform: str)
         os.killpg(process.pid, signal_module.SIGTERM)
     except ProcessLookupError:
         return
-    try:
+    with contextlib.suppress(subprocess.TimeoutExpired):
         process.wait(timeout=0.5)
-    except subprocess.TimeoutExpired:
-        with contextlib.suppress(ProcessLookupError):
-            os.killpg(process.pid, signal_module.SIGKILL)
+    # The direct child may exit during the grace period while a descendant
+    # ignores SIGTERM and keeps stdout/stderr open. Always escalate the group.
+    with contextlib.suppress(ProcessLookupError):
+        os.killpg(process.pid, signal_module.SIGKILL)
 
 
 def _signal_name(returncode: int | None) -> str | None:

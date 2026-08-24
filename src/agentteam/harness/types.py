@@ -76,6 +76,7 @@ class RenderContext(InternalModel):
     run_id: str
     invocation_id: str
     timeout_seconds: int
+    cli_version: str | None = None
     profile_file: Path | None = None
     synthesis: SynthesisRenderV1 | None = None
 

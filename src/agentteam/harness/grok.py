@@ -58,23 +58,30 @@ class GrokAdapter:
         instructions = read_instruction_text(ctx)
         task = read_task_text(ctx)
         schema_min = vendor_schema_min(schema_name_for(ctx))
-        instruction_channel = select_verified(ctx.profile, GROK_INSTRUCTION_LADDER)
+        instruction_channel = select_verified(
+            ctx.profile, GROK_INSTRUCTION_LADDER, cli_version=ctx.cli_version
+        )
         if instruction_channel is None:
             raise RenderError(
-                "Grok has no probe-verified instruction channel; run `atm profile doctor --probe`"
+                "Grok has no current probe-verified instruction channel; "
+                "run `atm profile doctor --probe`"
             )
-        output_channel = select_verified(ctx.profile, GROK_OUTPUT_LADDER)
+        output_channel = select_verified(
+            ctx.profile, GROK_OUTPUT_LADDER, cli_version=ctx.cli_version
+        )
         if output_channel is None:
             raise RenderError(
-                "Grok has no probe-verified structured-output location; "
+                "Grok has no current probe-verified structured-output location; "
                 "run `atm profile doctor --probe`"
             )
         skill_channel = (
-            None if ctx.synthesis is not None else select_verified(ctx.profile, GROK_SKILL_LADDER)
+            None
+            if ctx.synthesis is not None
+            else select_verified(ctx.profile, GROK_SKILL_LADDER, cli_version=ctx.cli_version)
         )
         if ctx.synthesis is None and skill_channel is None:
             raise RenderError(
-                "Grok has no probe-verified Skill channel; run `atm profile doctor --probe`"
+                "Grok has no current probe-verified Skill channel; run `atm profile doctor --probe`"
             )
 
         ctx.workspace_root.mkdir(parents=True, exist_ok=True)

@@ -75,7 +75,7 @@ def test_codex_reports_jsonl_agreement_and_disagreement_as_telemetry() -> None:
     stdout = (FIXTURES / "codex" / "jsonl-ok.jsonl").read_bytes()
     final = (FIXTURES / "codex" / "final-message.json").read_text(encoding="utf-8")
     agreement = adapter.extract_structured(_raw(stdout=stdout, output_file_text=final))
-    assert any("agrees" in problem for problem in agreement.problems)
+    assert agreement.problems == []
     altered = final.replace("One critical finding.", "Authoritative file wins.")
     disagreement = adapter.extract_structured(_raw(stdout=stdout, output_file_text=altered))
     assert disagreement.candidate is not None

@@ -2,7 +2,10 @@
 
 Capability rows are profile data, but their meanings and the order in which
 adapters may use alternative delivery channels are part of the runner
-contract.  A channel is selectable only after a G5 probe marked it verified.
+contract. A live channel is selectable only after a G5 probe marked it
+verified for the CLI version observed by preflight. Render-only callers pass
+no observed version and consume synthetic verified rows without making a live
+readiness claim.
 """
 
 from __future__ import annotations
@@ -52,16 +55,32 @@ class ReadinessRequirements:
     one_of: tuple[tuple[str, ...], ...]
 
 
-def capability_is_verified(profile: HarnessProfileV1, name: str) -> bool:
-    return any(
-        row.name == name and row.verification is Verification.VERIFIED
-        for row in profile.capabilities
+def capability_is_verified(
+    profile: HarnessProfileV1,
+    name: str,
+    *,
+    cli_version: str | None,
+) -> bool:
+    for row in profile.capabilities:
+        if row.name != name or row.verification is not Verification.VERIFIED:
+            continue
+        if cli_version is None:
+            return True
+        return row.cli_version == cli_version and row.verified_at is not None
+    return False
+
+
+def select_verified(
+    profile: HarnessProfileV1,
+    ladder: Iterable[str],
+    *,
+    cli_version: str | None,
+) -> str | None:
+    """Return the first current-verified channel in immutable preference order."""
+    return next(
+        (name for name in ladder if capability_is_verified(profile, name, cli_version=cli_version)),
+        None,
     )
-
-
-def select_verified(profile: HarnessProfileV1, ladder: Iterable[str]) -> str | None:
-    """Return the first verified channel in its immutable preference order."""
-    return next((name for name in ladder if capability_is_verified(profile, name)), None)
 
 
 def readiness_requirements(harness: HarnessId, *, needs_skills: bool) -> ReadinessRequirements:

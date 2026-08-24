@@ -43,6 +43,7 @@ def _archive(tmp_path: Path, payloads: Payloads) -> RunArchive:
         update={
             "invocation_id": "inv-codex",
             "status": RunStatus.SUCCEEDED,
+            "problems": ["JSONL final agent_message disagrees with the authoritative -o file"],
             "timing": TimingV1(
                 started_at=datetime(2026, 8, 23, 12, 0, tzinfo=UTC),
                 finished_at=datetime(2026, 8, 23, 12, 1, tzinfo=UTC),
@@ -94,6 +95,10 @@ def test_sanitized_bundle_has_records_and_none_of_the_raw_material(
     assert not list(dest.rglob("invocation.render.json"))
     assert not list(dest.rglob("output-file.json"))
     assert not list(dest.rglob("workspace"))
+    invocation = json.loads((dest / "invocations/inv-codex.json").read_text(encoding="utf-8"))
+    assert invocation["problems"] == [
+        "JSONL final agent_message disagrees with the authoritative -o file"
+    ]
 
 
 def test_request_paths_become_placeholders(tmp_path: Path, payloads: Payloads) -> None:

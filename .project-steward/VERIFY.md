@@ -4,6 +4,21 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G5.R pre-G6 remediation — 2026-08-24 (implemented locally)
+
+| Check | Result |
+| --- | --- |
+| R3 managed-Skills lifetime | PASS — preparation and concurrent execution share one outer `try/finally`; both a later-leg workspace-copy mismatch and an unexpected archive-write exception prove an already-acquired Claude lease is closed |
+| R4 bounded probe termination | PASS — POSIX always sends group SIGKILL after the SIGTERM grace; drains are bounded at 10s then 5s with direct-kill and abandoned-pipes fallback. A real parent-exits/descendant-ignores-SIGTERM case completes in under 5s and stops the descendant; a stuck-process double proves no unbounded `communicate()` remains |
+| R5 channel currency | PASS — live preflight carries each observed CLI version into every leg and synthesis plan; adapters select only rows verified at that exact version, mixed-currency ladders fall back correctly, and `execute_run` rejects non-live plans or a missing observed version before archive creation. Render-only remains explicitly versionless |
+| R6 problem persistence | PASS — invocation records and the regenerated V1 schema carry optional-default `problems`; normal and synthesis paths persist extractor/parser problems; Codex agreement is quiet while a deterministic live-shaped `-o`/JSONL mismatch remains telemetry on a succeeded invocation and survives sanitization |
+| H9 named gaps | PASS — exact Claude allowed/disallowed tool sets and forbidden flags, ADR 0028's negative fake branch, Grok snake-case `structured_output`, all adapter channel-error ladders, live-preflight missing/failed-version/symlink/synthesis branches, and real `typer.confirm` EOF→130 are covered |
+| Full local CI parity | PASS — core mode: `uv lock --check`, frozen sync, Ruff lint + format (101 files), strict mypy (97 files), **pytest 417 passed + 4 skips**, schema check + stable export, wheel/sdist build, CLI help/version, strict Assistant validation, three-harness render-only smoke, pinned hash `fb9e98a3…`, and deterministic acceptance both tiers. Optional-extra mode: the same checks, **pytest 429 passed + 3 skips**, and `tests/compatibility` **12 passed**. `git diff --check` is clean; the environment was restored to core mode |
+| Boundary | PASS — deterministic local fakes only; no credential/vendor-home read, live vendor/model call, G6 run, commit, push, or remote mutation. `AGENTS.md` and `CLAUDE.md` are untouched |
+
+Last verified: 2026-08-24 by Codex (G5.R deterministic remediation and two-mode
+local CI-parity run; no vendor/model call or credential read).
+
 ## G5 independent review — 2026-08-24 (closure verified; two CI regressions fixed)
 
 Review record: `docs/reviews/2026-08-24-g5-review-at-317bb52.md` (ADR 0032);

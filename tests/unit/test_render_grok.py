@@ -7,19 +7,17 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from agentteam.harness.grok import GrokAdapter
+from agentteam.harness.rendering import RenderError
 
 Builder = Callable[..., Any]
 
 
-def _fallback_profile(profile: Any) -> Any:
+def _only_channels(profile: Any, selected: set[str]) -> Any:
     from agentteam.domain.profile import Verification
 
-    selected = {
-        "instructions-system-prompt-override",
-        "skills-workspace-agents",
-        "structured-output-text",
-    }
     return profile.model_copy(
         update={
             "capabilities": [
@@ -35,6 +33,17 @@ def _fallback_profile(profile: Any) -> Any:
                 for row in profile.capabilities
             ]
         }
+    )
+
+
+def _fallback_profile(profile: Any) -> Any:
+    return _only_channels(
+        profile,
+        {
+            "instructions-system-prompt-override",
+            "skills-workspace-agents",
+            "structured-output-text",
+        },
     )
 
 
@@ -97,6 +106,65 @@ def test_grok_uses_system_prompt_agents_skills_and_text_location_fallbacks(
     assert "--rules" not in rendered.argv
     assert (workspace / ".agents" / "skills" / "code-review" / "SKILL.md").is_file()
     assert rendered.structured_output_channel == "structured-output-text"
+
+
+def test_ladders_skip_stale_verified_primary_channels(
+    render_context_builder: Builder, tmp_path: Path
+) -> None:
+    ctx = render_context_builder("grok", tmp_path)
+    stale = {
+        "instructions-rules",
+        "skills-workspace-grok",
+        "structured-output-field",
+    }
+    profile = ctx.profile.model_copy(
+        update={
+            "capabilities": [
+                row.model_copy(update={"cli_version": "stale-version"})
+                if row.name in stale
+                else row
+                for row in ctx.profile.capabilities
+            ]
+        }
+    )
+    workspace = tmp_path / "currency-workspace"
+    rendered = GrokAdapter().render(
+        ctx.model_copy(
+            update={
+                "profile": profile,
+                "workspace_root": workspace,
+                "scratch_dir": tmp_path / "currency-scratch",
+            }
+        )
+    )
+    assert "--system-prompt-override" in rendered.argv
+    assert "--rules" not in rendered.argv
+    assert (workspace / ".agents/skills/code-review/SKILL.md").is_file()
+    assert rendered.structured_output_channel == "structured-output-text"
+
+
+@pytest.mark.parametrize(
+    ("channels", "match"),
+    [
+        (
+            {"structured-output-field", "skills-workspace-grok"},
+            "instruction channel",
+        ),
+        ({"instructions-rules", "skills-workspace-grok"}, "structured-output location"),
+        ({"instructions-rules", "structured-output-field"}, "Skill channel"),
+    ],
+)
+def test_missing_current_channel_fails_at_the_adapter(
+    render_context_builder: Builder,
+    tmp_path: Path,
+    channels: set[str],
+    match: str,
+) -> None:
+    ctx = render_context_builder("grok", tmp_path)
+    profile = _only_channels(ctx.profile, channels)
+    with pytest.raises(RenderError, match=match) as error:
+        GrokAdapter().render(ctx.model_copy(update={"profile": profile}))
+    assert "atm profile doctor --probe" in str(error.value)
 
 
 def test_effort_flag(render_context_builder: Builder, tmp_path: Path) -> None:

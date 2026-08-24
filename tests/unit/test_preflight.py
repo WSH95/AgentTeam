@@ -8,6 +8,8 @@ chosen; the oracle is resolved and checked but never copied anywhere.
 
 from __future__ import annotations
 
+import sys
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -20,6 +22,7 @@ from agentteam.domain.profile import HarnessProfileV1, ProfileKind, Verification
 from agentteam.domain.request import AcceptanceSettingsV1, HarnessOverrideV1, RunRequestV1
 from agentteam.resolution.profiles import seed_default_profiles, write_profile_set
 from agentteam.run.preflight import PreflightError, build_request, preflight
+from agentteam.run.runner import execute_run
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PACKAGE_ROOT = REPO_ROOT / "examples" / "assistants" / "code-reviewer"
@@ -380,6 +383,7 @@ def test_live_preflight_resolves_the_persistent_profile_home(tmp_path: Path) -> 
     )
     assert resolved.live_ready is True
     assert Path(resolved.legs[0].profile.config_home) == (tmp_path / "vendors" / "claude-code")
+    assert resolved.legs[0].cli_version == "current-version"
 
 
 def test_live_preflight_accepts_inherited_terminal_proxy_names(tmp_path: Path) -> None:
@@ -467,3 +471,101 @@ def test_live_preflight_rejects_incomplete_readiness_and_conflicting_env(
             environ={"ANTHROPIC_API_KEY": "never-record-this"},
             version_reader=lambda _profile: "current-version",
         )
+
+
+def test_live_preflight_reports_missing_home_and_doctor_pointer(tmp_path: Path) -> None:
+    profiles = _live_profiles_path(tmp_path)
+    (tmp_path / "vendors/claude-code").rmdir()
+    with pytest.raises(PreflightError, match="config home does not exist") as error:
+        preflight(
+            _request(tmp_path),
+            profile_path=profiles,
+            installed=_installed,
+            live=True,
+            environ={},
+            version_reader=lambda _profile: "current-version",
+        )
+    assert "atm profile doctor --probe" in str(error.value)
+
+
+def test_live_preflight_reports_failed_version_and_doctor_pointer(tmp_path: Path) -> None:
+    with pytest.raises(PreflightError, match="--version failed") as error:
+        preflight(
+            _request(tmp_path),
+            profile_path=_live_profiles_path(tmp_path),
+            installed=_installed,
+            live=True,
+            environ={},
+            version_reader=lambda _profile: None,
+        )
+    assert "atm profile doctor --probe" in str(error.value)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="symlink creation needs privilege on Windows")
+def test_live_preflight_refuses_a_symlinked_config_home(tmp_path: Path) -> None:
+    profiles = _live_profiles_path(tmp_path)
+    home = tmp_path / "vendors/claude-code"
+    home.rmdir()
+    target = tmp_path / "actual-claude-home"
+    target.mkdir()
+    home.symlink_to(target, target_is_directory=True)
+    with pytest.raises(PreflightError, match="symlink"):
+        preflight(
+            _request(tmp_path),
+            profile_path=profiles,
+            installed=_installed,
+            live=True,
+            environ={},
+            version_reader=lambda _profile: "current-version",
+        )
+
+
+def test_live_preflight_guards_a_synthesis_only_harness(tmp_path: Path) -> None:
+    profiles = _live_profiles_path(tmp_path)
+    (tmp_path / "vendors/grok").rmdir()
+    request = _request(
+        tmp_path,
+        synthesis={"enabled": True, "harness": "grok"},
+    )
+    with pytest.raises(PreflightError, match="grok: config home does not exist"):
+        preflight(
+            request,
+            profile_path=profiles,
+            installed=_installed,
+            live=True,
+            environ={},
+            version_reader=lambda _profile: "current-version",
+        )
+
+
+@pytest.mark.asyncio
+async def test_execute_run_refuses_non_live_preflight_without_creating_an_archive(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "run"
+    resolved = preflight(
+        _request(tmp_path, output_dir=str(output)),
+        profile_path=_profiles_path(tmp_path),
+        installed=_installed,
+    )
+    with pytest.raises(PreflightError, match="requires live readiness checks"):
+        await execute_run(resolved, environ={})
+    assert not output.exists()
+
+
+@pytest.mark.asyncio
+async def test_execute_run_refuses_a_missing_observed_cli_version(tmp_path: Path) -> None:
+    output = tmp_path / "run"
+    resolved = preflight(
+        _request(tmp_path, output_dir=str(output)),
+        profile_path=_live_profiles_path(tmp_path),
+        installed=_installed,
+        live=True,
+        environ={},
+        version_reader=lambda _profile: "current-version",
+    )
+    bad_leg = replace(resolved.legs[0], cli_version=None)
+    without_version = replace(resolved, legs=[bad_leg])
+    with pytest.raises(PreflightError, match="observed CLI versions"):
+        await execute_run(without_version, environ={})
+    assert not output.exists()

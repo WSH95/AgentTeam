@@ -2,8 +2,8 @@
 """Deterministic fake harness for AgentTeam tests. Stdlib only; no model call.
 
 Behaviour is selected by $FAKE_MODE (ok | rate-limit | rate-limit-once | hang |
-malformed | schema-invalid | exit-130 | mutate-target | invent-critical |
-semantic-miss); $FAKE_MODE_CODEX overrides it for this vendor only. A
+malformed | schema-invalid | exit-130 | mutate-target | event-mismatch |
+invent-critical | semantic-miss); $FAKE_MODE_CODEX overrides it for this vendor only. A
 synthesis-shaped invocation (the `--output-schema` file names
 `synthesis-report`) makes the fake parse the labelled-reports document and
 emit a synthesis report derived from the actual labels. When $FAKE_OBSERVE is
@@ -89,7 +89,7 @@ VERSION = "codex-cli 0.149.0"
 HEADER = re.compile(r"^### leg (\S+) harness (\S+)$")
 
 
-def emit(body, stdin_text):
+def emit(body, stdin_text, event_body=None):
     out_file = None
     argv = sys.argv
     if "-o" in argv:
@@ -97,7 +97,13 @@ def emit(body, stdin_text):
     events = [
         {"type": "thread.started", "thread_id": "fake-thread"},
         {"type": "turn.started"},
-        {"type": "item.completed", "item": {"type": "agent_message", "text": json.dumps(body)}},
+        {
+            "type": "item.completed",
+            "item": {
+                "type": "agent_message",
+                "text": json.dumps(event_body if event_body is not None else body),
+            },
+        },
         {
             "type": "turn.completed",
             "usage": {
@@ -292,7 +298,12 @@ def main():
     if synthesis_requested():
         emit(build_synthesis_report(synthesis_document(stdin_text)), stdin_text)
         return 0
-    emit(review_body(mode), stdin_text)
+    body = review_body(mode)
+    event_body = None
+    if mode == "event-mismatch":
+        event_body = json.loads(json.dumps(body))
+        event_body["summary"] = "Conflicting JSONL telemetry."
+    emit(body, stdin_text, event_body=event_body)
     return 0
 
 

@@ -86,6 +86,7 @@ def test_codex_prefers_the_output_file_and_reads_turn_usage() -> None:
     assert leg.usage.input_tokens == 900 and leg.usage.output_tokens == 250
     assert leg.usage.cost_source is CostSource.UNAVAILABLE  # Codex never reports cost
     assert leg.usage.cost_amount is None
+    assert leg.problems == []
 
 
 def test_codex_does_not_promote_the_agent_message_event() -> None:
@@ -123,6 +124,14 @@ def test_grok_structured_output_field_with_cost() -> None:
     assert leg.usage.cost_amount == 0.01268905
     assert leg.usage.input_tokens == 7210 and leg.usage.output_tokens == 1893
     assert leg.observed.model == "grok-build"
+
+
+def test_grok_snake_case_structured_output_field() -> None:
+    leg = GrokAdapter().parse(_raw(stdout=_read("grok/ok-structured-field-snake.json")))
+    assert leg.schema_outcome is SchemaOutcome.VALID
+    assert leg.review is not None
+    assert leg.review.findings[0].category == "input-validation"
+    assert leg.problems == []
 
 
 def test_grok_text_as_json_and_cost_absent_under_oauth() -> None:

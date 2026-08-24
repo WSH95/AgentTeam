@@ -6,12 +6,15 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from agentteam.harness.codex import CodexAdapter
+from agentteam.harness.rendering import RenderError
 
 Builder = Callable[..., Any]
 
 
-def _only_instruction_channel(profile: Any, name: str) -> Any:
+def _only_channels(profile: Any, names: set[str]) -> Any:
     from agentteam.domain.profile import Verification
 
     return profile.model_copy(
@@ -20,9 +23,7 @@ def _only_instruction_channel(profile: Any, name: str) -> Any:
                 row.model_copy(
                     update={
                         "verification": (
-                            Verification.VERIFIED
-                            if row.name in {name, "skills-workspace"}
-                            else Verification.UNVERIFIED
+                            Verification.VERIFIED if row.name in names else Verification.UNVERIFIED
                         )
                     }
                 )
@@ -30,6 +31,10 @@ def _only_instruction_channel(profile: Any, name: str) -> Any:
             ]
         }
     )
+
+
+def _only_instruction_channel(profile: Any, name: str) -> Any:
+    return _only_channels(profile, {name, "skills-workspace"})
 
 
 def _render(builder: Builder, tmp_path: Path, **overrides: object) -> Any:
@@ -98,6 +103,45 @@ def test_instruction_ladder_falls_back_to_developer_then_agents_md(
     )
     assert (agents_root / "AGENTS.md").is_file()
     assert not any(arg.startswith("developer_instructions=") for arg in agents.argv)
+
+
+def test_instruction_ladder_skips_a_stale_verified_primary(
+    render_context_builder: Builder, tmp_path: Path
+) -> None:
+    ctx = render_context_builder("codex", tmp_path)
+    profile = ctx.profile.model_copy(
+        update={
+            "capabilities": [
+                row.model_copy(update={"cli_version": "stale-version"})
+                if row.name == "instructions-model-instructions-file"
+                else row
+                for row in ctx.profile.capabilities
+            ]
+        }
+    )
+    rendered = CodexAdapter().render(ctx.model_copy(update={"profile": profile}))
+    assert any(arg.startswith("developer_instructions=") for arg in rendered.argv)
+    assert not any(arg.startswith("model_instructions_file=") for arg in rendered.argv)
+
+
+@pytest.mark.parametrize(
+    ("channels", "match"),
+    [
+        ({"skills-workspace"}, "instruction channel"),
+        ({"instructions-model-instructions-file"}, "Skill channel"),
+    ],
+)
+def test_missing_current_channel_fails_at_the_adapter(
+    render_context_builder: Builder,
+    tmp_path: Path,
+    channels: set[str],
+    match: str,
+) -> None:
+    ctx = render_context_builder("codex", tmp_path)
+    profile = _only_channels(ctx.profile, channels)
+    with pytest.raises(RenderError, match=match) as error:
+        CodexAdapter().render(ctx.model_copy(update={"profile": profile}))
+    assert "atm profile doctor --probe" in str(error.value)
 
 
 def test_skills_go_to_workspace_agents_skills(

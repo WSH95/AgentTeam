@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import os
+import signal
 import stat
+import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -18,7 +22,14 @@ from agentteam.cli import app
 from agentteam.domain.common import HarnessId
 from agentteam.domain.profile import CapabilityRecordV1, ProxyPolicy, Verification
 from agentteam.harness.skills import MARKER
-from agentteam.profile.probe import _PROBE_SCHEMA, _TASK, ProbeCancelled, run_attended_probes
+from agentteam.profile.probe import (
+    _PROBE_SCHEMA,
+    _TASK,
+    ProbeCancelled,
+    _Recipe,
+    _run_probe_process,
+    run_attended_probes,
+)
 from agentteam.resolution.profiles import (
     load_profile_set,
     resolve_profile_executable,
@@ -157,7 +168,27 @@ def test_primary_probes_pass_in_three_calls_and_write_terminal_captures(
         assert "ATM_SKILL_" not in command
         assert "agentteam-probe-sensitive-home" not in command
         if harness == "claude-code":
-            assert "Read,Grep,Glob,LS,Skill" in command
+            redacted = json.loads(command)
+            argv = redacted["argv_redacted"]
+            allowed_index = argv.index("--allowedTools")
+            assert set(argv[allowed_index + 1].split(",")) == {
+                "Read",
+                "Grep",
+                "Glob",
+                "LS",
+                "Skill",
+            }
+            disallowed_index = argv.index("--disallowedTools")
+            assert set(argv[disallowed_index + 1].split(",")) == {
+                "Write",
+                "Edit",
+                "NotebookEdit",
+                "Bash",
+                "WebFetch",
+                "WebSearch",
+            }
+            assert "--safe-mode" not in argv
+            assert "--bare" not in argv
         if harness == "grok":
             redacted = json.loads(command)
             assert "-p" not in redacted["argv_redacted"]
@@ -241,6 +272,28 @@ def test_failed_fallback_preserves_capabilities_proven_by_the_first_call(
     assert rows["skills-config-home"].verification is Verification.UNVERIFIED
 
 
+def test_fake_claude_withholds_skills_without_explicit_skill_permission(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = _profile_path(tmp_path)
+    monkeypatch.setattr("agentteam.profile.probe.CLAUDE_ALLOWED_TOOLS", "Read,Grep,Glob,LS")
+    result = run_attended_probes(
+        load_profile_set(path).profiles,
+        profile_path=path,
+        versions=VERSIONS,
+        environ=_environment(),
+        confirm=lambda _h, _c, _d: True,
+        selected_harnesses=frozenset({HarnessId.CLAUDE_CODE}),
+    )
+
+    assert result.all_ready is False
+    assert result.by_harness[HarnessId.CLAUDE_CODE].calls_used == 2
+    rows = _rows(path, HarnessId.CLAUDE_CODE)
+    assert rows["append-system-prompt-file"].verification is Verification.VERIFIED
+    for name in ("skills-config-home", "skills-plugin-dir", "skills-workspace"):
+        assert rows[name].verification is Verification.UNVERIFIED
+
+
 @pytest.mark.parametrize("mode", ["malformed", "timeout"])
 def test_malformed_and_timeout_calls_are_terminal_and_bounded(tmp_path: Path, mode: str) -> None:
     path = _profile_path(tmp_path, timeout=1)
@@ -269,6 +322,109 @@ def test_malformed_and_timeout_calls_are_terminal_and_bounded(tmp_path: Path, mo
         for call in (1, 2)
     ]
     assert statuses == (["timed-out", "timed-out"] if mode == "timeout" else ["failed", "failed"])
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX process-group semantics")
+def test_probe_timeout_kills_a_sigterm_surviving_descendant(tmp_path: Path) -> None:
+    marker = tmp_path / "descendant-alive"
+    child = (
+        "import pathlib,signal,time\n"
+        "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+        f"marker = pathlib.Path({str(marker)!r})\n"
+        "while True:\n"
+        "    marker.write_text(str(time.time()))\n"
+        "    time.sleep(0.1)\n"
+    )
+    script = tmp_path / "probe-parent.py"
+    script.write_text(
+        "import signal,subprocess,sys,time\n"
+        "def stop(_signum, _frame):\n"
+        "    raise SystemExit(0)\n"
+        "signal.signal(signal.SIGTERM, stop)\n"
+        f"subprocess.Popen([sys.executable, '-c', {child!r}])\n"
+        "time.sleep(30)\n",
+        encoding="utf-8",
+    )
+    recipe = _Recipe(
+        argv=[sys.executable, str(script)],
+        cwd=tmp_path,
+        env=dict(os.environ),
+        stdin_text=None,
+        output_file=None,
+        redacted_command={},
+        instruction_markers={},
+        skill_markers={},
+        attempted_base=(),
+    )
+
+    started = time.monotonic()
+    raw = _run_probe_process(recipe, timeout_seconds=1, platform=sys.platform)
+    assert raw.timed_out is True
+    assert time.monotonic() - started < 5
+    if marker.is_file():
+        first = marker.read_text(encoding="utf-8")
+        time.sleep(0.4)
+        assert marker.read_text(encoding="utf-8") == first
+
+
+def test_probe_final_pipe_drain_is_bounded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    class StuckProcess:
+        pid = 424242
+
+        def __init__(self) -> None:
+            self.returncode: int | None = None
+            self.stdin = io.BytesIO()
+            self.stdout = io.BytesIO()
+            self.stderr = io.BytesIO()
+            self.communicate_timeouts: list[float | int | None] = []
+            self.kill_calls = 0
+
+        def communicate(
+            self, _input: bytes | None = None, *, timeout: float | None = None
+        ) -> tuple[bytes, bytes]:
+            self.communicate_timeouts.append(timeout)
+            if timeout is None:
+                raise AssertionError("probe communicates must always be bounded")
+            raise subprocess.TimeoutExpired(["fake-probe"], timeout)
+
+        def poll(self) -> int | None:
+            return self.returncode
+
+        def wait(self, *, timeout: float | None = None) -> int:
+            self.returncode = 0
+            return 0
+
+        def kill(self) -> None:
+            self.kill_calls += 1
+
+    process = StuckProcess()
+    monkeypatch.setattr(
+        "agentteam.profile.probe.subprocess.Popen",
+        lambda *_args, **_kwargs: process,
+    )
+    signals: list[int] = []
+    monkeypatch.setattr(
+        "agentteam.profile.probe.os.killpg", lambda _pid, sent: signals.append(sent)
+    )
+    recipe = _Recipe(
+        argv=["fake-probe"],
+        cwd=tmp_path,
+        env={},
+        stdin_text=None,
+        output_file=None,
+        redacted_command={},
+        instruction_markers={},
+        skill_markers={},
+        attempted_base=(),
+    )
+
+    raw = _run_probe_process(recipe, timeout_seconds=1, platform="linux")
+    assert raw.timed_out is True
+    assert raw.stdout == b""
+    assert raw.stderr == b"process pipes did not close after termination"
+    assert process.communicate_timeouts == [1, 10, 5]
+    assert process.kill_calls == 1
+    assert signals == [signal.SIGTERM, signal.SIGKILL]
 
 
 def test_codex_event_disagreement_is_telemetry_only_and_grok_text_is_selected(
@@ -716,6 +872,24 @@ def test_cli_prompt_interrupt_exits_130_before_a_vendor_call(
     payload = json.loads(interrupted.stdout)
     assert payload["profiles"][0]["probe"]["status"] == "cancelled"
     assert payload["profiles"][0]["probe"]["calls_used"] == 0
+    assert path.read_bytes() == before
+    assert not list((tmp_path / "probes").glob("*/*/*/call-*"))
+
+
+def test_real_typer_confirm_eof_exits_130_before_a_vendor_call(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = _profile_path(tmp_path)
+    before = path.read_bytes()
+    monkeypatch.setattr("agentteam.commands.profile._is_attended", lambda: True)
+
+    interrupted = runner.invoke(
+        app,
+        ["profile", "doctor", "--probe", "--config", str(path)],
+        input="",
+        env={"FAKE_PROBE_MODE": "ok"},
+    )
+    assert interrupted.exit_code == 130
     assert path.read_bytes() == before
     assert not list((tmp_path / "probes").glob("*/*/*/call-*"))
 

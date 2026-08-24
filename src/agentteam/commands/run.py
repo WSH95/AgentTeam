@@ -163,6 +163,7 @@ def _render_only(resolved: ResolvedRun, json_out: bool) -> None:
             run_id="run-render-only",
             invocation_id=f"inv-{plan.harness.value}",
             timeout_seconds=resolved.timeout_seconds,
+            cli_version=plan.cli_version,
             profile_file=resolved.profile_path,
         )
         adapter = get_adapter(plan.harness)

@@ -694,6 +694,14 @@
       "$ref": "#/$defs/SchemaOutcome",
       "default": "not-requested"
     },
+    "problems": {
+      "description": "Parser and vendor-telemetry problems retained for evidence fidelity.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Problems",
+      "type": "array"
+    },
     "status": {
       "$ref": "#/$defs/RunStatus"
     }

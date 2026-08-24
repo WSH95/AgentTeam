@@ -54,6 +54,7 @@ class LegPlan:
     harness: HarnessId
     profile: HarnessProfileV1  # executable already resolved to a concrete path/name
     requested: RequestedV1
+    cli_version: str | None  # observed by live preflight; None only for render-only
 
 
 @dataclass(frozen=True)
@@ -181,6 +182,7 @@ def _leg_plan(
     profile_path: Path,
     request: RunRequestV1,
     resolved: LoadedPackage,
+    cli_version: str | None,
 ) -> LegPlan:
     executable = resolve_profile_executable(profile_path, profile.executable)
     config_home = resolve_config_home(profile_path, profile.config_home)
@@ -198,7 +200,12 @@ def _leg_plan(
         profile=concrete,
         hints=resolved.definition.harness_policy.model_hints,
     )
-    return LegPlan(harness=harness, profile=concrete, requested=requested)
+    return LegPlan(
+        harness=harness,
+        profile=concrete,
+        requested=requested,
+        cli_version=cli_version,
+    )
 
 
 def preflight(
@@ -257,6 +264,7 @@ def preflight(
             f"synthesis harness {request.synthesis.harness.value} is not installed"
         )
 
+    current_versions: dict[HarnessId, str] = {}
     if live:
         parent = dict(os.environ if environ is None else environ)
         needs_skills = any(
@@ -287,6 +295,8 @@ def preflight(
             )
             if current_version is None:
                 live_problems.append(f"{harness.value}: --version failed")
+            else:
+                current_versions[harness] = current_version
             if (
                 raw_profile.expected_version is not None
                 and current_version != raw_profile.expected_version
@@ -316,6 +326,7 @@ def preflight(
             profile_path=profile_path,
             request=request,
             resolved=package,
+            cli_version=current_versions.get(harness),
         )
         for harness in selection.chosen
     ]
@@ -326,6 +337,7 @@ def preflight(
             profile_path=profile_path,
             request=request,
             resolved=package,
+            cli_version=current_versions.get(request.synthesis.harness),
         )
         if synthesis_planned
         else None

@@ -69,17 +69,23 @@ class ClaudeAdapter:
         # normally copy a workspace first, but adapter round-trips and other
         # callers may render against a fresh output-scoped root.
         ctx.workspace_root.mkdir(parents=True, exist_ok=True)
-        instruction_channel = select_verified(ctx.profile, CLAUDE_INSTRUCTION_LADDER)
+        instruction_channel = select_verified(
+            ctx.profile, CLAUDE_INSTRUCTION_LADDER, cli_version=ctx.cli_version
+        )
         if instruction_channel is None:
             raise RenderError(
-                "Claude has no probe-verified instruction channel; run `atm profile doctor --probe`"
+                "Claude has no current probe-verified instruction channel; "
+                "run `atm profile doctor --probe`"
             )
         skill_channel = (
-            None if ctx.synthesis is not None else select_verified(ctx.profile, CLAUDE_SKILL_LADDER)
+            None
+            if ctx.synthesis is not None
+            else select_verified(ctx.profile, CLAUDE_SKILL_LADDER, cli_version=ctx.cli_version)
         )
         if ctx.synthesis is None and skill_channel is None:
             raise RenderError(
-                "Claude has no probe-verified Skill channel; run `atm profile doctor --probe`"
+                "Claude has no current probe-verified Skill channel; "
+                "run `atm profile doctor --probe`"
             )
 
         ctx.scratch_dir.mkdir(parents=True, exist_ok=True)

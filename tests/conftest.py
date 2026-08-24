@@ -194,7 +194,7 @@ def make_render_context(
         digest=digest,
         created_at=NOW,
     )
-    from agentteam.domain.profile import Verification
+    from agentteam.domain.profile import HarnessProfileV1, Verification
 
     profiles = {
         p.harness.value: p.model_copy(
@@ -237,6 +237,17 @@ def make_render_context(
         "timeout_seconds": 900,
     }
     values.update(overrides)
+    if "cli_version" not in overrides:
+        selected_profile = HarnessProfileV1.model_validate(values["profile"])
+        current_versions: set[str] = set()
+        for row in selected_profile.capabilities:
+            if (
+                row.verification is Verification.VERIFIED
+                and row.cli_version is not None
+                and row.verified_at is not None
+            ):
+                current_versions.add(row.cli_version)
+        values["cli_version"] = next(iter(current_versions)) if len(current_versions) == 1 else None
     return RenderContext.model_validate(values)
 
 

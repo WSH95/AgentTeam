@@ -54,17 +54,23 @@ class CodexAdapter:
     def render(self, ctx: RenderContext) -> RenderedInvocationV1:
         instructions = read_instruction_text(ctx)
         task = read_task_text(ctx)
-        instruction_channel = select_verified(ctx.profile, CODEX_INSTRUCTION_LADDER)
+        instruction_channel = select_verified(
+            ctx.profile, CODEX_INSTRUCTION_LADDER, cli_version=ctx.cli_version
+        )
         if instruction_channel is None:
             raise RenderError(
-                "Codex has no probe-verified instruction channel; run `atm profile doctor --probe`"
+                "Codex has no current probe-verified instruction channel; "
+                "run `atm profile doctor --probe`"
             )
         skill_channel = (
-            None if ctx.synthesis is not None else select_verified(ctx.profile, CODEX_SKILL_LADDER)
+            None
+            if ctx.synthesis is not None
+            else select_verified(ctx.profile, CODEX_SKILL_LADDER, cli_version=ctx.cli_version)
         )
         if ctx.synthesis is None and skill_channel is None:
             raise RenderError(
-                "Codex has no probe-verified Skill channel; run `atm profile doctor --probe`"
+                "Codex has no current probe-verified Skill channel; "
+                "run `atm profile doctor --probe`"
             )
 
         ctx.workspace_root.mkdir(parents=True, exist_ok=True)
@@ -231,13 +237,14 @@ class CodexAdapter:
                 candidate = json.loads(text)
             except json.JSONDecodeError:
                 problems.append("final-message file is not JSON")
-            if candidate is not None and event_candidate is not None:
-                if event_candidate == candidate:
-                    problems.append("JSONL final agent_message agrees with the -o file")
-                else:
-                    problems.append(
-                        "JSONL final agent_message disagrees with the authoritative -o file"
-                    )
+            if (
+                candidate is not None
+                and event_candidate is not None
+                and event_candidate != candidate
+            ):
+                problems.append(
+                    "JSONL final agent_message disagrees with the authoritative -o file"
+                )
         else:
             problems.append("authoritative -o final-message file is missing")
         return ExtractedStructured(
