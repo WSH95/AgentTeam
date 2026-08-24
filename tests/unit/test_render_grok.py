@@ -47,7 +47,7 @@ def test_golden_argv_and_prompt_file(render_context_builder: Builder, tmp_path: 
     rendered, ctx = _render(render_context_builder, tmp_path)
     argv = rendered.argv
     assert argv[0].endswith("grok")
-    assert "-p" in argv
+    assert "-p" not in argv
     prompt_index = argv.index("--prompt-file")
     prompt = Path(argv[prompt_index + 1])
     assert prompt.is_file()

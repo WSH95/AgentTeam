@@ -27,6 +27,7 @@ from agentteam.resolution.profiles import (
 )
 
 profile_app = typer.Typer(name="profile", help="Local harness profiles (never committed).")
+_HARNESS_ALIASES = {"claude": HarnessId.CLAUDE_CODE.value}
 
 
 def _config_option(value: Path | None) -> Path:
@@ -52,6 +53,8 @@ def init(
     human = (
         f"wrote {result.profile_file}\ncreated config homes:\n  "
         + "\n  ".join(str(home) for home in result.config_homes)
+        + "\nNetwork proxy policy: inherit standard proxy variables from this terminal "
+        "unchanged (set proxy_policy: deny explicitly to refuse them)."
         + "\nNative subscription logins (run each yourself; AgentTeam never opens a browser "
         "and never reads or copies credential files):\n  " + "\n  ".join(result.login_commands)
     )
@@ -87,8 +90,29 @@ def doctor(
             help="Run attended native-auth probes (up to two confirmed calls per harness).",
         ),
     ] = False,
+    harness: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--harness",
+            help=(
+                "Limit --probe to a harness; repeatable. "
+                "Choices: claude-code (or claude), codex, grok."
+            ),
+        ),
+    ] = None,
+    reprobe_ready: Annotated[
+        bool,
+        typer.Option(
+            "--reprobe-ready",
+            help="Reassess selected ready profiles; failures replace current evidence.",
+        ),
+    ] = False,
 ) -> None:
     """Check installations/auth/readiness; optionally run bounded attended probes."""
+    if not probe and (harness or reprobe_ready):
+        raise fail("--harness and --reprobe-ready require --probe", exit_code=2)
+    selected_harnesses = _parse_probe_harnesses(harness or [])
+
     path = _config_option(config)
     try:
         profile_set = load_profile_set(path)
@@ -137,6 +161,8 @@ def doctor(
             environ=dict(os.environ),
             confirm=_confirm_call,
             platform=sys.platform,
+            selected_harnesses=selected_harnesses,
+            reprobe_ready=reprobe_ready,
         )
     except ProbeCancelled as cancelled:
         refreshed = _refresh(path)
@@ -155,6 +181,22 @@ def doctor(
     _emit_doctor(json_out, rows)
     if not probe_result.all_ready or refreshed.exit_code != 0:
         raise typer.Exit(1)
+
+
+def _parse_probe_harnesses(values: list[str]) -> frozenset[HarnessId] | None:
+    if not values:
+        return None
+    selected: set[HarnessId] = set()
+    for value in values:
+        normalized = _HARNESS_ALIASES.get(value, value)
+        try:
+            parsed = HarnessId(normalized)
+        except ValueError:
+            raise fail(f"unknown probe harness: {value!r}", exit_code=2) from None
+        if parsed in selected:
+            raise fail(f"duplicate probe harness: {value!r}", exit_code=2)
+        selected.add(parsed)
+    return frozenset(selected)
 
 
 def _refresh(path: Path) -> DiagnosticReport:
@@ -223,6 +265,11 @@ def _emit_doctor(json_out: bool, rows: list[dict[str, Any]]) -> None:
             f"{row['harness']}: {version}; auth {row['auth_state']}; {ready}; "
             f"probe {probe['status']} ({probe['calls_used']} call(s))"
         )
+        inherited = row["proxy_names_inherited"]
+        proxy_detail = row["proxy_policy"]
+        if inherited:
+            proxy_detail += " (" + ", ".join(inherited) + ")"
+        lines.append(f"  proxy policy: {proxy_detail}")
         if row["conflicts_set"]:
             lines.append("  conflicts set: " + ", ".join(row["conflicts_set"]))
         for problem in row["problems"]:

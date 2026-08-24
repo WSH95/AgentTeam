@@ -382,6 +382,21 @@ def test_live_preflight_resolves_the_persistent_profile_home(tmp_path: Path) -> 
     assert Path(resolved.legs[0].profile.config_home) == (tmp_path / "vendors" / "claude-code")
 
 
+def test_live_preflight_accepts_inherited_terminal_proxy_names(tmp_path: Path) -> None:
+    resolved = preflight(
+        _request(tmp_path),
+        profile_path=_live_profiles_path(tmp_path),
+        installed=_installed,
+        live=True,
+        environ={
+            "HTTP_PROXY": "http://sensitive-proxy.invalid",
+            "NO_PROXY": "localhost,internal.invalid",
+        },
+        version_reader=lambda _profile: "current-version",
+    )
+    assert resolved.live_ready is True
+
+
 @pytest.mark.parametrize(
     ("recorded", "current", "expected", "match"),
     [

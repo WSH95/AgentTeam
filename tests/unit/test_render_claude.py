@@ -52,6 +52,8 @@ def test_golden_argv_and_channels(render_context_builder: Builder, tmp_path: Pat
     assert json.loads(flags[mcp_index + 1]) == {"mcpServers": {}}
     assert "--strict-mcp-config" in flags
     assert flags >= ["--permission-mode", "dontAsk"]
+    allowed_index = flags.index("--allowedTools")
+    assert "Skill" in flags[allowed_index + 1].split(",")
     schema_index = flags.index("--json-schema")
     schema = json.loads(flags[schema_index + 1])
     assert schema["$id"] == "urn:agentteam:schema:normalized-review:v1"

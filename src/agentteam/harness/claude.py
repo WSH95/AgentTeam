@@ -47,9 +47,12 @@ from agentteam.harness.types import (
 )
 from agentteam.schema import vendor_schema_min
 
-# Read-only review toolset (plan section 11: read-only review tools).
-_ALLOWED_TOOLS = "Read,Grep,Glob,LS"
-_DISALLOWED_TOOLS = "Write,Edit,NotebookEdit,Bash,WebFetch,WebSearch"
+# Read-only review toolset (plan section 11: read-only review tools). Skills
+# load through Claude's built-in `Skill` tool, so it must be pre-approved when
+# `dontAsk` is active; the Skill's eventual filesystem/tool requests remain
+# constrained by the explicit write/shell/web denies below.
+CLAUDE_ALLOWED_TOOLS = "Read,Grep,Glob,LS,Skill"
+CLAUDE_DISALLOWED_TOOLS = "Write,Edit,NotebookEdit,Bash,WebFetch,WebSearch"
 
 
 class ClaudeAdapter:
@@ -127,9 +130,9 @@ class ClaudeAdapter:
             "--permission-mode",
             "dontAsk",
             "--allowedTools",
-            _ALLOWED_TOOLS,
+            CLAUDE_ALLOWED_TOOLS,
             "--disallowedTools",
-            _DISALLOWED_TOOLS,
+            CLAUDE_DISALLOWED_TOOLS,
         ]
         instruction_file: Path | None = None
         if instruction_channel == "append-system-prompt-file":

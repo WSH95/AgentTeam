@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from agentteam.domain.profile import HarnessProfileV1, ProxyPolicy
-from agentteam.harness.environment import EnvironmentConflictError, build_environment
+from agentteam.harness.diagnostics import diagnostic_environment
+from agentteam.harness.environment import (
+    PROXY_NAMES,
+    EnvironmentConflictError,
+    build_environment,
+)
 
 
 def _profile(**env_overrides: object) -> HarnessProfileV1:
@@ -88,12 +95,34 @@ def test_proxy_conflict_fails_closed_under_deny() -> None:
         build_environment(_profile(), {**PARENT, "http_proxy": "http://p"}, platform="linux")
 
 
-def test_proxy_policy_inherit_passes_proxies_through() -> None:
-    profile = _profile()
-    profile = profile.model_copy(update={"proxy_policy": ProxyPolicy.INHERIT})
-    env, record = build_environment(profile, {**PARENT, "HTTP_PROXY": "http://p"}, platform="linux")
-    assert env["HTTP_PROXY"] == "http://p"
+def test_proxy_deny_fails_closed_even_when_conflict_list_omits_proxy_names() -> None:
+    profile = _profile(conflicts=["CODEX_API_KEY"])
+    with pytest.raises(EnvironmentConflictError, match="NO_PROXY"):
+        build_environment(profile, {**PARENT, "NO_PROXY": "localhost"}, platform="linux")
+
+
+def test_proxy_policy_inherit_passes_all_present_proxies_unchanged() -> None:
+    proxy_values = {name: f"sensitive-{index}" for index, name in enumerate(PROXY_NAMES)}
+    profile = _profile(conflicts=["CODEX_API_KEY"]).model_copy(
+        update={"proxy_policy": ProxyPolicy.INHERIT}
+    )
+    env, record = build_environment(profile, {**PARENT, **proxy_values}, platform="linux")
+    assert {name: env[name] for name in PROXY_NAMES} == proxy_values
     assert record.conflicts_detected == []
+    record_json = json.dumps(record.model_dump(mode="json"))
+    assert all(value not in record_json for value in proxy_values.values())
+
+
+def test_diagnostic_environment_obeys_proxy_policy() -> None:
+    parent = {**PARENT, "HTTP_PROXY": "http://proxy", "NO_PROXY": "localhost"}
+    inherited = _profile().model_copy(update={"proxy_policy": ProxyPolicy.INHERIT})
+    inherited_env = diagnostic_environment(inherited, parent, platform="linux")
+    assert inherited_env["HTTP_PROXY"] == "http://proxy"
+    assert inherited_env["NO_PROXY"] == "localhost"
+
+    denied_env = diagnostic_environment(_profile(), parent, platform="linux")
+    assert "HTTP_PROXY" not in denied_env
+    assert "NO_PROXY" not in denied_env
 
 
 def test_non_proxy_conflicts_still_fail_under_inherit() -> None:

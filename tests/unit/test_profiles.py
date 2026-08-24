@@ -10,6 +10,7 @@ import pytest
 import yaml
 
 from agentteam.domain.common import HarnessId
+from agentteam.domain.profile import HarnessProfileV1, ProxyPolicy
 from agentteam.resolution.profiles import (
     ProfileError,
     default_profile_path,
@@ -31,12 +32,25 @@ def test_seed_covers_the_three_harnesses_with_conflict_data() -> None:
     for profile in seeded.profiles:
         assert "HTTP_PROXY" in profile.environment.conflicts
         assert "http_proxy" in profile.environment.conflicts
+        assert profile.proxy_policy is ProxyPolicy.INHERIT
         assert profile.auth_mode.value == "native-subscription"
         # capability rows are seeded at observed/unverified only (no probe ran)
         assert all(r.verification.value in {"observed", "unverified"} for r in profile.capabilities)
     assert by_id[HarnessId.CLAUDE_CODE].environment.config_home_variable == "CLAUDE_CONFIG_DIR"
     assert by_id[HarnessId.CODEX].environment.config_home_variable == "CODEX_HOME"
     assert by_id[HarnessId.GROK].environment.config_home_variable == "GROK_HOME"
+
+
+def test_omitted_proxy_policy_keeps_safe_legacy_default() -> None:
+    profile = HarnessProfileV1.model_validate(
+        {
+            "harness": "codex",
+            "executable": "codex",
+            "config_home": "/vendors/codex",
+            "environment": {"config_home_variable": "CODEX_HOME"},
+        }
+    )
+    assert profile.proxy_policy is ProxyPolicy.DENY
 
 
 def test_write_and_load_round_trip(tmp_path: Path) -> None:

@@ -9,6 +9,7 @@ profiles:
   - harness: claude-code
     executable: ../../fixtures/fake-harness/fake_claude.py
     config_home: .agentteam-local/vendors/claude-code
+    proxy_policy: inherit
     environment:
       config_home_variable: CLAUDE_CONFIG_DIR
       passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK, FAKE_PROBE_MODE, FAKE_PROBE_MODE_CLAUDE]
@@ -22,6 +23,7 @@ profiles:
   - harness: codex
     executable: ../../fixtures/fake-harness/fake_codex.py
     config_home: .agentteam-local/vendors/codex
+    proxy_policy: inherit
     environment:
       config_home_variable: CODEX_HOME
       passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK, FAKE_PROBE_MODE, FAKE_PROBE_MODE_CODEX]
@@ -37,6 +39,7 @@ profiles:
   - harness: grok
     executable: ../../fixtures/fake-harness/fake_grok.py
     config_home: .agentteam-local/vendors/grok
+    proxy_policy: inherit
     environment:
       config_home_variable: GROK_HOME
       passthrough: [FAKE_OBSERVE, FAKE_MODE, FAKE_MODE_CLAUDE, FAKE_MODE_CODEX, FAKE_MODE_GROK, FAKE_PROBE_MODE, FAKE_PROBE_MODE_GROK]

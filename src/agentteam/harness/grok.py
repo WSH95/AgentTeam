@@ -1,10 +1,10 @@
 """Grok adapter (plan section 11; fact sheet 2026-08-23, grok 1.0.5).
 
-Headless entry is `grok -p` with `--prompt-file` (never `grok agent headless`,
-a WebSocket relay). `--rules`/`--system-prompt-override` and the structured
-output location are selected only after probing. Cost is often absent under
-subscription OAuth; `cost_source` is
-decided per run and never fabricated.
+Headless entry uses `--prompt-file` directly (never a bare `-p`, which is the
+`--single <PROMPT>` option, nor `grok agent headless`, a WebSocket relay).
+`--rules`/`--system-prompt-override` and the structured output location are
+selected only after probing. Cost is often absent under subscription OAuth;
+`cost_source` is decided per run and never fabricated.
 """
 
 from __future__ import annotations
@@ -101,7 +101,6 @@ class GrokAdapter:
         )
 
         rest = [
-            "-p",
             "--prompt-file",
             str(prompt_file),
             "--output-format",
@@ -213,7 +212,11 @@ class GrokAdapter:
         candidate = None
         channel = raw.structured_output_channel
         if channel in (None, "structured-output-field"):
-            candidate = payload.get("structured_output")
+            for name in ("structuredOutput", "structured_output"):
+                value = payload.get(name)
+                if isinstance(value, dict):
+                    candidate = value
+                    break
         if candidate is None and channel in (None, "structured-output-text"):
             text = payload.get("text")
             if isinstance(text, str):

@@ -10,7 +10,7 @@ import signal as signal_module
 import subprocess
 import sys
 import time
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping, Set
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -29,6 +29,7 @@ from agentteam.harness.capabilities import (
     GROK_SKILL_LADDER,
     readiness_problems,
 )
+from agentteam.harness.claude import CLAUDE_ALLOWED_TOOLS, CLAUDE_DISALLOWED_TOOLS
 from agentteam.harness.environment import build_environment
 from agentteam.harness.launcher import resolve_launcher
 from agentteam.harness.skills import ManagedSkillsLease
@@ -64,6 +65,12 @@ _TASK = (
     "Load every available Skill whose name begins `agentteam-probe`. Return exactly one "
     "object matching the supplied schema. Report exact opaque markers that are actually "
     "delivered through instruction and Skill channels. Do not guess or invent markers."
+)
+_GROK_TASK = (
+    "Invoke `/agentteam-probe-grok` and `/agentteam-probe-agents` before responding. "
+    "Return exactly one object matching the supplied schema. Report exact opaque markers "
+    "that are actually delivered through instruction and Skill channels. Do not guess or "
+    "invent markers."
 )
 
 
@@ -119,16 +126,30 @@ def run_attended_probes(
     environ: Mapping[str, str],
     confirm: ConfirmCall,
     platform: str = sys.platform,
+    selected_harnesses: Set[HarnessId] | None = None,
+    reprobe_ready: bool = False,
 ) -> ProbeRunResult:
     """Probe in profile order; confirmation occurs immediately before every process."""
     capture: ProbeCapture | None = None
-    results: dict[HarnessId, ProbeHarnessResult] = {}
+    results: dict[HarnessId, ProbeHarnessResult] = {
+        profile.harness: ProbeHarnessResult(
+            status="not-selected",
+            calls_used=0,
+            capture_id=None,
+            profile_updated=False,
+        )
+        for profile in profiles
+        if selected_harnesses is not None and profile.harness not in selected_harnesses
+    }
     all_ready = True
 
     for original in profiles:
+        if selected_harnesses is not None and original.harness not in selected_harnesses:
+            continue
         version = versions[original.harness]
         current = _current_profile(profile_path, original.harness)
-        if not readiness_problems(current, cli_version=version, needs_skills=True):
+        initially_ready = not readiness_problems(current, cli_version=version, needs_skills=True)
+        if initially_ready and not reprobe_ready:
             results[original.harness] = ProbeHarnessResult(
                 status="already-ready",
                 calls_used=0,
@@ -141,11 +162,20 @@ def run_attended_probes(
 
         calls_used = 0
         updated = False
+        force_next_call = initially_ready and reprobe_ready
+        reassessment_passed = False
         for call_number in range(1, MAX_CALLS_PER_HARNESS + 1):
             current = _current_profile(profile_path, original.harness)
-            if not readiness_problems(current, cli_version=version, needs_skills=True):
+            current_ready = not readiness_problems(current, cli_version=version, needs_skills=True)
+            if current_ready and not force_next_call:
                 break
-            description = _call_description(current, version=version, call_number=call_number)
+            force_next_call = False
+            description = _call_description(
+                current,
+                version=version,
+                call_number=call_number,
+                reassessment=reprobe_ready,
+            )
             try:
                 confirmed = confirm(original.harness, call_number, description)
             except (KeyboardInterrupt, EOFError):
@@ -174,7 +204,14 @@ def run_attended_probes(
                 started_at=started,
             )
             lease: ManagedSkillsLease | None = None
-            recipe = _empty_recipe(current, call_dir, environ, platform)
+            recipe = _empty_recipe(
+                current,
+                call_dir,
+                environ,
+                platform,
+                call_number=call_number,
+                version=version,
+            )
             try:
                 recipe, lease = _build_recipe(
                     current,
@@ -262,9 +299,14 @@ def run_attended_probes(
                 platform=platform,
             )
             updated = True
+            reassessment_passed = reassessment_passed or assessment.matrix_passed
+            if reprobe_ready and not assessment.matrix_passed:
+                force_next_call = True
 
         current = _current_profile(profile_path, original.harness)
         ready = not readiness_problems(current, cli_version=version, needs_skills=True)
+        if reprobe_ready and initially_ready:
+            ready = ready and reassessment_passed
         all_ready = all_ready and ready
         results[original.harness] = ProbeHarnessResult(
             status="passed" if ready else "failed",
@@ -350,9 +392,9 @@ def _claude_recipe(
         "--permission-mode",
         "dontAsk",
         "--allowedTools",
-        "Read,Grep,Glob,LS",
+        CLAUDE_ALLOWED_TOOLS,
         "--disallowedTools",
-        "Write,Edit,NotebookEdit,Bash,WebFetch,WebSearch",
+        CLAUDE_DISALLOWED_TOOLS,
     ]
     if call_number == 1:
         marker = _marker("INSTRUCTION")
@@ -531,7 +573,7 @@ def _grok_recipe(
     workspace = call_dir / "workspace"
     ensure_owner_directory(workspace, platform=platform)
     prompt = call_dir / "prompt.md"
-    atomic_write_text(prompt, _TASK + "\n", platform=platform)
+    atomic_write_text(prompt, _GROK_TASK + "\n", platform=platform)
     instruction: dict[str, str] = {}
     skills: dict[str, str] = {}
     instruction_missing = call_number == 1 or not _ladder_current(
@@ -563,7 +605,6 @@ def _grok_recipe(
             platform=platform,
         )
     rest = [
-        "-p",
         "--prompt-file",
         str(prompt),
         "--output-format",
@@ -651,8 +692,8 @@ def _redact_argv(
         "read-only",
         "dontAsk",
         "user",
-        "Read,Grep,Glob,LS",
-        "Write,Edit,NotebookEdit,Bash,WebFetch,WebSearch",
+        CLAUDE_ALLOWED_TOOLS,
+        CLAUDE_DISALLOWED_TOOLS,
     }
     markers = set(instruction.values()) | set(skills.values())
     redacted: list[str] = []
@@ -678,7 +719,15 @@ def _empty_recipe(
     call_dir: Path,
     parent: Mapping[str, str],
     platform: str,
+    *,
+    call_number: int,
+    version: str,
 ) -> _Recipe:
+    instruction_names, skill_names = _channel_capabilities_for_call(
+        profile,
+        version=version,
+        call_number=call_number,
+    )
     environment, _record = build_environment(profile, parent, platform=platform)
     return _Recipe(
         argv=[],
@@ -691,10 +740,73 @@ def _empty_recipe(
             "cwd": "<PROBE_WORKSPACE>",
             "environment_names": sorted(environment),
         },
-        instruction_markers={},
-        skill_markers={},
-        attempted_base=_base_capabilities(profile.harness),
+        instruction_markers={name: "<UNAVAILABLE>" for name in instruction_names},
+        skill_markers={name: "<UNAVAILABLE>" for name in skill_names},
+        attempted_base=_base_for_call(
+            profile,
+            _base_capabilities(profile.harness),
+            version=version,
+            call_number=call_number,
+        ),
     )
+
+
+def _channel_capabilities_for_call(
+    profile: HarnessProfileV1,
+    *,
+    version: str,
+    call_number: int,
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    instruction: tuple[str, ...]
+    skills: tuple[str, ...]
+    if profile.harness is HarnessId.CLAUDE_CODE:
+        if call_number == 1:
+            return ("append-system-prompt-file",), ("skills-config-home",)
+        instruction = (
+            ("append-system-prompt",)
+            if not _ladder_current(profile, CLAUDE_INSTRUCTION_LADDER, version)
+            else ()
+        )
+        skills = (
+            ("skills-plugin-dir", "skills-workspace")
+            if not _ladder_current(profile, CLAUDE_SKILL_LADDER, version)
+            else ()
+        )
+        return instruction, skills
+    if profile.harness is HarnessId.CODEX:
+        instruction = (
+            ("instructions-model-instructions-file",)
+            if call_number == 1
+            else (
+                (
+                    "instructions-developer-instructions",
+                    "instructions-workspace-agents-md",
+                )
+                if not _ladder_current(profile, CODEX_INSTRUCTION_LADDER, version)
+                else ()
+            )
+        )
+        skills = (
+            ("skills-workspace",)
+            if call_number == 1 or not _ladder_current(profile, CODEX_SKILL_LADDER, version)
+            else ()
+        )
+        return instruction, skills
+    instruction = (
+        ("instructions-rules",)
+        if call_number == 1
+        else (
+            ("instructions-system-prompt-override",)
+            if not _ladder_current(profile, GROK_INSTRUCTION_LADDER, version)
+            else ()
+        )
+    )
+    skills = (
+        ("skills-workspace-grok", "skills-workspace-agents")
+        if call_number == 1 or not _ladder_current(profile, GROK_SKILL_LADDER, version)
+        else ()
+    )
+    return instruction, skills
 
 
 def _run_probe_process(recipe: _Recipe, *, timeout_seconds: int, platform: str) -> RawInvocationV1:
@@ -816,8 +928,9 @@ def _assess_call(harness: HarnessId, recipe: _Recipe, raw: RawInvocationV1) -> _
     else:
         outer = _json_object(raw.stdout)
         headless = outer is not None
-        if outer is not None and isinstance(outer.get("structured_output"), dict):
-            candidate = outer["structured_output"]
+        structured_field = _grok_structured_field(outer)
+        if structured_field is not None:
+            candidate = structured_field
             output_location = "structured-output-field"
         elif outer is not None and isinstance(outer.get("text"), str):
             candidate = _json_object(outer["text"].encode("utf-8"))
@@ -868,6 +981,16 @@ def _assess_call(harness: HarnessId, recipe: _Recipe, raw: RawInvocationV1) -> _
 def _record_assessment(assessment: dict[str, bool], name: str, passed: bool) -> None:
     if name in assessment:
         assessment[name] = passed
+
+
+def _grok_structured_field(outer: dict[str, Any] | None) -> dict[str, Any] | None:
+    if outer is None:
+        return None
+    for name in ("structuredOutput", "structured_output"):
+        candidate = outer.get(name)
+        if isinstance(candidate, dict):
+            return candidate
+    return None
 
 
 def _required_base_passed(harness: HarnessId, assessment: Mapping[str, bool]) -> bool:
@@ -982,7 +1105,13 @@ def _base_for_call(
     return tuple(unresolved)
 
 
-def _call_description(profile: HarnessProfileV1, *, version: str, call_number: int) -> str:
+def _call_description(
+    profile: HarnessProfileV1,
+    *,
+    version: str,
+    call_number: int,
+    reassessment: bool = False,
+) -> str:
     if call_number == 1:
         channels = {
             HarnessId.CLAUDE_CODE: "prompt-file instructions + config-home Skill",
@@ -995,7 +1124,12 @@ def _call_description(profile: HarnessProfileV1, *, version: str, call_number: i
             HarnessId.CODEX: "unresolved developer/AGENTS.md fallbacks",
             HarnessId.GROK: "unresolved system-prompt/Skill fallbacks",
         }[profile.harness]
-    return f"{channels}; version {version}; timeout <= {MAX_PROBE_SECONDS}s"
+    warning = (
+        "forced reassessment; failure replaces current capability evidence; "
+        if reassessment
+        else ""
+    )
+    return f"{warning}{channels}; version {version}; timeout <= {MAX_PROBE_SECONDS}s"
 
 
 def _base_capabilities(harness: HarnessId) -> tuple[str, ...]:

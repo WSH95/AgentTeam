@@ -3,8 +3,9 @@
 Each native run starts from a minimal cross-platform allowlist, sets the
 selected config-home variable, records names only, and fails closed when a
 conflict variable (API key, base URL, alternate provider, unapproved proxy) is
-set in the parent environment. Conflict names are profile data, never
-hardcoded vendor knowledge.
+set in the parent environment. Standard proxy names are policy data: an
+``inherit`` profile passes their values through unchanged, while ``deny``
+keeps them fail-closed. Other conflict names remain profile data.
 """
 
 from __future__ import annotations
@@ -49,6 +50,32 @@ class EnvironmentConflictError(ValueError):
         self.names = names
 
 
+def inherited_proxy_names(
+    profile: HarnessProfileV1,
+    parent: Mapping[str, str],
+) -> list[str]:
+    """Return present standard proxy names approved for inheritance.
+
+    Values deliberately stay in ``parent`` and are never returned or recorded.
+    """
+    if profile.proxy_policy is not ProxyPolicy.INHERIT:
+        return []
+    return sorted(name for name in PROXY_NAMES if name in parent)
+
+
+def conflicting_environment_names(
+    profile: HarnessProfileV1,
+    parent: Mapping[str, str],
+) -> list[str]:
+    """Return set conflict names after applying the profile's proxy policy."""
+    conflicts = set(profile.environment.conflicts)
+    if profile.proxy_policy is ProxyPolicy.INHERIT:
+        conflicts.difference_update(PROXY_NAMES)
+    else:
+        conflicts.update(PROXY_NAMES)
+    return sorted(name for name in conflicts if name in parent)
+
+
 def build_environment(
     profile: HarnessProfileV1,
     parent: Mapping[str, str],
@@ -56,12 +83,7 @@ def build_environment(
     platform: str,
 ) -> tuple[dict[str, str], EnvironmentV1]:
     """Build the child env from scratch; return it with its names-only record."""
-    conflicts = list(profile.environment.conflicts)
-    inherit_proxies = profile.proxy_policy is ProxyPolicy.INHERIT
-    effective_conflicts = [
-        name for name in conflicts if not (inherit_proxies and name in PROXY_NAMES)
-    ]
-    offending = sorted(name for name in effective_conflicts if name in parent)
+    offending = conflicting_environment_names(profile, parent)
     if offending:
         raise EnvironmentConflictError(offending)
 
@@ -73,10 +95,8 @@ def build_environment(
     for name in profile.environment.passthrough:
         if name in parent:
             child[name] = parent[name]
-    if inherit_proxies:
-        for name in sorted(PROXY_NAMES):
-            if name in conflicts and name in parent:
-                child[name] = parent[name]
+    for name in inherited_proxy_names(profile, parent):
+        child[name] = parent[name]
     child[profile.environment.config_home_variable] = profile.config_home
 
     record = EnvironmentV1(

@@ -444,3 +444,145 @@ never promoted automatically. Deterministic implementation does not close G5:
 the owner still must log into all three dedicated homes, approve each of the
 3–6 live calls, review/sanitize representative output, and record the actual
 versions and selected channels before G6.
+
+## 0027 — 2026-08-24 — Standard native profiles inherit the owner's terminal proxy
+
+**Context**: The G5 plan assumed the owner's normal terminal had no proxy
+variables and generated profiles with `proxy_policy: deny`. During attended
+setup the owner clarified that Sing-box is intentional system network
+infrastructure and rejected an attempted login wrapper that removed
+`HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` variants. The login was cancelled
+before completion and no model call occurred. Runtime already had a partial
+inherit path, but no-call doctor ignored it and the pass-through depended on
+proxy names also appearing in the custom conflict list.
+**Decision**: Profiles produced by `atm profile init` explicitly use
+`proxy_policy: inherit`. Login, diagnostics, probes, and live runs preserve all
+present standard proxy variables unchanged (`HTTP_PROXY`, `HTTPS_PROXY`,
+`ALL_PROXY`, and `NO_PROXY`, including lowercase variants) while continuing to
+reject API-key, base-URL, and alternate-provider conflicts. Doctor reports the
+effective policy and inherited names only. Explicit `deny` rejects every
+standard proxy name even if a custom conflict list omits it. The schema stays
+V1 and its omitted-field default stays `deny` so legacy/custom profiles do not
+silently acquire a new network path; the already-created owner profiles receive
+a narrow, atomic policy-only migration. AgentTeam never adds `env -u` proxy
+wrappers to owner-attended commands.
+**Consequences**: Normal AgentTeam native profiles behave like the owner's
+terminal for network routing without expanding the general environment
+allowlist or recording proxy values. G5 authentication can resume only after
+the deterministic block passes, the local profiles are migrated, and no-call
+doctor confirms policy parity in the normal environment.
+
+## 0028 — 2026-08-24 — Claude Skill loading is explicitly permitted and remains bounded
+
+**Context**: G5 Claude probe call 1 (capture
+`probe-20260824T061711Z-971ee2af`) timed out after 180.64 seconds with zero-byte
+stdout, stderr, and structured output; AgentTeam killed the process tree and
+atomically marked the five assessed rows current-version `unverified`. The
+owner declined call 2 while the evidence was diagnosed, so no other harness
+ran. Anthropic HTTPS through the trusted proxy returned promptly, but the
+recipe told Claude to load a Skill while `permission-mode=dontAsk` pre-approved
+only `Read,Grep,Glob,LS`. Claude's official tools/permissions documentation says
+Skills run through the built-in `Skill` tool and unapproved tools are denied in
+`dontAsk`; upstream issue #35262 independently records a matching zero-byte
+headless stall around deferred Skill invocation.
+**Decision**: Pre-approve Claude's built-in `Skill` loader alongside the four
+read tools in both probes and live adapter invocations. Retain explicit denies
+for Write, Edit, NotebookEdit, Bash, WebFetch, and WebSearch; a loaded Skill
+cannot bypass those denies. The deterministic Claude fake reports Skill
+markers only when `Skill` is allowed, preventing the former false positive.
+The first timeout counts against Claude's two-call G5 ceiling: only one further
+Claude invocation may be owner-approved; any additional Claude prompt is
+declined, and another failure leaves G5 open.
+**Consequences**: The fixed recipe is faithful to the required Skill-delivery
+claim without broadening write/network execution. The full credential-free
+block remains green (392 passed, 3 expected Windows skips). Live evidence, not
+the upstream issue, decides whether Claude 2.1.241 is ready.
+
+## 0029 — 2026-08-24 — Grok's two-call evidence is retained and G5 stays open
+
+**Context**: The continued attended run proved Claude 2.1.241 on its second and
+final invocation and Codex 0.149.1 on its first. Grok 1.0.5 confirmed
+invocation 1 never reached a model: the CLI rejected a bare `-p` followed by
+`--prompt-file` because `-p` aliases `--single <PROMPT>` and requires its own
+value. After that defect was removed, Grok's second/final confirmed invocation
+returned valid structured output and proved native auth, prompt-file, rules,
+and the JSON-in-`text` location. It did not reproduce either random Skill
+marker: it invented two shorter values derived from the Skill names. A no-call
+`grok inspect --json` in the preserved workspace nevertheless listed both
+`.grok/skills` and `.agents/skills` definitions as enabled and user-invocable.
+The same live envelope also exposed camelCase `structuredOutput`, which the
+pre-live parser did not recognize as the field-channel spelling.
+
+**Decision**: Both confirmed Grok process invocations count against the strict
+two-call ceiling even though the first failed before model dispatch. Decline
+the next prompt, retain partial current-version evidence, keep both Skill rows
+`unverified`, leave G5 open, and prohibit G6. Correct probe and live rendering
+to use `--prompt-file` without bare `-p`; recognize both `structuredOutput` and
+`structured_output` as the same field capability; explicitly reference the
+two probe Skills by their documented slash names; and make deterministic fakes
+reject the malformed argv and require those references. Manually reconcile
+the reviewed Claude/Codex/Grok envelope shapes into sanitized fixtures while
+keeping identifiers, prompts, markers, commands, reasoning, model names, and
+usage values synthetic. Do not retroactively mark the camelCase field or either
+Skill path verified from review alone.
+
+**Consequences**: Claude is ready with five verified rows and Codex with seven.
+Grok native auth is verified and six rows are usable, but required Assistant
+execution still fails closed because its Skill ladder has no verified channel.
+Another Grok call requires an explicit owner-approved gate revision or a new
+version assessment plan; it is not a hidden retry. Raw owner captures remain
+outside git, and hosted CI remains fake and credential-free.
+
+## 0030 — 2026-08-24 — Ready profiles may be explicitly and authoritatively reassessed
+
+**Context**: The owner approved a revised G5 assessment after ADR 0029. A
+corrected Grok 1.0.5 call under capture
+`probe-20260824T070542Z-60bf6738` exited 0 in 16.562 seconds and reproduced the
+instruction marker plus both independent Skill markers. It verified eight
+required rows, including the `structuredOutput` field channel; JSON-in-`text`
+remains an unverified alternative. This made all three current profiles ready,
+but ordinary `doctor --probe` correctly skipped Claude and Codex because their
+evidence was already current. The owner wants one fresh, visible assessment of
+all three before closing G5.
+
+**Decision**: Preserve skip-ready behavior for normal `doctor --probe`. Add
+repeatable `--harness` selection (`claude` aliases `claude-code`) and explicit
+`--reprobe-ready`. Selected profiles always run in profile order after all
+three native profiles preflight; nonselected rows report `not-selected`.
+Invalid/duplicate selectors and either new option without `--probe` fail with
+exit 2 before a call or profile mutation. A forced assessment is authoritative:
+every assessed failure atomically downgrades prior evidence, the existing
+two-call ceiling remains, and each prompt warns about replacement. The owner
+will run exactly the selected all-three command and approve only each first
+prompt; an unexpected second-call prompt is declined for review.
+
+**Consequences**: The prior Grok blocker is resolved for the currently observed
+version, but G5 remains open until the fresh all-three reassessment succeeds
+and its local capture is reviewed. A failure is not masked by older evidence.
+No G6 call, commit, push, credential read, proxy override, or automatic capture
+promotion is authorized by this decision.
+
+## 0031 — 2026-08-24 — G5 closes on the authoritative all-three capture
+
+**Context**: The owner ran the exact selected `--reprobe-ready` command from a
+normal terminal. Capture `probe-20260824T075919Z-1edf636a` contains exactly
+three terminal call-1 directories and no fallbacks: Claude Code 2.1.241 passed
+in 10.363 seconds with five verified rows; Codex 0.149.1 passed in 20.490
+seconds with seven; Grok 1.0.5 passed in 17.195 seconds with eight required
+rows and field structured output. All artifact hashes recompute, directories
+are 0700, files are 0600, and sanitized no-call doctor exits 0 with all three
+profiles ready, no conflicts, and no stale rows.
+
+**Decision**: Close M1a gate G5. G5 requires a current complete execution path,
+not exhaustive behavioral proof of every vendor fallback: all base requirements
+and one current verified channel in each required ladder must pass. Unused
+fallbacks may correctly remain `observed`; Grok's unselected JSON-in-`text`
+alternative remains `unverified` because the field location was the successful
+current output. Preserve all earlier failed/partial captures as evidence and
+keep raw captures outside git.
+
+**Consequences**: G6 is now unblocked but does not start automatically; its
+Ubuntu subscription-backed acceptance cycle still needs its own attended
+execution confirmation and existing budget/stop rules. This closure authorizes
+the requested local commit only, not a push, G6 invocation, raw-capture
+promotion, credential inspection, or package publication.

@@ -1,8 +1,8 @@
-"""Vendor-output parsing against hand-authored fixtures (plan sections 7 and 15).
+"""Vendor-output parsing against reviewed, sanitized fixtures (plan sections 7 and 15).
 
-Fixtures are authored from the 2026-08-23 fact sheet / vendor documentation
-shapes; after G5 they are updated only by reviewed promotion of sanitized
-captures.
+The successful shapes were reconciled with owner-host G5 captures on 2026-08-24;
+identifiers, prompts, markers, commands, reasoning, model names, and usage values
+remain synthetic.
 """
 
 from __future__ import annotations

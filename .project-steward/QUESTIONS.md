@@ -20,14 +20,25 @@ legs green at `37219bb`, run 32674468887). **G4 done and closed 2026-08-23**
 **all nine CI checks green at `b8d5f9d`**, run 32681299831 — six scaffold
 legs plus the three-OS `clawteam` job; both deterministic acceptance tiers
 PASS; VERIFY "G4 evidence"; ClawTeam qualification report under
-`docs/evidence/`). **G5's credential-free implementation is complete locally**:
-secure profile initialization, sanitized no-call diagnostics, bounded attended
-probes/captures, and live-run readiness wiring are deterministic-test green.
-G5 remains open for owner-driven profile setup (interactive logins into
-`~/.agentteam/vendors/<harness>`) and the day-one probes (`atm profile doctor
---probe`, at most two calls per harness) that settle the parked channel
-questions and write live verification levels. Every push and every live call
-stays its own gate.
+`docs/evidence/`). **G5 closed 2026-08-24** after the owner-approved
+authoritative all-three capture verified current native auth plus required
+instruction/Skill/output channels for Claude, Codex, and Grok in one call each
+(`probe-20260824T075919Z-1edf636a`; ADR 0031). No-call doctor reports all three
+ready, no conflicts, and no stale rows. G6 is the next gate but has not started;
+every push and every future live call remains separately approved.
+
+## Answered during G5 owner setup
+
+- [x] Q12. Authorize a corrected Grok assessment, then add an explicit,
+  selectable authoritative re-probe mode and retest Claude, Codex, and Grok
+  once each before G5 closes. The corrected Grok assessment passed under
+  `probe-20260824T070542Z-60bf6738`; the final all-three reassessment then
+  passed under `probe-20260824T075919Z-1edf636a` and closed G5 (ADR 0030/0031).
+
+- [x] G5 network policy: the three standard native profiles inherit the
+  owner's trusted terminal/Sing-box proxy unchanged, including `NO_PROXY`;
+  explicit `deny` remains available for isolated/custom profiles. Doctor,
+  probes, and live runs use one policy and expose names only (ADR 0027).
 
 ## Answered in the 2026-08-22 product/architecture review
 
@@ -94,9 +105,9 @@ See `docs/reviews/2026-08-23-m0-review-at-3407ec9.md` and ADR 0018.
 - [x] Live-call budget ceiling → one initial acceptance cycle after G5, at most
   two reruns each separately confirmed by the owner, probes ≤ 2 per harness,
   hard ceiling 30 calls (ADR 0020).
-- [ ] Claude Skill channel under the isolated config home (`$CLAUDE_CONFIG_DIR/skills/`
-  vs `--plugin-dir` vs workspace `.claude/skills/`) — settled by the G5 probe,
-  not by documentation (ADR 0020).
+- [x] Claude Skill channel under the isolated config home: the corrected second
+  and final G5 invocation verified `$CLAUDE_CONFIG_DIR/skills/`; plugin and
+  workspace fallbacks were not needed (ADR 0020/0028/0029).
 
 - [ ] Write the ClawTeam exit criterion before PoC B (review R2/R13): for example,
   the ClawTeam provider stays only if provider + workarounds are ≤ 1.5× the local

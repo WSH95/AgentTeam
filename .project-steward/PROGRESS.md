@@ -4,6 +4,27 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T08:28:46Z — codex
+G5 closed (ADR 0031): the fresh authoritative all-three capture `probe-20260824T075919Z-1edf636a` passed in one call each (Claude 10.363s/5 rows, Codex 20.490s/7, Grok 17.195s/8 required); all hashes and 0700/0600 modes pass, sanitized doctor exits 0 with every profile ready/no conflicts/staleness, and unused fallbacks remain intentionally observed/unverified. Full credential-free block remains 404 passed + 3 expected skips; no G6 call or push. Owner requested the complete G5 boundary be committed locally.
+
+### 2026-08-24T07:54:50Z — codex
+[auto-checkpoint] G5 corrected Grok evidence now passes both Skill paths (`probe-20260824T070542Z-60bf6738`); selectable authoritative `doctor --probe --reprobe-ready` is implemented with forced-failure downgrade, all-profile preflight, explicit nonselection, and safe marked Claude lease reuse. Full credential-free block is green (404 passed + 3 expected skips, Ruff/format/mypy/schemas/build/diff check); G5 remains open only for the owner's fresh one-call-each all-three reassessment, with no G6 run, commit, or push.
+
+### 2026-08-24T06:52:58Z — codex
+[auto-checkpoint] G5 attended evidence retained: Claude second/final call and Codex first call passed; Grok's first invocation exposed/fixed bare `-p`, while its second/final invocation verified auth/instruction/output but not either discovered Skill body, so G5 stays open and G6 blocked (ADR 0029). Probe/live/parser/fakes and reviewed sanitized fixtures are corrected; 392 tests + full credential-free block green, capture hashes/permissions pass, no credential/proxy value read and no push.
+
+### 2026-08-24T06:31:24Z — codex
+G5 Claude call 1 safely timed out at 180.64s with zero output (capture `probe-20260824T061711Z-971ee2af`); owner declined call 2, preserving evidence and total budget. Diagnosis found the real recipe required Skill invocation under `dontAsk` without allowing `Skill`; ADR 0028 fixes probe/live policy, strengthens the fake, and the full block is green (392 + 3 skips). One Claude call remains; Codex/Grok calls remain zero.
+
+### 2026-08-24T06:16:17Z — codex
+G5 owner login checkpoint: Claude, Codex, and Grok OAuth/login commands completed sequentially in dedicated homes with the normal proxy environment intact; sanitized doctor reports Claude/Codex signed in, Grok unverified pending its structured probe, and zero conflicts. No model/probe call yet; next action is individually confirmed `doctor --probe`.
+
+### 2026-08-24T06:09:43Z — codex
+G5 proxy correction complete (ADR 0027): new native profiles inherit the trusted terminal/Sing-box proxy unchanged; doctor/runtime/probes share policy, explicit deny stays fail-closed, values remain unrecorded, 392 tests + full credential-free block pass, owner profiles were atomically migrated, and normal-environment no-call doctor reports inherited names with zero conflicts. Paused before owner login; no model call or push.
+
+### 2026-08-24T05:42:20Z — codex
+[auto-checkpoint] Initialized owner-only `~/.agentteam`, validated permissions/schema and sanitized signed-out baseline, then cancelled Claude login (130, no process/model call) after learning the owner's Sing-box proxy variables are intentional; G5 paused for an inherit-vs-deny decision and doctor/inherit parity fix.
+
 ### 2026-08-24T04:46:50Z — codex
 G5 credential-free implementation complete locally: hardened owner-only/atomic profile initialization, sanitized no-call install/auth/readiness diagnostics, sequential TTY-gated probes with individual confirmations and a two-call ceiling, random channel markers, owner-only pending/terminal captures, atomic partial capability persistence, cancellation exit 130, and deterministic fake coverage for primary/fallback/auth/output/error paths. Full block: Ruff lint/format, mypy (97 files), schema reproduction, pytest 385 passed + 3 Ubuntu-skipped Windows-only tests, and wheel/sdist build PASS. No login, credential read, vendor model call, fixture promotion, push, or G6 run occurred; G5 remains open for the owner-attended 3–6 calls.
 

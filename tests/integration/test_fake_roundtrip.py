@@ -58,7 +58,8 @@ async def test_ok_round_trip_produces_a_valid_review(
     # config-home env var reached the child and points inside the write root
     config_var = ctx.profile.environment.config_home_variable
     assert observed["env"][config_var] == str(ctx.config_root)
-    # secrets/etc never leak: only baseline+passthrough+config-home names
+    # Unapproved names never leak; the fake profile also explicitly inherits
+    # standard terminal proxy names when the parent supplied them.
     assert "SECRET_THING" not in observed["env"]
     if rendered.stdin_text is not None:
         assert observed["stdin"] == rendered.stdin_text

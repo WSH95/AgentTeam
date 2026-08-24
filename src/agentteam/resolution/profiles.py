@@ -29,6 +29,7 @@ from agentteam.domain.profile import (
     EnvironmentNamesV1,
     HarnessProfileSetV1,
     HarnessProfileV1,
+    ProxyPolicy,
     Verification,
 )
 
@@ -116,6 +117,11 @@ def seed_default_profiles() -> HarnessProfileSetV1:
                 harness=harness,
                 executable=_EXECUTABLES[harness],
                 config_home=f"vendors/{harness.value}",
+                # A normal AgentTeam profile follows the owner's terminal
+                # network path.  The proxy names remain in `conflicts` so an
+                # owner can switch this profile back to `deny` without also
+                # reconstructing the fail-closed list.
+                proxy_policy=ProxyPolicy.INHERIT,
                 environment=EnvironmentNamesV1(
                     config_home_variable=_CONFIG_HOME_VARS[harness],
                     conflicts=_CONFLICTS[harness] + _PROXY_CONFLICTS,

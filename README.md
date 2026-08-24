@@ -1,8 +1,8 @@
 # AgentTeam
 
 **Status: alpha.** AgentTeam is being built gate by gate from an approved
-plan. The deterministic direct runner and the G5 native-auth preflight/probe
-tooling are implemented; owner-attended live verification is still pending.
+plan. The deterministic direct runner and G5 native-auth preflight/probes are
+complete; the owner-attended G6 live PoC is the next gate.
 There is no released package and interfaces and records are not stable yet.
 
 AgentTeam provides portable, harness-independent **Assistant definitions**
@@ -20,9 +20,9 @@ which remains a source of requirements, experiments, and evidence only.
 | Independent review of the discovery baseline | [`docs/reviews/`](docs/reviews/2026-08-23-m0-review-at-3407ec9.md) | dated record |
 | M1a direct-harness PoC plan, revision r3 | [`docs/plans/m1a-direct-harness-poc.md`](docs/plans/m1a-direct-harness-poc.md) | approved for implementation (DECISIONS 0021) |
 | Project state: charter, plan, decisions, questions, risks, verification, handoff | [`.project-steward/`](.project-steward/) | current |
-| Product CLI, packaging, tests, CI | `pyproject.toml`, [`src/agentteam/`](src/agentteam/), [`tests/`](tests/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | alpha (M1a G5 implementation); validation, profile lifecycle, render-only, and direct runs |
+| Product CLI, packaging, tests, CI | `pyproject.toml`, [`src/agentteam/`](src/agentteam/), [`tests/`](tests/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | alpha (M1a G5 closed); validation, profile lifecycle, render-only, and direct runs |
 | V1 domain records + checked-in JSON Schemas | [`src/agentteam/domain/`](src/agentteam/domain/), [`schemas/`](schemas/README.md) | alpha (M1a G2); closed records, vendor-facing review/synthesis contracts |
-| Claude/Codex/Grok adapters and direct runner | [`src/agentteam/harness/`](src/agentteam/harness/), [`src/agentteam/run/`](src/agentteam/run/) | deterministic fake qualification complete; G5/G6 live evidence pending |
+| Claude/Codex/Grok adapters and direct runner | [`src/agentteam/harness/`](src/agentteam/harness/), [`src/agentteam/run/`](src/agentteam/run/) | deterministic qualification and G5 native-auth/channel probes complete; G6 live PoC pending |
 
 ## Planned stack
 
@@ -72,7 +72,33 @@ uv run atm profile init            # creates owner-only homes and prints login c
 # run each printed vendor login command yourself
 uv run atm profile doctor          # no model call; sanitized install/login/readiness status
 uv run atm profile doctor --probe  # TTY required; confirms each of at most 2 calls/harness
+
+# Deliberately retest all three even when their current evidence is ready:
+uv run atm profile doctor --probe --reprobe-ready \
+  --harness claude-code --harness codex --harness grok
 ```
+
+Normal `--probe` skips profiles whose evidence is already current. `--harness`
+limits calls (it is repeatable, and `claude` aliases `claude-code`), while
+`--reprobe-ready` makes the new assessment authoritative: a failed call can
+downgrade previously verified capability rows. AgentTeam still preflights all
+three installations before the first selected call and prompts on stderr
+immediately before every vendor invocation.
+
+Capability rows are a vendor-specific inventory, not a requirement that every
+fallback be exercised. `verified` means the exact behavior passed under the
+recorded CLI version/time; `observed` means the flag or mechanism is known but
+was not exercised; `unverified` means it has not passed or an assessment did
+not select it. A probe stops when all required behavior and one current channel
+from each fallback ladder pass, so successful primary channels intentionally
+leave unused fallbacks as `observed`.
+
+Profiles created by `profile init` explicitly inherit the standard proxy
+variables already present in the launching terminal (`HTTP_PROXY`,
+`HTTPS_PROXY`, `ALL_PROXY`, and `NO_PROXY`, including lowercase variants).
+The printed login commands set only the dedicated vendor config-home variable;
+they do not unset or replace the terminal's network configuration. An owner can
+set `proxy_policy: deny` explicitly for an isolated profile.
 
 Probe captures remain local under `~/.agentteam/probes/`; AgentTeam never
 reads or copies credential files and never promotes raw captures automatically.

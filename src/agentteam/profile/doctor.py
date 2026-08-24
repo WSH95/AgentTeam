@@ -14,6 +14,10 @@ from agentteam.domain.common import HarnessId
 from agentteam.domain.profile import HarnessProfileV1, Verification
 from agentteam.harness.capabilities import readiness_problems
 from agentteam.harness.diagnostics import capture_cli
+from agentteam.harness.environment import (
+    conflicting_environment_names,
+    inherited_proxy_names,
+)
 from agentteam.resolution.profiles import (
     ProfileError,
     resolve_config_home,
@@ -122,7 +126,8 @@ def _diagnose_one(
     if not executable_resolved:
         problems.append("executable not found")
 
-    conflicts = sorted(name for name in profile.environment.conflicts if name in parent)
+    conflicts = conflicting_environment_names(profile, parent)
+    inherited_proxies = inherited_proxy_names(profile, parent)
     if conflicts:
         invalid = True
         problems.append("conflicting environment variables are set")
@@ -187,6 +192,8 @@ def _diagnose_one(
         "version": version,
         "config_home_exists": home_exists,
         "conflicts_set": conflicts,
+        "proxy_policy": profile.proxy_policy.value,
+        "proxy_names_inherited": inherited_proxies,
         "capabilities": counts,
         "auth": auth_state,
         "auth_state": auth_state,

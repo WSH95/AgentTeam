@@ -38,7 +38,7 @@ def test_managed_lease_cleans_only_the_marked_skill_root(tmp_path: Path) -> None
 
     precious.unlink()
     with ManagedSkillsLease(home):
-        (skills / MARKER).write_text("managed\n", encoding="utf-8")
+        assert (skills / MARKER).read_text(encoding="utf-8").startswith("written by agentteam")
         generated = skills / "generated"
         generated.mkdir()
         (generated / "SKILL.md").write_text("generated\n", encoding="utf-8")

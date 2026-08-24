@@ -4,23 +4,138 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
-## G5 deterministic implementation verification — 2026-08-24 (live gate open)
+## G5 deterministic and owner-host verification — 2026-08-24 (gate closed)
 
 | Check | Result |
 | --- | --- |
-| Credential-free block | PASS — `ruff check .`; `ruff format --check .` (101 files); strict `mypy src tests` (97 files); `pytest -q --tb=short` (**385 passed, 3 Windows-only skips on Ubuntu**); `python -m agentteam.schema check`; `uv build` produced `agentteam-0.1.0a0` wheel + sdist; `git diff --check` clean |
+| Credential-free block | PASS — `ruff check .`; `ruff format --check .` (101 files); strict `mypy src tests` (97 files); `pytest -q --tb=short` (**404 passed, 3 Windows-only skips on Ubuntu**); `python -m agentteam.schema check`; `uv build` produced `agentteam-0.1.0a0` wheel + sdist; `git diff --check` clean |
 | Profile initialization | PASS deterministically — refuses overwrite/symlinked homes/unmarked nonempty Claude Skill roots and existing vendor configs; creates profile/vendor/Skill directories 0700 and files 0600 on POSIX; profile writes are atomic; Codex is seeded for file-backed ChatGPT-only login, Grok compatibility discovery is disabled, and POSIX/PowerShell login commands are tested |
 | No-call doctor | PASS deterministically — executable/version/home/expected-version/help-flag/conflict checks, sanitized Claude/Codex auth status parsing, Grok probe-only auth, names-only JSON, no profile mutation, and exit 1 vs 2 paths are covered |
-| Attended probes | PASS against stdlib-only fakes — all harnesses preflight before any call; TTY required; confirmation immediately precedes each invocation; profile order and ≤2 calls/harness enforced; prompt decline/Ctrl-C → 130; primary/fallback markers, signed-out/missing flags, malformed output, timeout, Codex `-o` vs JSONL disagreement, both Grok output locations, partial evidence, and two-call exhaustion are covered |
-| Persistence and runtime integration | PASS — captures are pending-first then terminal under owner-only `probes/YYYY-MM-DD/<id>/...`, with redacted command, raw streams/output, hashes, and sanitized result; assessed rows update atomically without disturbing owner settings or never-assessed rows; live runs require current version-bound verified native-auth/channels and persistent homes; render-only remains synthetic; Claude config-home Skills hold an exclusive managed lease through invocation and clean in `finally` |
+| Attended probes | PASS against stdlib-only fakes — all harnesses preflight before any call; TTY required; confirmation immediately precedes each invocation; profile order and ≤2 calls/harness enforced; prompt decline/Ctrl-C → 130; primary/fallback markers, signed-out/missing flags, malformed output, timeout, Codex `-o` vs JSONL disagreement, Grok camel/snake structured fields and JSON-in-`text`, bare-`-p` rejection, explicit Skill references, partial evidence, and two-call exhaustion are covered. Selectable authoritative re-probes additionally cover aliases/duplicates, invalid option combinations, `not-selected`/`already-ready`, all-three/default selection, forced evidence downgrade, partial cancellation, and profile-order execution independent of flag order |
+| Persistence and runtime integration | PASS — captures are pending-first then terminal under owner-only `probes/YYYY-MM-DD/<id>/...`, with redacted command, raw streams/output, hashes, and sanitized result; assessed rows update atomically without disturbing owner settings or never-assessed rows; live runs require current version-bound verified native-auth/channels and persistent homes; render-only remains synthetic; Claude config-home Skills hold an exclusive managed lease through invocation, immediately mark an accepted empty root, preserve unmanaged content, and clean managed payload in `finally` |
+| Terminal proxy correction | PASS — `profile init` seeds explicit `inherit`; all present standard uppercase/lowercase proxy names pass unchanged through diagnostics, probes, and live environments independently of custom conflict lists; explicit `deny` rejects them; API/base/provider conflicts stay fail-closed; doctor and captures report names only. Regression coverage includes `NO_PROXY`, doctor exit paths, probe capture redaction, and live preflight. |
 | Build note | PASS after the sandboxed isolated build could not fetch a missing Hatchling requirement; the explicitly approved `uv build` rerun with dependency-network access succeeded. No package was published. |
-| Boundary | PASS — tests invoke deterministic local fakes only. This session made no vendor login, credential-file read/copy, vendor model call, live fixture promotion, remote push, or G6 run. G5 remains open until the owner completes the dedicated logins and 3–6 individually confirmed probes, reviews captures, and records actual versions/channels. |
+| Boundary | PASS — deterministic tests invoke local fakes only; owner-host calls were separately attended and captured. No credential file or proxy value was read/copied, no API-key/CI call or G6 run occurred, and nothing was pushed. The final all-three reassessment passed and closes G5; G6 remains a separate owner-attended gate. |
 
 The runtime/profile boundary is committed as `549804f`; the profile lifecycle
-and bounded probe boundary is the next local semantic commit. Neither commit
-has been pushed in this session.
+and bounded probe boundary is committed as `695a4a4`. The commit carrying this
+verification records the proxy correction, live-found recipe fixes, and
+authoritative re-probe extension. None has been pushed in this session.
 
-Last verified: 2026-08-24 by Codex (credential-free; deterministic fakes only).
+Owner-host pre-login checkpoint (2026-08-24): PASS for profile schema and
+0700/0600 permissions; actual versions Claude 2.1.241, Codex 0.149.1, Grok
+1.0.5 (5115b46bc9); sanitized doctor found no binary/home/flag issue and the
+expected signed-out/unverified state when proxy names were omitted. This does
+**not** validate the live network policy: the owner uses Sing-box intentionally,
+so authentication is paused until proxy inheritance is decided and doctor
+honors that policy. The Claude login command was cancelled with exit 130; no
+probe/model call or credential-file inspection occurred.
+
+Owner-host proxy-correction checkpoint (2026-08-24): PASS. The owner selected
+trusted terminal/Sing-box inheritance (ADR 0027); the three existing profile
+rows were changed atomically from `deny` to `inherit` with all other fields
+asserted unchanged and mode retained as 0600. No-call doctor ran in the normal
+environment and reported the six present standard uppercase/lowercase proxy
+names (including `NO_PROXY`/`no_proxy`) as inherited, `conflicts_set: []` for
+all three harnesses, healthy executable/version/home/flag checks, Claude/Codex
+signed out, and Grok unverified. Exit 1 is expected until login/probes; no
+credential file, proxy value, vendor model, or probe call was read or invoked.
+
+Owner-host login checkpoint (2026-08-24): PASS. The owner completed the
+printed Claude, Codex, and Grok native-login commands sequentially in their
+dedicated config homes with the normal proxy environment intact. Sanitized
+post-login doctor reports Claude and Codex `signed-in`, Grok `unverified` as
+designed until a structured probe, `conflicts_set: []`, and the same six
+inherited proxy names for every harness. Exit 1 is readiness-only. AgentTeam
+did not inspect credential files; no probe/model call occurred at this
+checkpoint.
+
+Owner-host Claude probe checkpoint (2026-08-24): FAIL, safely bounded. Call 1
+under capture `probe-20260824T061711Z-971ee2af` ran for 180.64 seconds, emitted
+zero-byte stdout/stderr/output, timed out, and was tree-killed (`SIGKILL`). Its
+five assessed capability rows are current-version `unverified`; call 2 was
+declined during diagnosis and the command exited 130, so Codex/Grok made zero
+calls. Sanitized evidence showed `Skill` missing from Claude's `allowedTools`
+despite a prompt requiring Skill invocation under `dontAsk`. ADR 0028 fixes
+this in probe/live recipes and makes the fake withhold Skill markers unless
+permission is present. Post-fix full block: Ruff/format, strict mypy, schemas,
+build, **392 passed + 3 skips**. Anthropic `/v1/messages` credential-free GET
+through the inherited proxy returned HTTP 405 in 1.13s, ruling out a generally
+broken HTTPS route; no response body or proxy/credential value was captured.
+The one remaining Claude invocation was reserved until the fix passed the full
+credential-free block.
+
+Owner-host attended continuation checkpoint (2026-08-24): PARTIAL PASS; G5
+remains open. Capture `probe-20260824T063407Z-53c52838` used Claude's second
+and final actual invocation: exit 0 in 174.77s and all five rows verified
+(`headless-json`, `structured-output`, `native-auth`,
+`append-system-prompt-file`, `skills-config-home`). Codex call 1 exited 0 in
+25.79s and verified all seven rows, including authoritative `-o`, schema,
+workspace Skill, JSONL, and matching final agent-message telemetry. Grok's
+first confirmed invocation exited 2 in 44ms before model dispatch because the
+recipe supplied bare `-p` before `--prompt-file`; the captured stderr states
+that `--single <PROMPT>` requires a value. The owner declined the offered
+fallback, preserving prior results and exit 130.
+
+After removing bare `-p` from probe and live argv, Grok's second/final
+confirmed invocation under `probe-20260824T064233Z-139f93bd` exited 0 in
+12.36s. It verified native auth, prompt-file headless mode, `--rules`,
+structured output, and JSON encoded in `text` (six current rows total). The
+response reproduced the random instruction marker but supplied two invented,
+wrong-length Skill-like values. A credential-free `grok inspect --json` in the
+preserved probe workspace independently listed both intended Skills as enabled,
+user-invocable project sources at `.grok/skills/.../SKILL.md` and
+`.agents/skills/.../SKILL.md`; discovery therefore worked, but body delivery
+did not. The owner declined the next displayed prompt because it would have
+been Grok's third confirmed invocation. Final no-call doctor: Claude ready
+(5 verified), Codex ready (7), Grok auth `verified-by-probe` with 6 verified / 3
+unverified and exactly one readiness problem — no verified Skill channel.
+
+Capture review and fixture promotion (2026-08-24): PASS with sanitization.
+All three capture roots are 0700, manifests are 0600, and every recorded
+artifact SHA-256 recomputes. The Claude result envelope, Codex command-event +
+final-message JSONL shape, and Grok camelCase `structuredOutput` envelope were
+manually reconciled into parser fixtures. Identifiers, prompts, random markers,
+commands, reasoning, model names, and usage/cost values are synthetic; raw
+captures remain outside git. Post-promotion parser tests pass, and the full
+credential-free block remains 392 passed + 3 expected skips. ADR 0029 records
+the stop decision and the implementation correction. G6 is prohibited.
+
+Owner-approved corrected Grok checkpoint (2026-08-24): PASS. Capture
+`probe-20260824T070542Z-60bf6738` call 1 exited 0 in 16.562 seconds. Its
+sanitized result assessed nine rows and verified eight required rows:
+headless JSON, native auth, prompt file, rules instructions, both independent
+workspace Skill paths, structured output, and the field output location.
+JSON-in-`text` is the sole unverified alternative. Manifest/artifact files are
+0600 and the result is terminal; raw streams remain owner-only and unpromoted.
+No-call readiness is now Claude 5, Codex 7, and Grok 8 verified required rows.
+
+Selectable authoritative re-probe checkpoint (2026-08-24): PASS
+deterministically. Normal `--probe` still performs zero calls for ready
+profiles. `--reprobe-ready` plus repeatable `--harness` can reassess selected
+ready profiles in profile order; nonselected rows remain explicit, all three
+still preflight, and assessed failure replaces current evidence atomically.
+Focused suites passed 37 tests; the final full block passed Ruff/format, strict
+mypy, schema reproduction, **404 tests + 3 expected Windows skips**, wheel and
+sdist build, and `git diff --check`. At that checkpoint, the owner-attended
+all-three capture was the only remaining G5 item; no G6 run had occurred.
+
+Final authoritative all-three checkpoint (2026-08-24): PASS; **G5 closed**.
+Capture `probe-20260824T075919Z-1edf636a` used one call per harness and no
+fallback calls. Claude Code 2.1.241 passed in 10.363 seconds and verified its
+five primary rows; Codex 0.149.1 passed in 20.490 seconds and verified seven
+rows, including authoritative `-o` and matching JSONL telemetry; Grok 1.0.5
+passed in 17.195 seconds and verified eight required rows, both Skill bodies,
+and field structured output. All three manifests are terminal with exit 0;
+all recorded artifact hashes recompute (`0` mismatches); every capture
+directory is 0700 and file 0600. Sanitized no-call doctor exits 0: Claude
+5 verified / 3 observed, Codex 7 / 2, Grok 8 / 1 observed / 1 unverified;
+all are ready with no conflicts, missing flags, version mismatch, staleness, or
+readiness problem. The non-verified rows are unused fallback inventory and do
+not weaken the proven primary paths. No raw capture was tracked, no credential
+or proxy value was read, and G6 was not invoked (ADR 0031).
+
+Last verified: 2026-08-24 by Codex (credential-free fakes + attended owner-host G5 probes).
 
 ## G4 evidence — 2026-08-23 (gate closed)
 

@@ -1,116 +1,112 @@
 ---
-updated_at: 2026-08-24T04:46:50Z
+updated_at: 2026-08-24T08:28:46Z
 updated_by: codex
 session_status: active
 branch: main
-last_commit: 549804f
+last_commit: 695a4a4
 ---
 # Handoff
 
 ## Now
 
-**M1a G5's credential-free implementation is complete locally; G5 itself is
-OPEN for owner-attended login/probe evidence.** G1–G4 are closed. The public
-remote remains at the last approved G4 push; this session has not pushed.
+**M1a G5 is closed; G6 is the next gate and has not started.** G1–G4 were
+already closed. The commit carrying this handoff records the complete G5
+boundary locally; nothing has been pushed.
 
-Two local semantic boundaries implement the supplied G5 plan:
+The owner profiles use dedicated persistent native-auth homes and inherit the
+normal terminal/Sing-box proxy variables unchanged. Actual versions are Claude
+Code 2.1.241, Codex 0.149.1, and Grok 1.0.5. Final authoritative capture
+`probe-20260824T075919Z-1edf636a` contains exactly one successful call per
+harness and no fallback calls:
 
-- `549804f fix(run): enforce authenticated homes and readiness` — live runs
-  resolve the persistent profile vendor homes; render-only stays synthetic;
-  current version-bound `verified` rows gate live calls; adapters use fixed
-  verified-only channel ladders; Claude config-home Skills use an exclusive
-  marked-directory lease held through invocation and cleaned in `finally`.
-- The feature boundary carrying this handoff — secure/atomic owner-only
-  `profile init`; correct Claude/Codex/Grok login commands and safe seed
-  configs; sanitized no-call install/auth/readiness doctor; TTY-gated
-  sequential `doctor --probe`; one confirmation per invocation, two-call
-  ceiling, random instruction/Skill markers, primary/fallback recipes,
-  owner-only pending/terminal captures, and atomic partial capability-row
-  updates. The shared shell-free process runner now polls Popen pipes/process
-  state rather than relying on a flaky sandbox child watcher.
+- Claude passed in 10.363 seconds with five verified primary rows.
+- Codex passed in 20.490 seconds with seven verified rows, including
+  authoritative output-file and matching final JSONL telemetry.
+- Grok passed in 17.195 seconds with eight required verified rows, both Skill
+  body markers, and the field structured-output location.
 
-Credential-free validation is green: Ruff lint/format, strict mypy (97 files),
-schema reproduction, **385 passed + 3 Ubuntu-skipped Windows-only tests**, and
-wheel/sdist build. Exact evidence is in VERIFY "G5 deterministic
-implementation verification". No vendor login, credential read/copy, model
-call, live fixture promotion, G6 run, or push occurred.
+All artifact hashes recompute with zero mismatches; capture directories are
+0700 and files 0600. Sanitized no-call doctor exits 0 with all three profiles
+ready, no conflicts, no missing flags, no version mismatch or staleness, and
+no readiness problems. Capability inventory still includes unused fallbacks:
+Claude has 3 `observed`, Codex 2, and Grok 1 `observed` plus the unselected
+JSON-in-`text` alternative `unverified`. This is intentional: readiness needs
+the required base plus one current verified channel per ladder, not exhaustive
+proof of every fallback (ADR 0031).
+
+The implementation includes secure/atomic profile initialization, terminal
+proxy inheritance with explicit-deny support, sanitized diagnostics,
+TTY-gated sequential bounded probes, owner-only captures, partial atomic
+evidence updates, persistent authenticated homes for live runs, verified-only
+adapter ladders, a safe exclusive Claude Skill lease, corrected Grok argv and
+output parsing, and selectable authoritative `--reprobe-ready`.
+
+Credential-free verification is green: Ruff lint/format, strict mypy (97
+files), schema reproduction, **404 passed + 3 expected Windows-only skips**,
+wheel/sdist build, and `git diff --check`. Reviewed sanitized vendor envelope
+fixtures are tracked; raw captures remain outside git. No credential file or
+proxy value was read/copied, and no API-key/CI model call, G6 run, push, or
+package publication occurred.
 
 ## In flight
 
-Only the owner-attended portion of G5 remains. The feature boundary containing
-this handoff is local; each push still requires its own explicit owner
-approval. G6 is prohibited until all required probe rows are current and
-verified.
+No process is running. G5 has no remaining item. G6 requires a fresh explicit
+owner-attended execution decision; closing G5 does not start it automatically.
 
 ## Next steps
 
-1. Review the local G5 commits/diff. Do not push unless the owner separately
-   approves that push.
-2. On the owner host, run `uv run atm profile init` (default
-   `~/.agentteam/profiles.yaml`; init refuses overwrite) and run each printed
-   command yourself: `claude auth login`, `codex login`, and
-   `grok login --oauth`, each with its dedicated config-home variable already
-   rendered in the printed command. AgentTeam never opens a browser or reads
-   credential files.
-3. Run `uv run atm profile doctor`. An exit 1 for unprobed readiness rows is
-   expected after successful login; exit 2 means invalid/unsafe config and
-   must be fixed before any probe.
-4. Run `uv run atm profile doctor --probe` from a TTY. Confirm each vendor call
-   individually. Normal budget is three calls; fallbacks can raise the total
-   to six, never more than two per harness. Decline/Ctrl-C exits 130 and keeps
-   completed evidence.
-5. Review raw owner-only captures under
-   `~/.agentteam/probes/YYYY-MM-DD/<probe-id>/`. Promote only manually
-   sanitized representative Claude/Codex/Grok parser fixtures, then rerun the
-   credential-free block and record actual CLI versions, channels, output
-   locations, call counts, and sanitization in PLAN/VERIFY/DECISIONS/PROGRESS.
-   Close G5 only when every required readiness row passes.
-6. Start G6 only after G5 closes: `uv run atm run
-   examples/run-requests/live-review.yaml`, under the separately confirmed
-   acceptance-cycle budget and stop rules.
+1. Review the local G5 closure commit and worktree status. Do not push unless
+   the owner separately approves that push.
+2. Before G6, review the exact live-PoC command, four-call normal path (three
+   independent legs plus fresh Claude synthesis), retry ceiling, stop rules,
+   workspace/output targets, and expected evidence. Obtain explicit owner
+   confirmation immediately before execution.
+3. Only after that confirmation, run `uv run atm run
+   examples/run-requests/live-review.yaml` from the repository in the normal
+   proxy environment. G6 remains bounded by the approved M1a call/time budget
+   and never starts a second cycle automatically.
+4. Review the owner-only G6 archive, promote only manually sanitized evidence,
+   rerun the credential-free block, and close G6 only if both mechanical and
+   semantic acceptance tiers pass. Otherwise retain the failure and stop.
 
 ## Blockers
 
-- The dedicated vendor logins and 3–6 model calls require the owner at a TTY.
-- No deterministic/code blocker remains for G5.
+- None for G5. G6 is intentionally waiting for its explicit owner-attended
+  execution confirmation and pre-run review.
 
 ## Key files
 
-- `src/agentteam/profile/{setup,doctor,probe,capture}.py` and
-  `src/agentteam/commands/profile.py` — G5 lifecycle and CLI.
-- `src/agentteam/run/preflight.py`, `src/agentteam/run/runner.py`,
-  `src/agentteam/harness/{capabilities,skills,process}.py` — live readiness,
-  persistent homes, lease, and process handling.
-- `tests/integration/test_profile_probe.py`,
-  `tests/integration/test_cli_profile.py`, `tests/unit/test_profile_setup.py`,
-  `tests/unit/test_probe_capture.py`, and `fixtures/fake-harness/` —
-  credential-free matrix.
-- `docs/plans/m1a-direct-harness-poc.md` §11/§13/§14; VERIFY "G5
-  deterministic implementation verification"; DECISIONS 0026.
+- `src/agentteam/commands/profile.py` and
+  `src/agentteam/profile/{setup,doctor,probe,capture}.py` — G5 lifecycle and
+  authoritative reassessment.
+- `src/agentteam/harness/{environment,skills,claude,codex,grok}.py` — native
+  environment and verified channel selection.
+- `src/agentteam/run/` and `examples/run-requests/live-review.yaml` — the
+  already implemented but not-yet-executed G6 path.
+- PLAN G5/G6, VERIFY G5, DECISIONS 0026–0031, and RISKS R21/R27/R31/R33.
 
 ## Tried and rejected
 
-- No automatic login/browser launch, API-key fallback, credential copying,
-  hidden retry, model substitution, synthesis, or automatic fixture promotion
-  is allowed in probes.
-- Do not use stale/observed/unverified capability rows for a live run; rerun
-  doctor/probes after a CLI version change.
-- Do not use an unmarked nonempty Claude Skill directory. The managed
-  config-home channel is leased cross-process and only managed payload is
-  cleaned.
-- The original asyncio child-watcher path intermittently hung on short-lived
-  fake children in this sandbox; Popen + nonblocking polling passed the full
-  deterministic suite while preserving shell-free/tree-kill semantics.
+- Never unset the owner's proxy variables; Sing-box is intentional network
+  infrastructure. Explicit `proxy_policy: deny` remains opt-in.
+- Help flags or Skill discovery alone do not verify behavior; only exact
+  random markers under the AgentTeam runner upgrade a row.
+- Bare Grok `-p` plus `--prompt-file` is invalid in 1.0.5; use the corrected
+  prompt-file recipe and explicit Skill slash names.
+- Do not require every fallback capability to become verified. Doing so would
+  spend calls without improving current-path readiness and would confuse
+  advertised alternatives with the selected runtime contract.
+- No automatic login/browser launch, API-key fallback, hidden retry, model
+  substitution, or raw-capture promotion is allowed.
 
 ## Warnings
 
-- Raw probe stdout/stderr may contain sensitive workspace/vendor material even
-  though directories are owner-only. Never add or publish raw captures.
-- G5 live claims are Ubuntu owner-host claims only. Hosted CI stays fake and
-  credential-free; the revised runner still needs the next pushed Windows CI
-  evidence.
-- The checked-in fake profile uses disposable persistent homes created by the
-  pytest session fixture; run the test suite as one pytest process so parallel
-  pytest sessions do not race that shared fixture root.
-- Editing `examples/assistants/code-reviewer/` changes the pinned package hash;
-  changing fake findings can invalidate fixture/oracle line coupling.
+- Raw probe/run streams can contain vendor/workspace material. Keep
+  `~/.agentteam/` owner-only and never add or publish raw captures.
+- Capability evidence is version-bound. Any CLI version change makes current
+  readiness stale and requires doctor/probe reassessment before another live
+  run.
+- G5 claims are Ubuntu owner-host claims only. Hosted CI remains fake and
+  credential-free; Windows/macOS prove deterministic plumbing only.
+- Commit permission does not imply push permission. Every push remains a
+  separate explicit owner decision.

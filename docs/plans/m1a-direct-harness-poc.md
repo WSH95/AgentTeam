@@ -288,10 +288,16 @@ entry records the executable, expected version/capabilities, dedicated vendor
 config home, native-subscription auth mode, optional local model/effort
 defaults and mappings, timeouts, proxy policy, and environment-variable names
 only. Each capability row carries `verification: verified|observed|unverified`
-(verified = behaviour observed under the AgentTeam runner; observed = flag
-present in `--help` or documentation only) plus `cli_version` and
-`verified_at`; `atm profile doctor --probe` updates them. A later `api_test`
-profile kind remains structurally possible but is rejected by the M1a runner.
+(verified = behaviour passed under the AgentTeam runner and recorded CLI
+version/time; observed = flag present in `--help` or documentation but not
+behaviorally assessed; unverified = not yet passed or assessed false) plus
+`cli_version` and `verified_at`; `atm profile doctor --probe` updates only the
+assessed rows. Capability names remain vendor-specific because they record the
+concrete adapter mechanism. Readiness requires every base capability and one
+current verified member of each instruction/Skill/output ladder, not every
+fallback. A successful primary call therefore stops without spending a second
+call merely to promote unused fallbacks. A later `api_test` profile kind
+remains structurally possible but is rejected by the M1a runner.
 
 `RunRequestV1` contains the Assistant path, the reserved `overlay_refs`,
 workspace/task paths, `mode: direct`, the requested harnesses (unique; when
@@ -356,7 +362,10 @@ fails if any changed.
 atm assistant validate <package> [--strict-content] [--json]
 atm profile init [--config <path>] [--json]
 atm profile validate [--config <path>] [--json]
-atm profile doctor [--config <path>] [--probe] [--json]
+atm profile doctor [--config <path>] [--probe]
+  [--harness <claude-code|codex|grok>]...
+  [--reprobe-ready]
+  [--json]
 atm run [<request.yaml|request.json>]
   [--assistant <package>]
   [--workspace <path>]
@@ -380,7 +389,13 @@ the run is solo (`decided_by: assistant`); otherwise the user's choice wins
 (`decided_by: user`). `claude` is accepted as an alias of `claude-code`.
 `assistant validate --json` includes the package hash. `profile doctor --probe`
 runs the bounded probes of section 11 and records verification levels; without
-it, doctor reports sanitized status and flag presence only. `--render-only`
+it, doctor reports sanitized status and flag presence only. Ready profiles are
+skipped unless `--reprobe-ready` is explicit. A repeatable `--harness` limits
+the invocation set (`claude` aliases `claude-code`), but all three native
+profiles are preflighted before any call and selected profiles run in profile
+order. A forced assessment is authoritative, so assessed failures downgrade
+current evidence; nonselected rows report `probe.status: not-selected`.
+`--harness` and `--reprobe-ready` are invalid without `--probe`. `--render-only`
 writes the rendered invocations for inspection without launching anything.
 
 Multiline/user-controlled content travels by file or stdin, never a shell
@@ -503,7 +518,11 @@ otherwise the vendor error is recorded with no harness fallback.
 The owner performs interactive login in dedicated AgentTeam config homes.
 `atm profile init` creates non-secret directories/config and prints login
 instructions; it never automates a browser or copies a credential store.
-`profile doctor` exposes only allowlisted status fields.
+The standard profiles explicitly inherit the launching terminal's standard
+proxy variables unchanged, including `NO_PROXY`; the login commands set only
+the dedicated config-home variable. `proxy_policy: deny` remains an explicit
+fail-closed option. `profile doctor` exposes only allowlisted status fields and
+proxy-variable names, never values.
 
 Each native run starts from a minimal cross-platform environment allowlist,
 sets the selected config-home variable, records names only, and fails closed
@@ -529,7 +548,9 @@ Harness isolation remains:
 - Claude Code: `-p`, `--no-session-persistence`, an isolated `CLAUDE_CONFIG_DIR`
   that contains only what AgentTeam writes, `--setting-sources user` (that
   isolated home only — no workspace settings), `--strict-mcp-config` with an
-  AgentTeam-written empty `--mcp-config`, explicit tool restriction
+  AgentTeam-written empty `--mcp-config`, explicit tool restriction (including
+  pre-approval of Claude's built-in `Skill` loader while write/shell/web tools
+  remain denied)
   (`--tools`/`--allowedTools`/`--disallowedTools` with `--permission-mode`),
   instructions by file (`--append-system-prompt-file` — present in the binary
   but not in `--help`, so verified by the G5 probe; fallback
@@ -546,11 +567,16 @@ Harness isolation remains:
   instructions — a quality risk), `developer_instructions` (appends, but is
   argv-inline or config), then workspace `AGENTS.md` (a valid fallback channel).
 - Grok Build: isolated `GROK_HOME`, memory and subagents disabled, read-only
-  sandbox, file-delivered definition (`--rules` appends;
+  sandbox, `--prompt-file` as the single-turn entry (never a bare `-p`, whose
+  `--single <PROMPT>` contract requires a value), file-delivered definition
+  (`--rules` appends;
   `--system-prompt-override` replaces the default system prompt and is used
-  only if appending fails), `--json-schema` structured output; other controls
-  (for example leader mode or web search) are disabled only if the probe shows
-  they exist; active authentication stays `unverified` until a successful
+  only if appending fails), explicit slash-name references for discovered
+  Skills, and `--json-schema` structured output. Both observed field spellings
+  (`structuredOutput` and `structured_output`) map to the same verified field
+  channel; JSON encoded in `text` remains the fallback. Other controls (for
+  example leader mode or web search) are disabled only if the probe shows they
+  exist; active authentication stays `unverified` until a successful
   structured G5 probe because Grok has no status command.
 
 Day-one probes at G5: one trivial structured-output prompt per harness that

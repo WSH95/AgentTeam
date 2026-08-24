@@ -66,6 +66,7 @@ class ManagedSkillsLease:
             raise RenderError(f"cannot acquire Claude Skill lease: {error}") from None
         try:
             _require_managed_or_empty(self.channel_root)
+            _mark_managed(self.channel_root, platform=self.platform)
         except BaseException:
             self.close()
             raise
@@ -104,7 +105,9 @@ class ManagedSkillsLease:
 
 
 def _require_managed_or_empty(channel_root: Path) -> None:
-    if channel_root.exists() and not (channel_root / MARKER).is_file():
+    marker = channel_root / MARKER
+    marked = marker.is_file() and not marker.is_symlink()
+    if channel_root.exists() and not marked:
         try:
             occupied = any(channel_root.iterdir())
         except OSError as error:
@@ -115,9 +118,31 @@ def _require_managed_or_empty(channel_root: Path) -> None:
             )
 
 
+def _mark_managed(channel_root: Path, *, platform: str) -> None:
+    channel_root.mkdir(parents=True, exist_ok=True)
+    if platform != "win32":
+        with contextlib.suppress(OSError):
+            channel_root.chmod(0o700)
+    marker = channel_root / MARKER
+    if marker.is_file() and not marker.is_symlink():
+        return
+    flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    fd = os.open(marker, flags, 0o600)
+    try:
+        os.write(fd, b"written by agentteam; safe to delete\n")
+        os.fsync(fd)
+        if platform != "win32":
+            os.fchmod(fd, 0o600)
+    finally:
+        os.close(fd)
+
+
 def _clean_managed(channel_root: Path) -> None:
     """Remove only content beneath a directory carrying our ownership marker."""
-    if not channel_root.is_dir() or not (channel_root / MARKER).is_file():
+    marker = channel_root / MARKER
+    if not channel_root.is_dir() or not marker.is_file() or marker.is_symlink():
         return
     for child in channel_root.iterdir():
         if child.name == MARKER:

@@ -16,7 +16,8 @@ from typer.testing import CliRunner
 
 from agentteam.cli import app
 from agentteam.domain.common import HarnessId
-from agentteam.domain.profile import CapabilityRecordV1, Verification
+from agentteam.domain.profile import CapabilityRecordV1, ProxyPolicy, Verification
+from agentteam.harness.skills import MARKER
 from agentteam.profile.probe import _PROBE_SCHEMA, _TASK, ProbeCancelled, run_attended_probes
 from agentteam.resolution.profiles import (
     load_profile_set,
@@ -57,6 +58,7 @@ def _profile_path(tmp_path: Path, *, timeout: int = 10) -> Path:
                 update={
                     "executable": str(executable),
                     "config_home": f"vendors/{profile.harness.value}",
+                    "proxy_policy": ProxyPolicy.INHERIT,
                     "capabilities": capabilities,
                     "model_defaults": profile.model_defaults.model_copy(
                         update={"model": "owner-model", "effort": "owner-effort"}
@@ -80,7 +82,13 @@ def _environment(mode: str = "ok") -> dict[str, str]:
     }
 
 
-def _run(path: Path, *, mode: str = "ok") -> tuple[Any, list[tuple[str, int]]]:
+def _run(
+    path: Path,
+    *,
+    mode: str = "ok",
+    selected_harnesses: frozenset[HarnessId] | None = None,
+    reprobe_ready: bool = False,
+) -> tuple[Any, list[tuple[str, int]]]:
     profiles = load_profile_set(path).profiles
     confirmations: list[tuple[str, int]] = []
 
@@ -94,6 +102,8 @@ def _run(path: Path, *, mode: str = "ok") -> tuple[Any, list[tuple[str, int]]]:
         versions=VERSIONS,
         environ=_environment(mode),
         confirm=confirm,
+        selected_harnesses=selected_harnesses,
+        reprobe_ready=reprobe_ready,
     )
     return result, confirmations
 
@@ -146,11 +156,36 @@ def test_primary_probes_pass_in_three_calls_and_write_terminal_captures(
         assert "ATM_INSTRUCTION_" not in command
         assert "ATM_SKILL_" not in command
         assert "agentteam-probe-sensitive-home" not in command
+        if harness == "claude-code":
+            assert "Read,Grep,Glob,LS,Skill" in command
+        if harness == "grok":
+            redacted = json.loads(command)
+            assert "-p" not in redacted["argv_redacted"]
+            assert "--prompt-file" in redacted["argv_redacted"]
         if sys.platform != "win32":
             assert stat.S_IMODE(call.stat().st_mode) == 0o700
             for file in call.iterdir():
                 if file.is_file():
                     assert stat.S_IMODE(file.stat().st_mode) == 0o600
+
+
+def test_probe_inherits_proxy_but_records_only_its_name(tmp_path: Path) -> None:
+    path = _profile_path(tmp_path)
+    proxy_value = "http://sensitive-probe-proxy.invalid"
+    result = run_attended_probes(
+        load_profile_set(path).profiles,
+        profile_path=path,
+        versions=VERSIONS,
+        environ={**_environment(), "HTTP_PROXY": proxy_value, "NO_PROXY": "localhost"},
+        confirm=lambda _h, _c, _d: True,
+    )
+    capture = next((tmp_path / "probes").glob(f"*/{result.capture_id}"))
+    for command_path in capture.glob("*/call-1/command.redacted.json"):
+        command = json.loads(command_path.read_text())
+        assert {"HTTP_PROXY", "NO_PROXY"}.issubset(command["environment_names"])
+    for artifact in capture.rglob("*"):
+        if artifact.is_file():
+            assert proxy_value not in artifact.read_text(encoding="utf-8", errors="replace")
 
 
 def test_fallback_mode_uses_exactly_two_calls_and_verifies_fallback_ladders(
@@ -302,6 +337,146 @@ def test_decline_makes_zero_calls_and_partial_cancellation_preserves_prior_rows(
     assert _rows(path, HarnessId.CODEX)["native-auth"].verified_at is None
 
 
+def test_ready_profiles_skip_by_default_and_selected_forced_probes_follow_profile_order(
+    tmp_path: Path,
+) -> None:
+    path = _profile_path(tmp_path)
+    first, _confirmations = _run(path)
+    captures_before = set((tmp_path / "probes").glob("*/*"))
+
+    skipped, skipped_confirmations = _run(path)
+    assert skipped.all_ready is True
+    assert skipped.capture_id is None
+    assert skipped_confirmations == []
+    assert all(row.status == "already-ready" for row in skipped.by_harness.values())
+    assert set((tmp_path / "probes").glob("*/*")) == captures_before
+
+    selected = frozenset({HarnessId.CODEX, HarnessId.CLAUDE_CODE})
+    selected_skipped, selected_skip_confirmations = _run(
+        path,
+        selected_harnesses=selected,
+    )
+    assert selected_skip_confirmations == []
+    assert selected_skipped.by_harness[HarnessId.CLAUDE_CODE].status == "already-ready"
+    assert selected_skipped.by_harness[HarnessId.CODEX].status == "already-ready"
+    assert selected_skipped.by_harness[HarnessId.GROK].status == "not-selected"
+    codex_before = _rows(path, HarnessId.CODEX)["native-auth"].verified_at
+    assert codex_before is not None
+
+    forced, forced_confirmations = _run(
+        path,
+        selected_harnesses=selected,
+        reprobe_ready=True,
+    )
+    assert forced.all_ready is True
+    assert forced.capture_id is not None and forced.capture_id != first.capture_id
+    assert forced_confirmations == [("claude-code", 1), ("codex", 1)]
+    claude = forced.by_harness[HarnessId.CLAUDE_CODE]
+    assert claude.status == "passed"
+    assert claude.calls_used == 1
+    assert claude.capture_id == forced.capture_id
+    assert claude.profile_updated is True
+    assert forced.by_harness[HarnessId.CODEX].capture_id == forced.capture_id
+    codex_after = _rows(path, HarnessId.CODEX)["native-auth"].verified_at
+    assert codex_after is not None and codex_after > codex_before
+    assert forced.by_harness[HarnessId.GROK].status == "not-selected"
+    assert forced.by_harness[HarnessId.GROK].calls_used == 0
+    assert forced.by_harness[HarnessId.GROK].capture_id is None
+
+
+def test_forced_probe_failure_downgrades_current_evidence_and_uses_two_calls(
+    tmp_path: Path,
+) -> None:
+    path = _profile_path(tmp_path)
+    _run(path)
+    before = _rows(path, HarnessId.CLAUDE_CODE)["skills-config-home"]
+    descriptions: list[str] = []
+
+    def confirm(_harness: HarnessId, _call: int, description: str) -> bool:
+        descriptions.append(description)
+        return True
+
+    result = run_attended_probes(
+        load_profile_set(path).profiles,
+        profile_path=path,
+        versions=VERSIONS,
+        environ=_environment("missing-skill"),
+        confirm=confirm,
+        selected_harnesses=frozenset({HarnessId.CLAUDE_CODE}),
+        reprobe_ready=True,
+    )
+
+    claude = result.by_harness[HarnessId.CLAUDE_CODE]
+    assert result.all_ready is False
+    assert claude.status == "failed" and claude.calls_used == 2
+    assert result.by_harness[HarnessId.CODEX].status == "not-selected"
+    assert result.by_harness[HarnessId.GROK].status == "not-selected"
+    assert len(descriptions) == 2
+    assert all(
+        "forced reassessment; failure replaces current capability evidence" in description
+        for description in descriptions
+    )
+    after = _rows(path, HarnessId.CLAUDE_CODE)["skills-config-home"]
+    assert before.verification is Verification.VERIFIED
+    assert before.verified_at is not None
+    assert after.verification is Verification.UNVERIFIED
+    assert after.cli_version == VERSIONS[HarnessId.CLAUDE_CODE]
+    assert after.verified_at is not None and after.verified_at > before.verified_at
+
+
+def test_forced_claude_reprobe_refuses_unmanaged_home_then_verifies_fallbacks(
+    tmp_path: Path,
+) -> None:
+    path = _profile_path(tmp_path)
+    _run(path)
+    skills = tmp_path / "vendors" / "claude-code" / "skills"
+    (skills / MARKER).unlink()
+    owner_file = skills / "owner-skill.md"
+    owner_file.write_text("keep\n", encoding="utf-8")
+
+    result, confirmations = _run(
+        path,
+        selected_harnesses=frozenset({HarnessId.CLAUDE_CODE}),
+        reprobe_ready=True,
+    )
+
+    assert result.all_ready is True
+    assert confirmations == [("claude-code", 1), ("claude-code", 2)]
+    assert owner_file.read_text(encoding="utf-8") == "keep\n"
+    rows = _rows(path, HarnessId.CLAUDE_CODE)
+    assert rows["append-system-prompt-file"].verification is Verification.UNVERIFIED
+    assert rows["skills-config-home"].verification is Verification.UNVERIFIED
+    assert rows["append-system-prompt"].verification is Verification.VERIFIED
+    assert rows["skills-plugin-dir"].verification is Verification.VERIFIED
+    assert rows["skills-workspace"].verification is Verification.VERIFIED
+
+
+def test_forced_probe_decline_retains_completed_results_and_nonselected_status(
+    tmp_path: Path,
+) -> None:
+    path = _profile_path(tmp_path)
+    _run(path)
+    decisions = iter([True, False])
+
+    with pytest.raises(ProbeCancelled) as cancelled:
+        run_attended_probes(
+            load_profile_set(path).profiles,
+            profile_path=path,
+            versions=VERSIONS,
+            environ=_environment(),
+            confirm=lambda _h, _c, _d: next(decisions),
+            selected_harnesses=frozenset({HarnessId.CLAUDE_CODE, HarnessId.CODEX}),
+            reprobe_ready=True,
+        )
+
+    results = cancelled.value.results
+    assert results[HarnessId.CLAUDE_CODE].status == "passed"
+    assert results[HarnessId.CLAUDE_CODE].profile_updated is True
+    assert results[HarnessId.CODEX].status == "cancelled"
+    assert results[HarnessId.CODEX].calls_used == 0
+    assert results[HarnessId.GROK].status == "not-selected"
+
+
 def test_cli_probe_requires_tty_and_keeps_json_stdout_parseable(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -329,6 +504,148 @@ def test_cli_probe_requires_tty_and_keeps_json_stdout_parseable(
     payload = json.loads(completed.stdout)
     assert all(row["probe"]["status"] == "passed" for row in payload["profiles"])
     assert "confirm claude-code call 1" in completed.stderr
+
+
+def test_cli_ready_probe_skips_until_explicit_reprobe_and_reports_selection(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = _profile_path(tmp_path)
+    _run(path)
+    monkeypatch.setattr("agentteam.commands.profile._is_attended", lambda: True)
+    confirmations: list[tuple[str, int, str]] = []
+
+    def confirm(harness: HarnessId, call: int, description: str) -> bool:
+        confirmations.append((harness.value, call, description))
+        return True
+
+    monkeypatch.setattr("agentteam.commands.profile._confirm_call", confirm)
+    skipped = runner.invoke(
+        app,
+        ["profile", "doctor", "--probe", "--json", "--config", str(path)],
+        env={"FAKE_PROBE_MODE": "ok"},
+    )
+    assert skipped.exit_code == 0, skipped.output
+    assert confirmations == []
+    assert all(
+        row["probe"]["status"] == "already-ready" for row in json.loads(skipped.stdout)["profiles"]
+    )
+
+    forced = runner.invoke(
+        app,
+        [
+            "profile",
+            "doctor",
+            "--probe",
+            "--reprobe-ready",
+            "--harness",
+            "codex",
+            "--harness",
+            "claude-code",
+            "--json",
+            "--config",
+            str(path),
+        ],
+        env={"FAKE_PROBE_MODE": "ok"},
+    )
+    assert forced.exit_code == 0, forced.output
+    assert [(harness, call) for harness, call, _description in confirmations] == [
+        ("claude-code", 1),
+        ("codex", 1),
+    ]
+    assert all("forced reassessment" in item[2] for item in confirmations)
+    payload = json.loads(forced.stdout)
+    rows = {row["harness"]: row["probe"] for row in payload["profiles"]}
+    capture_id = rows["claude-code"]["capture_id"]
+    assert capture_id is not None and rows["codex"]["capture_id"] == capture_id
+    assert rows["claude-code"] == {
+        "status": "passed",
+        "calls_used": 1,
+        "capture_id": capture_id,
+        "profile_updated": True,
+    }
+    assert rows["grok"] == {
+        "status": "not-selected",
+        "calls_used": 0,
+        "capture_id": None,
+        "profile_updated": False,
+    }
+
+
+def test_cli_reprobe_ready_without_selection_retests_all_profiles_once(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = _profile_path(tmp_path)
+    _run(path)
+    monkeypatch.setattr("agentteam.commands.profile._is_attended", lambda: True)
+    confirmations: list[tuple[str, int]] = []
+
+    def confirm(harness: HarnessId, call: int, _description: str) -> bool:
+        confirmations.append((harness.value, call))
+        return True
+
+    monkeypatch.setattr(
+        "agentteam.commands.profile._confirm_call",
+        confirm,
+    )
+
+    completed = runner.invoke(
+        app,
+        [
+            "profile",
+            "doctor",
+            "--probe",
+            "--reprobe-ready",
+            "--json",
+            "--config",
+            str(path),
+        ],
+        env={"FAKE_PROBE_MODE": "ok"},
+    )
+    assert completed.exit_code == 0, completed.output
+    assert confirmations == [("claude-code", 1), ("codex", 1), ("grok", 1)]
+    rows = json.loads(completed.stdout)["profiles"]
+    assert all(row["probe"]["status"] == "passed" for row in rows)
+    assert len({row["probe"]["capture_id"] for row in rows}) == 1
+
+
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        ["--reprobe-ready"],
+        ["--harness", "codex"],
+        ["--probe", "--harness", "unknown"],
+        ["--probe", "--harness", "claude", "--harness", "claude-code"],
+        ["--probe", "--harness", "grok", "--harness", "grok"],
+    ],
+)
+def test_cli_reprobe_rejects_invalid_option_combinations_before_calls(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    arguments: list[str],
+) -> None:
+    path = _profile_path(tmp_path)
+    before = path.read_bytes()
+    confirmations: list[str] = []
+    monkeypatch.setattr("agentteam.commands.profile._is_attended", lambda: True)
+
+    def confirm(harness: HarnessId, _call: int, _description: str) -> bool:
+        confirmations.append(harness.value)
+        return True
+
+    monkeypatch.setattr(
+        "agentteam.commands.profile._confirm_call",
+        confirm,
+    )
+
+    result = runner.invoke(
+        app,
+        ["profile", "doctor", *arguments, "--config", str(path)],
+        env={"FAKE_PROBE_MODE": "ok"},
+    )
+    assert result.exit_code == 2
+    assert confirmations == []
+    assert path.read_bytes() == before
+    assert not (tmp_path / "probes").exists()
 
 
 def test_cli_probe_exit_codes_for_signed_out_decline_and_completed_failure(
@@ -424,7 +741,15 @@ def test_probe_preflights_every_harness_before_any_model_call(
     monkeypatch.setattr("agentteam.commands.profile._confirm_call", confirm)
     result = runner.invoke(
         app,
-        ["profile", "doctor", "--probe", "--config", str(path)],
+        [
+            "profile",
+            "doctor",
+            "--probe",
+            "--harness",
+            "claude-code",
+            "--config",
+            str(path),
+        ],
         env=probe_env,
     )
     assert result.exit_code == 1

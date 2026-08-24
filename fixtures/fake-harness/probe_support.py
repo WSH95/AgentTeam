@@ -20,6 +20,7 @@ HELP = {
 --output-schema --output-last-message -o --json --sandbox -s --cd -C --config -c
 """,
     "grok": """
+--single -p
 --prompt-file --output-format --no-subagents --sandbox --rules
 --system-prompt-override --json-schema
 """,
@@ -44,6 +45,11 @@ def is_probe(vendor, argv):
 
 
 def emit_probe(vendor, argv):
+    if vendor == "grok" and "-p" in argv:
+        position = argv.index("-p")
+        if position + 1 >= len(argv) or argv[position + 1].startswith("-"):
+            sys.stderr.write("error: a value is required for '--single <PROMPT>'\n")
+            return 2
     mode = probe_mode(vendor)
     if mode == "timeout":
         time.sleep(60)
@@ -101,7 +107,7 @@ def emit_probe(vendor, argv):
         if mode in {"text", "grok-text"}:
             sys.stdout.write(json.dumps({"type": "result", "text": json.dumps(body)}))
         else:
-            sys.stdout.write(json.dumps({"type": "result", "structured_output": body}))
+            sys.stdout.write(json.dumps({"type": "result", "structuredOutput": body}))
     sys.stdout.flush()
     return 0
 
@@ -112,11 +118,20 @@ def _claude_markers(argv):
         instruction_text = _read(Path(argv[argv.index("--append-system-prompt-file") + 1]))
     elif "--append-system-prompt" in argv:
         instruction_text = argv[argv.index("--append-system-prompt") + 1]
-    roots = [Path(os.environ.get("CLAUDE_CONFIG_DIR", ".")) / "skills"]
-    if "--plugin-dir" in argv:
-        roots.append(Path(argv[argv.index("--plugin-dir") + 1]) / "skills")
-    roots.append(Path.cwd() / ".claude" / "skills")
+    roots = []
+    if _tool_is_allowed(argv, "Skill"):
+        roots.append(Path(os.environ.get("CLAUDE_CONFIG_DIR", ".")) / "skills")
+        if "--plugin-dir" in argv:
+            roots.append(Path(argv[argv.index("--plugin-dir") + 1]) / "skills")
+        roots.append(Path.cwd() / ".claude" / "skills")
     return _markers(instruction_text), _markers_from_roots(roots)
+
+
+def _tool_is_allowed(argv, name):
+    if "--allowedTools" not in argv:
+        return False
+    allowed = argv[argv.index("--allowedTools") + 1].replace(",", " ").split()
+    return name in allowed
 
 
 def _codex_markers(argv):
@@ -145,7 +160,14 @@ def _grok_markers(argv):
     for flag in ("--rules", "--system-prompt-override"):
         if flag in argv:
             text += argv[argv.index(flag) + 1]
-    roots = [Path.cwd() / ".grok" / "skills", Path.cwd() / ".agents" / "skills"]
+    prompt = ""
+    if "--prompt-file" in argv:
+        prompt = _read(Path(argv[argv.index("--prompt-file") + 1]))
+    roots = []
+    if "/agentteam-probe-grok" in prompt:
+        roots.append(Path.cwd() / ".grok" / "skills")
+    if "/agentteam-probe-agents" in prompt:
+        roots.append(Path.cwd() / ".agents" / "skills")
     return _markers(text), _markers_from_roots(roots)
 
 

@@ -8,7 +8,11 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from agentteam.domain.profile import HarnessProfileV1
-from agentteam.harness.environment import POSIX_BASELINE, WINDOWS_BASELINE
+from agentteam.harness.environment import (
+    POSIX_BASELINE,
+    WINDOWS_BASELINE,
+    inherited_proxy_names,
+)
 from agentteam.harness.launcher import resolve_launcher
 
 
@@ -24,6 +28,8 @@ def diagnostic_environment(
     for name in profile.environment.passthrough:
         if name in parent:
             child[name] = parent[name]
+    for name in inherited_proxy_names(profile, parent):
+        child[name] = parent[name]
     child[profile.environment.config_home_variable] = profile.config_home
     return child
 
