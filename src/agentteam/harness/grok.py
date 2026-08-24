@@ -4,7 +4,11 @@ Headless entry uses `--prompt-file` directly (never a bare `-p`, which is the
 `--single <PROMPT>` option, nor `grok agent headless`, a WebSocket relay).
 `--rules`/`--system-prompt-override` and the structured output location are
 selected only after probing. Cost is often absent under subscription OAuth;
-`cost_source` is decided per run and never fabricated.
+`cost_source` is decided per run and never fabricated. The live recipe grants
+an explicit `--max-turns` budget: without it, three 2026-08-24 cycles showed
+headless grok 1.0.5 either answers in one turn (an empty progress snapshot)
+or is vendor-`cancelled` at turn 2 with no final structured object
+(ADR 0035); the bound doubles as a hard safety ceiling.
 """
 
 from __future__ import annotations
@@ -46,6 +50,11 @@ from agentteam.harness.types import (
     RenderedInvocationV1,
 )
 from agentteam.schema import vendor_schema_min
+
+# Explicit agent-turn budget for the live recipe (G6.R6, ADR 0035): generous
+# enough for a real multi-turn review with Skill loading, and a hard ceiling
+# against runaway loops. Dated capability evidence — revisit on version drift.
+GROK_MAX_TURNS = 40
 
 
 class GrokAdapter:
@@ -113,6 +122,8 @@ class GrokAdapter:
             "--output-format",
             "json",
             "--no-subagents",
+            "--max-turns",
+            str(GROK_MAX_TURNS),
             "--sandbox",
             "read-only",
             (

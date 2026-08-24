@@ -681,3 +681,30 @@ alias additions need the same explicit approval. A third-cycle failure for
 the same semantic reason returns to review (plan §18). The consumed
 one-rerun authorization and the held-push decision are recorded in
 VERIFY/PROGRESS.
+
+## 0035 — 2026-08-24 — §18 ruling: keep the all-three gate, grant Grok a turn budget, allow one beyond-allowance cycle
+
+**Context**: Three owner-attended G6 cycles produced the same Grok mechanical
+failure class while Claude and Codex delivered valid reviews twice
+consecutively: headless `grok` 1.0.5 either answers in one turn (an empty
+progress snapshot became cycle 2's structured output) or is
+vendor-`cancelled` at `num_turns: 2` with `structuredOutput: null` (cycles 1
+and 3) — a real multi-turn review can never finish. The installed CLI
+documents `--max-turns <N>`; the live recipe passed no turn control. The
+owner asked whether the probe-verified `structured-output-field` vs
+unverified `structured-output-text` distinction mattered; answer recorded:
+the fail-hard channel policy worked as designed, and no channel can deliver
+a review that was never produced — the cancelled cycles' `text` held only
+concatenated empty snapshots that do not even decode as one document.
+Both ADR 0020 reruns are consumed; 11 of the 30-call ceiling remain.
+**Decision**: The owner keeps the all-three gate and selects G6.R6: the Grok
+live recipe gains an explicit generous `GROK_MAX_TURNS = 40` (also a hard
+safety ceiling), implemented test-first with render regressions; and the
+owner authorizes ONE beyond-allowance live cycle (≤8 calls within the 11
+remaining), with the final go given only at the repeated no-call gate. If
+the Grok leg fails again, the gate question returns to the owner — never an
+automatic retry.
+**Consequences**: The turn budget is dated capability evidence (revisit on
+any Grok version drift). The ADR 0020 rerun allowance is exhausted; this
+and any future cycle authorizations are individual owner ceiling decisions
+(ADR 0033 discipline).

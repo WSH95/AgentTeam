@@ -81,6 +81,21 @@ def test_golden_argv_and_prompt_file(render_context_builder: Builder, tmp_path: 
     assert channels["task"] == "prompt-file"
 
 
+def test_live_recipe_grants_a_generous_turn_budget(
+    render_context_builder: Builder, tmp_path: Path
+) -> None:
+    # G6.R6 (ADR 0035): three live cycles proved headless grok is turn-capped
+    # without an explicit bound — a one-turn empty snapshot, or vendor
+    # `cancelled` at turn 2 with no final structured object. The recipe now
+    # grants an explicit generous budget (which is also a hard safety bound).
+    from agentteam.harness.grok import GROK_MAX_TURNS
+
+    rendered, _ = _render(render_context_builder, tmp_path)
+    index = rendered.argv.index("--max-turns")
+    assert rendered.argv[index + 1] == str(GROK_MAX_TURNS)
+    assert GROK_MAX_TURNS >= 20
+
+
 def test_skills_primary_and_fallback_channels(
     render_context_builder: Builder, tmp_path: Path
 ) -> None:
