@@ -1,17 +1,18 @@
 ---
-updated_at: 2026-08-24T08:28:46Z
+updated_at: 2026-08-24T08:34:59Z
 updated_by: codex
 session_status: active
 branch: main
-last_commit: 695a4a4
+last_commit: 5efce91
 ---
 # Handoff
 
 ## Now
 
 **M1a G5 is closed; G6 is the next gate and has not started.** G1–G4 were
-already closed. The commit carrying this handoff records the complete G5
-boundary locally; nothing has been pushed.
+already closed. Commit `5efce91` records the complete G5 boundary locally;
+the checkpoint commit carrying this handoff leaves `main` four commits ahead
+of `origin/main` with a clean worktree. Nothing has been pushed.
 
 The owner profiles use dedicated persistent native-auth homes and inherit the
 normal terminal/Sing-box proxy variables unchanged. Actual versions are Claude
@@ -50,13 +51,15 @@ package publication occurred.
 
 ## In flight
 
-No process is running. G5 has no remaining item. G6 requires a fresh explicit
-owner-attended execution decision; closing G5 does not start it automatically.
+No process is running and the worktree is clean. G5 has no remaining item. G6
+requires a fresh explicit owner-attended execution decision; closing G5 does
+not start it automatically.
 
 ## Next steps
 
-1. Review the local G5 closure commit and worktree status. Do not push unless
-   the owner separately approves that push.
+1. If publication is wanted, review the four unpushed local commits (especially
+   G5 closure commit `5efce91`) and obtain separate owner approval before
+   pushing; current commit permission did not authorize a push.
 2. Before G6, review the exact live-PoC command, four-call normal path (three
    independent legs plus fresh Claude synthesis), retry ceiling, stop rules,
    workspace/output targets, and expected evidence. Obtain explicit owner

@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T08:34:59Z — codex
+[auto-checkpoint] Committed the complete G5 closure as `5efce91` (`fix(profile): honor native proxy and authoritative probe contracts`); `main` is three commits ahead of `origin/main`, the worktree was clean, nothing was pushed, and G6 remains unstarted pending a separate owner-attended decision.
+
 ### 2026-08-24T08:28:46Z — codex
 G5 closed (ADR 0031): the fresh authoritative all-three capture `probe-20260824T075919Z-1edf636a` passed in one call each (Claude 10.363s/5 rows, Codex 20.490s/7, Grok 17.195s/8 required); all hashes and 0700/0600 modes pass, sanitized doctor exits 0 with every profile ready/no conflicts/staleness, and unused fallbacks remain intentionally observed/unverified. Full credential-free block remains 404 passed + 3 expected skips; no G6 call or push. Owner requested the complete G5 boundary be committed locally.
 
