@@ -113,23 +113,36 @@ def build_command_record(
     argv: list[str],
     policy: LauncherPolicy,
     substitutions: dict[str, str],
+    launcher_prefix: int = 0,
 ) -> tuple[CommandV1, list[PlaceholderV1]]:
-    """Redact concrete paths/content out of argv with typed placeholders."""
+    """Redact concrete paths/content out of argv with typed placeholders.
+
+    The first `launcher_prefix` elements are the resolved launcher (an
+    interpreter and/or executable path) and are replaced wholesale with the
+    launcher token — a concrete install path must never reach the record.
+    """
+    launcher_token = f"<{profile.harness.value.upper().replace('-', '_')}>"
     ordered = sorted(substitutions.items(), key=lambda kv: len(kv[0]), reverse=True)
     redacted: list[str] = []
-    for element in argv:
+    for index, element in enumerate(argv):
+        if index < launcher_prefix:
+            redacted.append(launcher_token)
+            continue
         replaced = element
         for concrete, token in ordered:
             if concrete and concrete in replaced:
                 replaced = replaced.replace(concrete, token)
         redacted.append(replaced)
+    tokens = list(dict.fromkeys(substitutions.values()))
+    if launcher_prefix > 0:
+        tokens.append(launcher_token)
     placeholders = [
         PlaceholderV1(token=token, role=token.strip("<>").lower().replace("_", "-"))
-        for token in dict.fromkeys(substitutions.values())
+        for token in dict.fromkeys(tokens)
     ]
     command = CommandV1(
         argv_redacted=redacted,
-        launcher=f"<{profile.harness.value.upper().replace('-', '_')}>",
+        launcher=launcher_token,
         launcher_policy=policy,
         cwd="<WORKSPACE>",
     )

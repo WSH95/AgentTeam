@@ -109,6 +109,7 @@ class CodexAdapter:
             profile=ctx.profile,
             argv=argv,
             policy=policy,
+            launcher_prefix=len(argv) - len(rest),
             substitutions={
                 str(ctx.workspace_root): "<WORKSPACE>",
                 str(schema_file): "<SCHEMA_FILE>",

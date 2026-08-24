@@ -107,6 +107,7 @@ class ClaudeAdapter:
             profile=ctx.profile,
             argv=argv,
             policy=policy,
+            launcher_prefix=len(argv) - len(rest),
             substitutions={
                 instructions: "<INSTRUCTIONS_TEXT>",
                 schema_min: "<SCHEMA_JSON>",

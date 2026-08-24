@@ -87,3 +87,31 @@ jobs:
             --config examples/profiles/ci-fake.yaml \
             --harness claude-code --harness codex --harness grok \
             --render-only --output-dir "$RUNNER_TEMP/render-smoke"
+      - name: Example-package hash identity (cross-OS pin, section 16)
+        run: |
+          uv run --no-sync python -c "
+          from pathlib import Path
+          from agentteam.resolution.archive import hash_package
+          pinned = 'fb9e98a34a99f146d5519baf1ed7707e1267625ebd56a6e2fdac797123cb1b5a'
+          digest = hash_package(Path('examples/assistants/code-reviewer'))
+          assert digest.package_hash == pinned, digest.package_hash
+          print('example-package hash identity holds:', pinned)
+          "
+      - name: Deterministic acceptance (full fake ensemble via the CLI, section 14)
+        env:
+          AGENTTEAM_HOME: ${{ runner.temp }}/agentteam-home
+          FAKE_MODE: ok
+        run: |
+          uv run --no-sync atm run examples/run-requests/direct-review.yaml \
+            --config examples/profiles/ci-fake.yaml \
+            --output-dir "$RUNNER_TEMP/acceptance-run"
+          uv run --no-sync python -c "
+          import json, os, pathlib
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'acceptance-run'
+          run = json.loads((root / 'run.json').read_text(encoding='utf-8'))
+          assert run['status'] == 'succeeded', run
+          ensemble = json.loads((root / 'ensemble.json').read_text(encoding='utf-8'))
+          assert ensemble['acceptance']['mechanical']['passed'] is True, ensemble
+          assert ensemble['acceptance']['semantic']['passed'] is True, ensemble
+          print('deterministic acceptance: both tiers PASS')
+          "

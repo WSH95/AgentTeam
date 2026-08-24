@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "review-oracle",
+  "defects": [
+    {
+      "id": "command-injection",
+      "file": "src/publish.ts",
+      "category": "command-injection",
+      "aliases": ["shell-injection", "command-injection-vulnerability"],
+      "line_start": 4,
+      "line_end": 7
+    },
+    {
+      "id": "off-by-one",
+      "file": "src/changelog.ts",
+      "category": "off-by-one",
+      "aliases": ["off-by-one-error", "boundary", "boundary-error"],
+      "line_start": 2,
+      "line_end": 8
+    },
+    {
+      "id": "input-mutation",
+      "file": "src/notes.ts",
+      "category": "input-mutation",
+      "aliases": ["mutation", "side-effect", "parameter-mutation"],
+      "line_start": 6,
+      "line_end": 10
+    }
+  ]
+}

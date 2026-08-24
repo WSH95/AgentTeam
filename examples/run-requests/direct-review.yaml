@@ -1,0 +1,17 @@
+# The deterministic direct-review request (plan sections 12 and 14): three
+# legs plus synthesis over the committed review target, evaluated against the
+# committed oracle. Deterministic runs pair this with the fake profile:
+#
+#   atm run examples/run-requests/direct-review.yaml \
+#     --config examples/profiles/ci-fake.yaml --output-dir <dir>
+#
+# Relative paths resolve against this file's directory.
+schema_version: 1
+kind: run-request
+mode: direct
+assistant: ../assistants/code-reviewer
+workspace: ../../fixtures/review-target
+task_file: review-task.md
+harnesses: [claude-code, codex, grok]
+synthesis: {enabled: true, harness: claude-code}
+acceptance: {oracle: ../../fixtures/review-target.oracle.json}

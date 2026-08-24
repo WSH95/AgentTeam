@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T01:32:50Z — cli
+G4 commit B: review-target fixture + oracle, example run-requests, acceptance suite (both tiers PASS deterministically), pinned cross-OS package hash, CI acceptance steps
+
 ### 2026-08-24T01:25:51Z — cli
 G4 commit A implemented: run package (ids/events/workspace/archive/preflight/synthesis/acceptance/runner/sanitize), synthesis instructions, adapters' synthesis+extract seam, fake upgrade, CLI launch path; 323 tests green
 

@@ -104,6 +104,7 @@ class GrokAdapter:
             profile=ctx.profile,
             argv=argv,
             policy=policy,
+            launcher_prefix=len(argv) - len(rest),
             substitutions={
                 schema_min: "<SCHEMA_JSON>",
                 str(prompt_file): "<PROMPT_FILE>",

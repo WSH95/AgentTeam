@@ -1,0 +1,18 @@
+# The G6 live acceptance request (plan sections 12 and 14): the same bundle,
+# target, and oracle as direct-review.yaml, but executed over the owner's real
+# native-subscription profiles (default ~/.agentteam/profiles.yaml from
+# `atm profile init` + interactive logins; see plan section 11):
+#
+#   atm run examples/run-requests/live-review.yaml
+#
+# One acceptance cycle uses at most eight vendor calls and never repeats
+# automatically. Relative paths resolve against this file's directory.
+schema_version: 1
+kind: run-request
+mode: direct
+assistant: ../assistants/code-reviewer
+workspace: ../../fixtures/review-target
+task_file: review-task.md
+harnesses: [claude-code, codex, grok]
+synthesis: {enabled: true, harness: claude-code}
+acceptance: {oracle: ../../fixtures/review-target.oracle.json}
