@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T16:44:31Z — claude
+§18 ruling recorded (ADR 0035): the owner keeps the all-three gate, G6.R6 lands test-first (`GROK_MAX_TURNS = 40` in the live recipe only; probe recipe untouched; render regression pins the flag), and ONE beyond-allowance cycle is authorized with the final go at the gate. The owner's channel question (probe-verified `structured-output-field` vs unverified `structured-output-text`) was answered and recorded: fail-hard worked as designed; no channel can deliver a review the cancelled agent loop never produced. Core 447+4, extra 459+3, compat 12; no live call. Next: no-call gate, then the final go.
+
 ### 2026-08-24T16:21:00Z — claude
 Third G6 cycle (owner final go; `run-20260824-161600-9d69`) failed exit 1 on the Grok leg only after 3 calls: `stopReason: cancelled` at `num_turns: 2` with two concatenated per-turn empty snapshots in `text` — across all three cycles headless Grok either answers in one turn (empty snapshot accepted) or is cancelled at turn 2, so a real multi-turn review can never produce a final structured object; the adapter passes no `--max-turns` although the installed CLI documents it. Claude and Codex legs were valid again (2/2 consecutive, steered categories pending semantic evaluation). 11 of 30 calls remain; both ADR 0020 reruns consumed; §18 routing engaged — the all-three gate goes to the owner with candidate G6.R6 (adapter `--max-turns`) on the table.
 

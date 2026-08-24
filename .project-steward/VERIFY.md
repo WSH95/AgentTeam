@@ -4,6 +4,17 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G6.R6 Grok turn budget — 2026-08-24 (implemented locally; §18 ruling ADR 0035)
+
+| Check | Result |
+| --- | --- |
+| Recipe | PASS — the Grok live recipe now passes `--max-turns 40` (`GROK_MAX_TURNS`, module constant with the dated-evidence comment); the probe recipe is untouched (single-turn, capability parity preserved); render regression pins the flag and a generous-bound floor (≥20) |
+| Owner ruling | ADR 0035 — the all-three gate is kept; the owner's channel question (verified field vs unverified text) answered and recorded: the fail-hard policy worked as designed, and no output channel can deliver a review the cancelled agent loop never produced; ONE beyond-allowance cycle authorized with the final go at the repeated gate |
+| Full local CI parity | PASS — core **pytest 447 passed + 4 skips**, optional-extra **459 + 3**, compatibility **12**; Ruff lint + format (102), strict mypy (98), schema check current, `git diff --check` clean; core restored. No live call |
+
+Last verified: 2026-08-24 by Claude (G6.R6 test-first; effect on the turn-2
+vendor cancellation is live-unprovable until the authorized cycle).
+
 ## G6 third live cycle — 2026-08-24 (FAIL exit 1; Grok turn-cap diagnosis)
 
 | Check | Result |
