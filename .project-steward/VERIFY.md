@@ -4,6 +4,23 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G6 initial live cycle — 2026-08-24 (FAIL; no rerun)
+
+| Check | Result |
+| --- | --- |
+| Pre-run gate | PASS — owner confirmed one attended cycle after no-call doctor reported Claude `2.1.241`, Codex `0.149.1`, and Grok `1.0.5` ready/current with no conflicts or staleness; package `fb9e98a3…` and target `25f03027…` matched; official Claude subscription/CLI guidance was refreshed; normal six proxy names inherited unchanged; no API fallback |
+| Cycle | **FAIL, exit 1** — `run-20260824-142351-dfc0`, 67.496s wall time, exactly three concurrent first attempts, zero retries, no synthesis. Claude failed permanently in 1.307s, Codex succeeded in 67.470s, and Grok exited 0 but failed normalization in 15.431s. Three calls spent; **18 of the 30-call ceiling remain** |
+| Claude | FAIL before structured output — stderr contains only `--json-schema is not a valid JSON Schema: no schema with key or ref "https://json-schema.org/draft/2020-12/schema"`; stdout empty, usage unavailable. `vendor_schema_min` passed the canonical `$schema`/`$id` metadata that the small G5 probe schema did not carry (G6.R1) |
+| Codex | PASS leg — exit 0, schema valid, no parser problems; normalized review identified command injection, off-by-one, and caller-input mutation with actionable rationales, plus one medium stream-contract finding. Target stayed byte-identical; vendor cost unavailable |
+| Grok | FAIL structured result — exit 0 using observed model `grok-4.6-build`; `structuredOutput` was null and `structuredOutputError` was `model did not produce structured output`, so the verified field-only parser correctly returned schema missing and did not consume unverified text (G6.R2) |
+| Acceptance | Mechanical FAIL only on cond-1 (Claude/Grok leg failures); cond-6 package rehash, cond-7 manifest, and cond-8 names-only/raw-local checks PASS. Semantic tier unevaluated because synthesis did not run. All attempts terminal; selection `decided_by: user`, attendance `attended`, auth `native-subscription`, shared target hash unchanged |
+| Archive/privacy | Manifest reconstructs with zero problems; tested sanitizer completed and its scan returned zero problems; raw streams remain only in the local gitignored run archive and nothing was promoted. Root mode is 0700, but `events.jsonl`, copied workspace trees, and adapter-created descendant files retained 0664/0775-style bits under that protected root, violating the explicit recursive owner-mode invariant (G6.R3) |
+| Boundary | PASS — one cycle only, no retry/rerun, no API mode, no Assistant/request/fixture mutation, post-run hashes unchanged, no raw/sanitized run evidence tracked or uploaded, and no push. G6 remains open |
+
+Last verified: 2026-08-24 by Codex (initial owner-attended G6 cycle failed
+mechanically after three calls; archive/sanitizer reviewed locally; G6.R1–R3
+filed; no rerun).
+
 ## G5.R pre-G6 remediation — 2026-08-24 (implemented locally)
 
 | Check | Result |

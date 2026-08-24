@@ -4,6 +4,12 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T14:29:13Z — codex
+Initial attended G6 cycle `run-20260824-142351-dfc0` failed after exactly three calls with no retry/synthesis: Codex's valid review covered all seeded defects, Claude rejected the Draft 2020-12 schema reference, and Grok produced no structured field; manifest/sanitizer and immutable hashes pass, recursive leaf modes need hardening, G6.R1–R3 are filed, G6 stays open, and 18 calls remain.
+
+### 2026-08-24T14:15:08Z — codex
+[auto-checkpoint] G6's no-call gate passed at clean local `83e1f95`: approved package/target hashes match, Claude 2.1.241/Codex 0.149.1/Grok 1.0.5 are ready with no conflicts or staleness, policy guidance is refreshed, and zero calls were used; the live cycle remains unstarted pending fresh attended confirmation.
+
 ### 2026-08-24T14:00:41Z — codex
 Owner approved the evidence-only commit `docs(steward): record green G5.R hosted CI`; the commit containing this entry records the retained 7/9 failure, corrective `e722c15`, and green 9/9 run 32735583747. It is not pushed, and G6 remains unstarted.
 
