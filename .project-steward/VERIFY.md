@@ -4,6 +4,19 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## G6 third live cycle — 2026-08-24 (FAIL exit 1; Grok turn-cap diagnosis)
+
+| Check | Result |
+| --- | --- |
+| Pre-run gate | PASS — doctor exit 0 (three profiles ready at exactly 2.1.241 / 0.149.1 / 1.0.5, zero conflicts, zero calls); package `fd54eae7…` (re-pinned under ADR 0034) and target `25f03027…` matched; proxy names inherited; zero conflict variables; clean tree at `cd92bd7`; fresh explicit owner final go at the gate |
+| Cycle | **FAIL, exit 1** — `run-20260824-161600-9d69`, 97.9s wall, exactly three calls, zero retries, no synthesis (§12 rule 10). Claude succeeded in 97.902s and Codex in 82.995s, both `schema_outcome: valid` with empty problems under the steered definition/task; Grok failed in 16.860s. 19 of 30 calls spent; **11 remain** |
+| Grok diagnosis | The G6.R2 problems-surfacing worked: the invocation record carries `vendor structured output error: model did not produce structured output`. Raw evidence: `stopReason: cancelled`, `num_turns: 2`, and `text` holds two concatenated per-turn empty snapshots ("Starting review…", "Exploring the full module…", both `target_sha256: "placeholder"`, zero findings). Across the three cycles the vendor behavior is deterministic: a turn-1 answer becomes the output (cycle 2: `end_turn`, `num_turns: 1`, the empty snapshot); an attempt to continue is cancelled at turn 2 with no final object (cycles 1 and 3: `cancelled`, `num_turns: 2`, null field). The installed CLI documents `--max-turns <N>` ("Maximum number of agent turns") and describes `-p`/`--prompt-file` as "single-turn prompt"; the adapter passes no turn control, so the headless agent loop cannot complete a real multi-turn review before emitting its final structured object. Filed as candidate G6.R6, pending the plan-§18 owner revisit of the all-three gate |
+| Boundary | PASS — this was the second and final ADR 0020 rerun; no retry, no API-mode fallback, no push, hashes unchanged post-run, raw evidence only in the local gitignored archive. **Both rerun allowances are now consumed: any further live cycle is a beyond-allowance explicit owner decision** (11 remaining fits one more ≤8-call cycle) |
+
+Last verified: 2026-08-24 by Claude (owner-confirmed third cycle; Claude/Codex
+legs valid twice consecutively; Grok FAIL-HARD with a mechanical turn-cap
+diagnosis; §18 routing engaged — the owner revisits the all-three gate).
+
 ## G6.R5 leg-semantic steering — 2026-08-24 (implemented locally; owner-scoped)
 
 | Check | Result |

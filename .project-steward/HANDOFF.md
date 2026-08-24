@@ -1,49 +1,44 @@
 ---
-updated_at: 2026-08-24T16:10:36Z
+updated_at: 2026-08-24T16:21:00Z
 updated_by: claude
 session_status: active
 branch: main
-last_commit: 355ff57
+last_commit: cd92bd7
 ---
 # Handoff
 
 ## Now
 
-**G6 remains open after its second owner-attended cycle
-(`run-20260824-154050-7a98`) failed at synthesis attribution — but the
-mechanical tier passed live for the first time and G6.R1–R3 are proven in
-vivo.** All three legs succeeded with valid projected schemas on attempt 1
-(Grok 8.7s — the null-field failure is gone; Codex 62.9s; Claude 122.2s — the
-draft-07 rejection is gone); the real archive is recursively 0700/0600 with a
-clean manifest and clean sanitizer scan. Exit 1: the synthesis report's
-`agreements[].sources` used bare invocation ids where the validator requires
-`invocation_id:finding_id` pairs (merged findings used pairs correctly); the
-task document's own "Refer to legs only by invocation id" line steers toward
-the error. The first formal live semantic evaluation FAILED: cond-2 (Codex 1,
-Grok 0 identified defects), cond-3 (union misses `input-mutation`), cond-4
-(Claude's four high non-matching findings), cond-5 (attribution) — real
-defects were located but labeled outside the oracle alias vocabulary, and
-Grok emitted a zero-finding progress narration. 16 of 30 calls spent; **14
-remain**.
+**G6 remains open after the third owner-attended cycle
+(`run-20260824-161600-9d69`) failed exit 1 on the Grok leg alone — with a
+mechanical turn-cap diagnosis.** Claude (97.9s) and Codex (83.0s) produced
+valid, problems-free reviews for the second consecutive cycle under the
+steered definition/task. Grok failed in 16.9s: `stopReason: cancelled` at
+`num_turns: 2`, `structuredOutput: null`, `text` holding two per-turn empty
+snapshots. Across all three cycles headless Grok either answers in one turn
+(the empty snapshot became cycle 2's output) or is cancelled at turn 2 —
+a real multi-turn review can never finish. The installed CLI documents
+`--max-turns <N>`; the adapter passes no turn control (candidate G6.R6).
+19 of 30 calls spent; **11 remain**; both ADR 0020 reruns are consumed.
+Plan-§18 routing is engaged: the owner revisits the all-three gate.
 
 ## In flight
 
-Nothing running. G6.R4 and G6.R5 are both closed and committed (ADR 0034:
-owner-selected full steering scope; package hash re-pinned
-`fb9e98a3…` → `fd54eae7…`; oracle true-synonym aliases approved). The owner
-authorized PREPARING the third live cycle, with the final go at the gate.
+Nothing running. The §18 owner decision is being asked in-session: G6.R6
+(`--max-turns` in the Grok adapter) + one beyond-allowance final cycle, vs
+amending the gate to Claude+Codex for PoC A, vs stopping with G6 open.
 
 ## Next steps
 
-1. Repeat the no-call gate against the NEW pin: doctor (three ready at
-   2.1.241/0.149.1/1.0.5, zero conflicts), package `fd54eae7…` and target
-   `25f03027…` hashes, proxy names, subscription policy (rechecked 16:0xZ —
-   still valid this cycle).
-2. Ask the owner for the final explicit go on the third cycle (ADR 0020
-   second-rerun allowance, ≤8 calls; 14 remain). Anything but yes ⇒ wrap.
-3. On the run: same protocol and outcome routing as the second cycle; §18 —
-   a failure for the same semantic reason returns to review.
-4. Push decision still held (owner chose "hold" at 15:39Z).
+1. Owner decides the §18 revisit (see In flight). Record it as an ADR.
+2. If G6.R6: implement test-first (adapter argv + render regressions), full
+   two-mode block, no-call gate, then a fresh explicit owner go for ONE
+   beyond-allowance cycle (≤8 calls; 11 remain).
+3. If gate amendment: owner-approved plan/§14/request changes (drop the Grok
+   leg for PoC A, record FAIL-HARD evidence), then gate + fresh go for a
+   2-leg + synthesis cycle (3 calls).
+4. Push decision still held (owner chose "hold" at 15:39Z); `main` ahead of
+   origin by 7 after the cycle-3 record commit.
 
 ## Blockers
 
