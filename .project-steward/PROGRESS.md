@@ -4,6 +4,12 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-24T15:35:17Z — claude
+G6.R review closed and fixes landed: the high-effort diff review returned 10 findings (none refuted) — 4 fixed (Grok vendor-error preservation on the text channel with regression, the fake now emits the checked-in structured-null fixture verbatim, one shared `_SCHEMA_DATA_KEYS` across both schema traversals imported by the test, shared `assert_owner_only_tree` conftest helper), 6 recorded with reasons (exec-bit flattening → new RISKS R34; crash-path window, chmod `suppress`, sweep extraction, finalize perf as accepted residuals/follow-ups). Vendor-docs verification recorded: Claude Code validates `--json-schema` with draft-07 — the documented cause of the live rejection; every delivered keyword is documented-supported at all three vendors. Both modes re-verified (core 441+4, extra 453+3, compat 12; schemas current; diff clean). Committing `fix(schema,run): close G6.R1-R3 live-rerun blockers`; no live call, push, or rerun.
+
+### 2026-08-24T15:18:06Z — claude
+[auto-checkpoint] G6.R1–R3 implemented test-first and locally green in both modes (core 440+4, extra 452+3, compat 12; full CI-mirror block; canonical schemas byte-identical): the delivery-time vendor projection strips `$schema`/`$id`/`title` (docs-verified — Claude Code validates draft-07, the documented cause of the live rejection), Grok's `structuredOutputError` now persists on invocation records with fixture/fake/runner coverage, and the live archive is recursively owner-only (0600 events opener, copy/Skill re-tightening, finalize+cancel sweep). Uncommitted; a background code review of the diff is in flight; no live call, push, or G6 rerun.
+
 ### 2026-08-24T14:29:13Z — codex
 Initial attended G6 cycle `run-20260824-142351-dfc0` failed after exactly three calls with no retry/synthesis: Codex's valid review covered all seeded defects, Claude rejected the Draft 2020-12 schema reference, and Grok produced no structured field; manifest/sanitizer and immutable hashes pass, recursive leaf modes need hardening, G6.R1–R3 are filed, G6 stays open, and 18 calls remain.
 

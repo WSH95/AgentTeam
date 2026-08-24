@@ -3,6 +3,7 @@ synthesis instructions instead of the definition, SynthesisReportV1 schema."""
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,7 @@ from agentteam.harness.codex import CodexAdapter
 from agentteam.harness.grok import GrokAdapter
 from agentteam.harness.rendering import RenderError
 from agentteam.harness.types import SynthesisRenderV1
+from agentteam.schema import vendor_schema, vendor_schema_text
 
 Builder = Callable[..., Any]
 
@@ -37,7 +39,7 @@ def test_claude_synthesis_render_swaps_schema_and_skips_skills(
     ctx = _synthesis_ctx(render_context_builder, "claude-code", tmp_path)
     rendered = ClaudeAdapter().render(ctx)
     schema_arg = rendered.argv[rendered.argv.index("--json-schema") + 1]
-    assert "synthesis-report" in schema_arg
+    assert json.loads(schema_arg) == vendor_schema("synthesis-report-v1.schema.json")
     prompt_path = Path(rendered.argv[rendered.argv.index("--append-system-prompt-file") + 1])
     assert prompt_path.read_text(encoding="utf-8") == INSTRUCTIONS
     assert not (ctx.config_root / "skills").exists()
@@ -57,7 +59,9 @@ def test_codex_synthesis_render_swaps_schema_and_skips_skills(
     model_file = Path(model_arg.partition("=")[2].strip('"'))
     assert model_file.read_text(encoding="utf-8") == INSTRUCTIONS
     schema_file = ctx.scratch_dir / "output-schema.json"
-    assert "synthesis-report" in schema_file.read_text(encoding="utf-8")
+    assert schema_file.read_text(encoding="utf-8") == vendor_schema_text(
+        "synthesis-report-v1.schema.json"
+    )
     assert not (ctx.workspace_root / ".agents" / "skills").exists()
     parts = {part.part for part in rendered.injection.render}
     assert "synthesis-instructions" in parts
@@ -72,7 +76,7 @@ def test_grok_synthesis_render_swaps_schema_and_skips_skills(
     ctx = _synthesis_ctx(render_context_builder, "grok", tmp_path)
     rendered = GrokAdapter().render(ctx)
     schema_arg = rendered.argv[rendered.argv.index("--json-schema") + 1]
-    assert "synthesis-report" in schema_arg
+    assert json.loads(schema_arg) == vendor_schema("synthesis-report-v1.schema.json")
     prompt_file = ctx.scratch_dir / "prompt.md"
     assert prompt_file.read_text(encoding="utf-8") == "Review the change in target.ts.\n"
     assert rendered.argv[rendered.argv.index("--rules") + 1] == INSTRUCTIONS
@@ -88,7 +92,7 @@ def test_default_render_still_uses_the_review_schema(
     ctx = render_context_builder("claude-code", tmp_path)
     rendered = ClaudeAdapter().render(ctx)
     schema_arg = rendered.argv[rendered.argv.index("--json-schema") + 1]
-    assert "normalized-review" in schema_arg
+    assert json.loads(schema_arg) == vendor_schema("normalized-review-v1.schema.json")
     parts = {part.part for part in rendered.injection.render}
     assert "persona" in parts
     assert "synthesis-instructions" not in parts

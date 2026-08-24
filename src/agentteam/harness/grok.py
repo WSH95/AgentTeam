@@ -231,6 +231,17 @@ class GrokAdapter:
                     candidate = json.loads(text)
                 except json.JSONDecodeError:
                     candidate = None
+        problems: list[str] = []
+        if candidate is None:
+            # Preserve the vendor's own explanation (`structuredOutput: null`
+            # with `structuredOutputError`) on the record for diagnosis on
+            # every ladder rung; the verified-field policy still refuses
+            # unverified `text` (G6.R2).
+            for name in ("structuredOutputError", "structured_output_error"):
+                value = payload.get(name)
+                if isinstance(value, str) and value:
+                    problems.append(f"vendor structured output error: {value}")
+                    break
         usage, observed = tokens_from_model_usage(payload.get("modelUsage"))
         raw_usage = payload.get("usage")
         if isinstance(raw_usage, dict):
@@ -241,7 +252,9 @@ class GrokAdapter:
                 }
             )
         usage = cost_from_total_usd(usage, payload.get("total_cost_usd"))
-        return ExtractedStructured(candidate=candidate, usage=usage, observed=observed)
+        return ExtractedStructured(
+            candidate=candidate, usage=usage, observed=observed, problems=problems
+        )
 
     def parse(self, raw: RawInvocationV1) -> ParsedLegV1:
         extracted = self.extract_structured(raw)

@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
 from pydantic import TypeAdapter
 
 from agentteam.domain.common import EnsembleId, HarnessId, InvocationId, RunId
@@ -67,6 +70,18 @@ def test_event_timestamps_are_aware_utc(tmp_path: Path) -> None:
     offset = stamp.utcoffset()
     assert offset is not None
     assert offset.total_seconds() == 0
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX permission bits")
+def test_event_log_creates_the_file_owner_only(tmp_path: Path) -> None:
+    # G6.R3: `events.jsonl` is 0600 from its very first byte, even under the
+    # most permissive umask.
+    previous = os.umask(0o000)
+    try:
+        EventLog(tmp_path / "events.jsonl", run_id="run-test").emit("run-created")
+    finally:
+        os.umask(previous)
+    assert (tmp_path / "events.jsonl").stat().st_mode & 0o777 == 0o600
 
 
 async def test_event_log_is_safe_under_concurrent_emitters(tmp_path: Path) -> None:

@@ -156,7 +156,23 @@ class RunArchive:
 
     # -- manifest -------------------------------------------------------------
 
+    def secure_tree(self) -> None:
+        """Recursive owner-only modes over every descendant (G6.R3): dirs
+        0700, files 0600, symlinks never followed; win32 relies on the
+        profile ACL. Runs at finalize only — sweeping mid-run would race the
+        vendor processes still writing into their working dirs."""
+        if self._platform == "win32":
+            return
+        for path in self.root.rglob("*"):
+            if path.is_symlink():
+                continue
+            with contextlib.suppress(OSError):
+                path.chmod(0o700 if path.is_dir() else 0o600)
+        with contextlib.suppress(OSError):
+            self.root.chmod(0o700)
+
     def finalize_manifest(self) -> None:
+        self.secure_tree()
         self._write_json("manifest.sha256.json", self._compute_manifest())
 
     def verify_manifest(self) -> list[str]:

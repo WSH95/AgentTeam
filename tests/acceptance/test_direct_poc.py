@@ -14,6 +14,7 @@ import signal
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -205,13 +206,19 @@ def test_sanitized_bundle_round_trip_from_a_real_run(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX permission bits")
-def test_archive_permissions_are_owner_only(tmp_path: Path) -> None:
+def test_archive_permissions_are_owner_only(
+    tmp_path: Path, assert_owner_only_tree: Callable[[Path], None]
+) -> None:
     out = tmp_path / "run"
     result = _invoke(out)
     assert result.exit_code == 0, result.output
-    assert out.stat().st_mode & 0o777 == 0o700
-    for path in (out / "legs").rglob("invocation.json"):
-        assert path.stat().st_mode & 0o777 == 0o600
+    # G6.R3: recursively owner-only — including `events.jsonl`, copied
+    # workspace trees, adapter scratch/Skill files, and vendor-written
+    # outputs (the fake Codex `-o` file), not just selected record files.
+    assert_owner_only_tree(out)
+    events = out / "events.jsonl"
+    assert events.is_file()
+    assert events.stat().st_mode & 0o777 == 0o600
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX signal semantics")

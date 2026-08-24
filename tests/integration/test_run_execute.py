@@ -144,6 +144,23 @@ def test_schema_failure_is_never_retried(tmp_path: Path) -> None:
     assert not (out / "synthesis").exists()
 
 
+def test_grok_structured_null_fails_the_leg_and_persists_the_vendor_error(tmp_path: Path) -> None:
+    out = tmp_path / "run"
+    result = runner.invoke(
+        app,
+        [*_args(tmp_path, out), *ALL_HARNESSES],
+        env={"FAKE_MODE": "ok", "FAKE_MODE_GROK": "structured-null"},
+    )
+    assert result.exit_code == 1
+    leg = _load(out / "legs" / "inv-grok" / "invocation.json")
+    assert leg["status"] == "failed"
+    assert leg["retry"]["attempt"] == 1  # a schema failure is never retried
+    assert leg["schema_outcome"] == "missing"
+    assert any("model did not produce structured output" in p for p in leg["problems"])
+    assert not (out / "legs" / "inv-grok" / "review.normalized.json").exists()
+    assert not (out / "synthesis").exists()
+
+
 def test_live_codex_disagreement_is_persisted_as_telemetry(tmp_path: Path) -> None:
     out = tmp_path / "run"
     result = runner.invoke(

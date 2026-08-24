@@ -14,8 +14,10 @@ excludes its whole channel-root subtree (which also covers the
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import shutil
+import sys
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -82,9 +84,23 @@ def exclusions_for(files_written: Iterable[FileWriteV1], workspace_root: Path) -
     return frozenset(excluded)
 
 
-def copy_workspace(src: Path, dst: Path) -> None:
-    """Copy the requested workspace into one leg's isolated tree."""
+def copy_workspace(src: Path, dst: Path, *, platform: str = sys.platform) -> None:
+    """Copy the requested workspace into one leg's isolated, owner-only tree.
+
+    `copytree` mirrors the source's modes (and can loosen an existing 0700
+    destination via `copystat`), so the copy is re-tightened afterwards:
+    dirs 0700, files 0600 (G6.R3); win32 relies on the profile ACL.
+    """
     _scan(src)  # reject symlinks and irregular entries before writing anything
     if dst.exists() and any(dst.iterdir()):
         raise TargetError(f"leg workspace destination is not empty: {dst}")
     shutil.copytree(src, dst, symlinks=False, dirs_exist_ok=True)
+    if platform == "win32":
+        return
+    with contextlib.suppress(OSError):
+        dst.chmod(0o700)
+    for path in dst.rglob("*"):
+        if path.is_symlink():
+            continue
+        with contextlib.suppress(OSError):
+            path.chmod(0o700 if path.is_dir() else 0o600)

@@ -42,7 +42,7 @@ from agentteam.harness.types import (
     RenderContext,
     RenderedInvocationV1,
 )
-from agentteam.schema import render as render_schema
+from agentteam.schema import vendor_schema_text
 
 
 class CodexAdapter:
@@ -118,7 +118,7 @@ class CodexAdapter:
         files.extend(skill_writes)
 
         schema_file = ctx.scratch_dir / "output-schema.json"
-        schema_file.write_text(render_schema(schema_name_for(ctx)), encoding="utf-8")
+        schema_file.write_text(vendor_schema_text(schema_name_for(ctx)), encoding="utf-8")
         files.append(FileWriteV1(path=schema_file, role="output-schema", channel="file"))
         output_file = ctx.scratch_dir / "final-message.json"
 

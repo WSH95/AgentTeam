@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -12,6 +13,7 @@ import pytest
 from agentteam.domain.run import LauncherPolicy
 from agentteam.harness.claude import ClaudeAdapter
 from agentteam.harness.rendering import RenderError
+from agentteam.schema import vendor_schema
 
 Builder = Callable[..., Any]
 
@@ -67,7 +69,8 @@ def test_golden_argv_and_channels(render_context_builder: Builder, tmp_path: Pat
     assert "--bare" not in flags
     schema_index = flags.index("--json-schema")
     schema = json.loads(flags[schema_index + 1])
-    assert schema["$id"] == "urn:agentteam:schema:normalized-review:v1"
+    assert schema == vendor_schema("normalized-review-v1.schema.json")
+    assert "$schema" not in schema and "$id" not in schema  # G6.R1: no meta-schema to resolve
     assert "\n" not in flags[schema_index + 1]  # minified single line
     prompt_index = flags.index("--append-system-prompt-file")
     prompt_file = Path(flags[prompt_index + 1])
@@ -93,6 +96,18 @@ def test_skills_are_written_into_the_config_home_channel(
     assert channels["task"] == "stdin"
     assert channels["output-schema"] == "argv-inline"
     assert rendered.injection.undeliverable_required_parts == []
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX permission bits")
+def test_written_skill_trees_are_owner_only(
+    render_context_builder: Builder,
+    tmp_path: Path,
+    assert_owner_only_tree: Callable[[Path], None],
+) -> None:
+    # G6.R3: Skill installs land in the persistent config home, outside any
+    # archive sweep — they must be owner-only at write time.
+    _, ctx = _render(render_context_builder, tmp_path)
+    assert_owner_only_tree(ctx.config_root / "skills")
 
 
 def test_skill_channel_ladder_uses_plugin_then_workspace_fallbacks(

@@ -1,92 +1,95 @@
 ---
-updated_at: 2026-08-24T14:29:13Z
-updated_by: codex
+updated_at: 2026-08-24T15:35:17Z
+updated_by: claude
 session_status: active
 branch: main
-last_commit: 83e1f95
+last_commit: ddd9edb
 ---
 # Handoff
 
 ## Now
 
-**G6 remains open after its first owner-attended cycle failed mechanically.**
-Run `run-20260824-142351-dfc0` used exactly three calls with no retry or
-synthesis: Codex returned a valid all-three-defect review, Claude rejected the
-canonical Draft 2020-12 schema reference before structured output, and Grok
-returned no structured field. The archive manifest and sanitizer pass, package
-and target stayed unchanged, no evidence was promoted, and 18 of 30 calls
-remain. G6.R1–R3 now gate any separately confirmed rerun.
+**G6 remains open; G6.R1–R3 are closed, reviewed, and committed** (the commit
+carrying this handoff: `fix(schema,run): close G6.R1-R3 live-rerun blockers`).
+Delivery-time vendor projection (strip `$schema`/`$id`/`title`, canonical
+schemas byte-identical, Codex on the same projected document), Grok
+`structuredOutputError` persistence with fixture/fake/runner coverage, and the
+recursive owner-only archive (events opener, write-time tightening,
+`secure_tree()` at both finalize paths) are all green in both modes: core
+441+4 skips, extra 453+3, compatibility 12, plus the full CI-mirror block.
+The high-effort diff review returned 10 findings, none refuted: 4 fixed, 6
+dispositioned (exec-bit flattening → RISKS R34; the rest accepted residuals).
+Docs verification (2026-08-24, cited in VERIFY) documents the root cause:
+Claude Code validates `--json-schema` against draft-07, so the 2020-12
+`$schema` declaration was rejected; every delivered keyword is
+documented-supported at all three vendors.
 
 ## In flight
 
-Nothing. No process or vendor invocation is running and no rerun is authorized.
-Only `.project-steward/{HANDOFF,PLAN,PROGRESS,RISKS,VERIFY}.md` are dirty with
-the auto-checkpoint plus this failure record; product, Assistant, request, and
-fixture files are unchanged. The local environment remains in core mode.
+Nothing. No process or vendor invocation is running; no rerun is authorized.
+18 of the 30-call ceiling remain; `main` is ahead of origin by 3 unpushed
+commits after this one (`83e1f95`, `ddd9edb`, this commit).
 
 ## Next steps
 
-1. Implement PLAN G6.R1–R3 without live calls: vendor-schema dialect
-   projection, deterministic Grok full-schema failure coverage, and recursive
-   POSIX archive modes. Preserve canonical checked-in schemas and the verified
-   Grok field-only fail-hard policy.
-2. Run focused regressions and the full credential-free two-mode block; review
-   the changes before considering another live cycle.
-3. Only after that review, repeat doctor/hashes/policy checks and obtain a new
-   owner confirmation for one rerun (at most eight calls; 18 remain). Never
-   auto-rerun or fall back to API mode.
-4. Preserve the raw archive locally; if a later cycle passes both acceptance
-   tiers, manually review sanitizer output before G6 closure/G8 promotion.
+1. Offer the owner a push of the three pending commits for a hosted 9-job CI
+   check before the rerun (owner decision; not required by the recorded
+   protocol; every push needs its own explicit approval).
+2. Repeat the no-call gate: `uv run atm profile doctor` must report Claude
+   2.1.241 / Codex 0.149.1 / Grok 1.0.5 ready/current with zero conflicts or
+   staleness (any drift ⇒ stop; a re-probe costs calls and needs separate
+   approval); package `fb9e98a3…` and target `25f03027…` hashes unchanged;
+   refresh the official Claude subscription/CLI policy check (RISKS R23);
+   confirm the normal proxy names are inherited (ADR 0027 — run from the
+   normal terminal, never `env -u`, no `ANTHROPIC_API_KEY`-class variables).
+3. Obtain a fresh, explicit owner confirmation for at most ONE attended rerun:
+   `uv run atm run examples/run-requests/live-review.yaml` (≤8 calls; the
+   command has **no built-in confirmation prompt** — it spends three calls the
+   moment it starts; never `--render-only`, never `--config …ci-fake.yaml`,
+   never `--no-synthesis`). Never auto-rerun; never fall back to API mode; a
+   second rerun is an explicit owner ceiling decision (ADR 0033).
+4. On a rerun: exit 0 → verify manifest + recursive modes on the real archive,
+   run the sanitizer to a temp dir, review its output manually, update the
+   ledger and close G6 (promotion of the evidence bundle stays G8). Exit 3 →
+   semantic routing per plan §14. Exit 1/2 → record with first-cycle rigor and
+   stop. Then wrap; G7 is a separate approval.
 
 ## Blockers
 
-G6.R1: Claude rejects the canonical schema's Draft 2020-12 meta-reference.
-G6.R2: Grok's full review schema produced no structured field despite the
-smaller G5 probe passing. G6.R3: the protected 0700 archive root contains
-event/workspace/scratch descendants with broader mode bits. All three must be
-resolved and tested before any rerun decision.
+Only the owner gates: the optional pre-rerun push decision and the mandatory
+fresh rerun confirmation after the no-call gate.
 
 ## Key files
 
-- `src/agentteam/schema/__init__.py` and the three adapters — canonical schema
-  generation versus vendor-facing projection (G6.R1/R2).
-- `src/agentteam/run/{archive,events,workspace}.py` — recursive owner-only live
-  archive modes (G6.R3).
-- `tests/unit/test_{render_claude,render_grok,run_archive}.py` and
-  `tests/acceptance/test_direct_poc.py` — focused regression surfaces.
-- `.project-steward/VERIFY.md` — exact sanitized G6 failure evidence.
+- `src/agentteam/schema/__init__.py` — `vendor_projection`/`vendor_schema`/
+  `vendor_schema_min`/`vendor_schema_text`, shared `_SCHEMA_DATA_KEYS`.
+- `src/agentteam/run/{archive,events,workspace}.py`,
+  `src/agentteam/harness/skills.py` — recursive owner-only modes.
+- `tests/unit/test_vendor_projection.py` — projection + construct-set pins.
+- `.project-steward/VERIFY.md` — "G6.R rerun-blocker remediation" (evidence,
+  review dispositions, docs citations) above the G6 failure table.
 
 ## Tried and rejected
 
-- A hard-coded `test-version` in the shared render-context builder made 22
-  fake-profile tests correctly fail the new currency guard. The builder now
-  derives one consistent current verified version from the supplied profile
-  and fails closed on inconsistent versions.
-- Sandboxed `uv build`/acceptance initially could not create uv cache lock
-  files outside the workspace. Approved cache access (or a task-local
-  `UV_CACHE_DIR` for the second acceptance run) completed the same commands.
-- CI run 32734735405 proved the mocked stuck-pipe test itself was POSIX-only:
-  Windows has no `os.killpg`. Testing the platform-independent drain helper
-  directly retains the bounded 10s/5s assertions; the separate real POSIX
-  descendant test retains group TERM/KILL coverage. Corrective run
-  32735583747 passed all nine jobs.
-- Do not treat Grok's exit 0 as a successful leg: its verified structured field
-  was null and the parser correctly failed. Do not silently enable the
-  unverified text fallback or spend a capability probe/live retry while
-  diagnosing G6.R2.
+- Rewriting `anyOf`-nullable to `type` arrays: rejected — Codex's live PASS
+  used the `anyOf` form and all three vendors document `anyOf` support.
+- Stripping `description`: rejected — real model steering, live-proven via
+  Codex, actively encouraged by xAI docs.
+- Sweeping archive modes mid-run: rejected — would race live vendor
+  processes; creation-time modes cover the pre-launch window instead.
+- Setting a process-wide umask 0o077 for the crash-path window: rejected for
+  now — process-global state races in-process test runners; 0700 parents
+  already shield descendants (review disposition).
 
 ## Warnings
 
-- The initial G6 cycle spent three calls; 18 of the hard ceiling remain. No
-  retry/synthesis/API fallback/push occurred. Native CLIs used their dedicated
-  homes, but AgentTeam did not parse/copy credential files or record values.
-- Raw run evidence remains only under the owner state directory; the temporary
-  sanitized copy passed its scanner and was not promoted. Do not add either.
-- The archive root is 0700 and therefore protects its descendants, but the
-  explicit recursive 0700/0600 contract still failed and must be repaired.
-- `select_verified(..., cli_version=None)` is render-only behavior;
-  `execute_run` rejects non-live plans and missing observed versions before
-  archive creation.
-- Ignored fake homes under `examples/profiles/.agentteam-local/` may remain
-  from deterministic acceptance; they are disposable test state, not owner
-  vendor homes.
+- The initial G6 cycle spent 3 calls; **18 of the 30-call ceiling remain**.
+- Raw run evidence stays only under `~/.agentteam/runs/run-20260824-142351-dfc0`
+  (owner-only, gitignored); nothing promoted.
+- Every push needs its own explicit owner approval.
+- A codex TUI process from the previous unclosed session may still be alive
+  on pts/0 (pid 698697); do not type into it — this session holds the
+  steward runtime claim.
+- G6.R3 flattens execute bits on copied workspace/Skill files (RISKS R34) —
+  harmless for the current target/Skills (no executables), revisit before any
+  target ships scripts.

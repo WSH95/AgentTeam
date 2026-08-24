@@ -280,6 +280,22 @@ def main():
     if mode == "malformed":
         sys.stdout.write("not json at all\n")
         return 0
+    if mode == "structured-null":
+        # Live 1.0.5 shape (initial G6 cycle): exit 0, camelCase null field,
+        # explanatory error string, decodable text the parser must not use.
+        # Emitted verbatim from the checked-in sanitized fixture so the unit
+        # fixture and this fake can never drift apart.
+        fixture = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            os.pardir,
+            "vendor-output",
+            "grok",
+            "structured-null-error.json",
+        )
+        with open(fixture, encoding="utf-8") as fh:
+            sys.stdout.write(fh.read())
+        sys.stdout.flush()
+        return 0
     if mode == "mutate-target":
         with open("fake-mutation.txt", "w", encoding="utf-8") as fh:
             fh.write("the fake harness wrote into the target\n")

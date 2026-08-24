@@ -500,7 +500,7 @@ async def _run_body(runner: _Runner) -> RunOutcome:
                 workspace_dir, _synthetic_config_home, scratch = runner.archive.working_dirs(
                     invocation_id
                 )
-                copy_workspace(Path(request.workspace), workspace_dir)
+                copy_workspace(Path(request.workspace), workspace_dir, platform=runner.platform)
                 if hash_tree(workspace_dir) != source_hash:
                     return runner._finalize_run(
                         status=RunStatus.FAILED,

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import shutil
 import sys
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
@@ -16,6 +16,24 @@ if TYPE_CHECKING:
 
 H64 = "a" * 64
 NOW = datetime(2026, 8, 23, 12, 0, 0, tzinfo=UTC)
+
+
+@pytest.fixture()
+def assert_owner_only_tree() -> Callable[[Path], None]:
+    """Recursive owner-only assertion shared by the G6.R3 tests: root and
+    every descendant dir 0700, every file 0600; symlinks skipped (the
+    production sweeps never chmod through a link)."""
+
+    def check(root: Path) -> None:
+        __tracebackhide__ = True
+        assert root.stat().st_mode & 0o777 == 0o700, root
+        for path in root.rglob("*"):
+            if path.is_symlink():
+                continue
+            expected = 0o700 if path.is_dir() else 0o600
+            assert path.stat().st_mode & 0o777 == expected, path
+
+    return check
 
 
 @pytest.fixture(scope="session", autouse=True)

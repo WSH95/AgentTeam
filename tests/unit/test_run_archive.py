@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -18,6 +19,7 @@ from agentteam.domain.review import NormalizedReviewV1
 from agentteam.domain.run import HarnessInvocationV1, RunRecordV1, TimingV1
 from agentteam.harness.types import RawInvocationV1
 from agentteam.run.archive import RunArchive
+from agentteam.run.events import EventLog
 
 Payloads = dict[str, dict[str, Any]]
 
@@ -117,6 +119,43 @@ def test_posix_archive_is_owner_only(tmp_path: Path, payloads: Payloads) -> None
     for path in root.rglob("*"):
         if path.is_file():
             assert path.stat().st_mode & 0o777 == 0o600, path
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX permission bits")
+def test_finalize_sweeps_every_descendant_owner_only(
+    tmp_path: Path, payloads: Payloads, assert_owner_only_tree: Callable[[Path], None]
+) -> None:
+    # G6.R3: the terminal archive is recursively owner-only, including
+    # `events.jsonl` and files planted in working dirs with loose umask modes
+    # (as adapters and vendor processes do during a live run).
+    root = tmp_path / "archive"
+    archive, _ = _create(root, payloads)
+    workspace, config_home, scratch = archive.working_dirs("inv-codex")
+    EventLog(archive.events_path, run_id="run-test").emit("run-created")
+    nested = workspace / "sub"
+    nested.mkdir()
+    for path, mode in (
+        (nested / "copy.ts", 0o644),
+        (config_home / "session.json", 0o664),
+        (scratch / "prompt.md", 0o644),
+    ):
+        path.write_text("x", encoding="utf-8")
+        path.chmod(mode)
+    nested.chmod(0o755)
+    archive.finalize_manifest()
+    assert_owner_only_tree(root)
+    assert (root / "events.jsonl").stat().st_mode & 0o777 == 0o600
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX permission bits")
+def test_secure_tree_on_a_win32_archive_is_a_mode_noop(tmp_path: Path, payloads: Payloads) -> None:
+    root = tmp_path / "archive"
+    _create(root, payloads)
+    loose = root / "loose.txt"
+    loose.write_text("x", encoding="utf-8")
+    loose.chmod(0o644)
+    RunArchive(root, platform="win32").secure_tree()
+    assert loose.stat().st_mode & 0o777 == 0o644
 
 
 def test_windows_platform_warns_when_root_is_outside_the_profile(

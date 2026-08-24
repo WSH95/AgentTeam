@@ -3,6 +3,7 @@ modes, retry/mutation/semantic fixtures, and label-driven synthesis."""
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -85,6 +86,31 @@ async def test_per_leg_mode_overrides_only_its_own_vendor(
     assert claude_raw.exit_code == 0
 
 
+async def test_fake_claude_rejects_a_meta_schema_reference_like_the_real_cli(
+    render_context_builder: Builder, tmp_path: Path
+) -> None:
+    # The initial G6 cycle proved Claude 2.1.241 rejects a `--json-schema`
+    # document carrying a `$schema` meta-reference before any inference; the
+    # fake mirrors that, so a delivery-path regression fails deterministically.
+    ctx = _fake_ctx(render_context_builder, tmp_path, HarnessId.CLAUDE_CODE, {"FAKE_MODE": "ok"})
+    adapter = get_adapter(HarnessId.CLAUDE_CODE)
+    rendered = adapter.render(ctx)
+    index = rendered.argv.index("--json-schema") + 1
+    unprojected = dict(json.loads(rendered.argv[index]))
+    unprojected["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+    tampered = rendered.model_copy(
+        update={
+            "argv": [*rendered.argv[:index], json.dumps(unprojected), *rendered.argv[index + 1 :]]
+        }
+    )
+    raw = await adapter.invoke(tampered)
+    assert raw.exit_code == 1
+    assert (
+        b"--json-schema is not a valid JSON Schema: no schema with key or ref "
+        b'"https://json-schema.org/draft/2020-12/schema"' in raw.stderr
+    )
+
+
 async def test_rate_limit_once_fails_then_succeeds_with_a_shared_config_home(
     render_context_builder: Builder, tmp_path: Path
 ) -> None:
@@ -134,6 +160,23 @@ async def test_invent_critical_adds_one_finding_outside_any_oracle(
     invented = leg.review.findings[-1]
     assert invented.severity == "critical"
     assert invented.file == "src/extra.ts"
+
+
+async def test_fake_grok_structured_null_mode_reproduces_the_live_failure(
+    render_context_builder: Builder, tmp_path: Path
+) -> None:
+    # Live 1.0.5 shape from the initial G6 cycle: exit 0, camelCase
+    # `structuredOutput: null` + `structuredOutputError`, decodable `text`.
+    ctx = _fake_ctx(
+        render_context_builder, tmp_path, HarnessId.GROK, {"FAKE_MODE": "structured-null"}
+    )
+    adapter = get_adapter(HarnessId.GROK)
+    raw = await adapter.invoke(adapter.render(ctx))
+    assert raw.exit_code == 0
+    leg = adapter.parse(raw)
+    assert leg.review is None
+    assert leg.schema_outcome is SchemaOutcome.MISSING
+    assert any("model did not produce structured output" in p for p in leg.problems)
 
 
 async def test_semantic_miss_keeps_only_the_injection_finding(

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -166,6 +167,32 @@ def test_copy_workspace_refuses_a_nonempty_destination(tmp_path: Path) -> None:
     _write(dst, "existing.txt", b"already here")
     with pytest.raises(TargetError, match="not empty"):
         copy_workspace(src, dst)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX permission bits")
+def test_copy_workspace_sets_owner_only_modes(
+    tmp_path: Path, assert_owner_only_tree: Callable[[Path], None]
+) -> None:
+    # G6.R3: leg copies are owner-only regardless of the source tree's modes.
+    src = tmp_path / "src"
+    _write(src, "open/a.ts", b"alpha")
+    (src / "open").chmod(0o755)
+    (src / "open" / "a.ts").chmod(0o644)
+    dst = tmp_path / "dst"
+    copy_workspace(src, dst)
+    assert_owner_only_tree(dst)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX permission bits")
+def test_copy_workspace_win32_platform_skips_mode_enforcement(tmp_path: Path) -> None:
+    # The win32 branch relies on the profile ACL; exercised here on POSIX so
+    # every CI leg covers it without platform monkeypatching.
+    src = tmp_path / "src"
+    _write(src, "a.ts", b"alpha")
+    (src / "a.ts").chmod(0o644)
+    dst = tmp_path / "dst"
+    copy_workspace(src, dst, platform="win32")
+    assert (dst / "a.ts").stat().st_mode & 0o777 == 0o644  # copystat preserved
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="symlink creation needs privilege on Windows")

@@ -4,6 +4,7 @@ over the same extraction)."""
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from agentteam.domain.review import NormalizedReviewV1
@@ -98,6 +99,40 @@ def test_grok_reads_only_the_probe_selected_output_location() -> None:
         update={"structured_output_channel": "structured-output-text"}
     )
     assert adapter.extract_structured(text).candidate is not None
+
+
+def test_grok_field_channel_ignores_valid_text_when_field_is_null() -> None:
+    adapter = GrokAdapter()
+    stdout = (FIXTURES / "grok" / "structured-null-error.json").read_bytes()
+    field = _raw(stdout=stdout).model_copy(
+        update={"structured_output_channel": "structured-output-field"}
+    )
+    extracted = adapter.extract_structured(field)
+    assert extracted.candidate is None
+    assert extracted.hard_failure is False
+    assert any("model did not produce structured output" in p for p in extracted.problems)
+    # The same payload's `text` decodes to a full review: the refusal above is
+    # the verified-field policy, not inability.
+    text = _raw(stdout=stdout).model_copy(
+        update={"structured_output_channel": "structured-output-text"}
+    )
+    assert adapter.extract_structured(text).candidate is not None
+
+
+def test_grok_vendor_error_is_preserved_on_the_text_channel_too() -> None:
+    # The diagnostic string must survive on every ladder rung, not only the
+    # field channel (review finding on G6.R2).
+    adapter = GrokAdapter()
+    payload = json.loads(
+        (FIXTURES / "grok" / "structured-null-error.json").read_text(encoding="utf-8")
+    )
+    payload["text"] = None
+    raw = _raw(stdout=json.dumps(payload).encode("utf-8")).model_copy(
+        update={"structured_output_channel": "structured-output-text"}
+    )
+    extracted = adapter.extract_structured(raw)
+    assert extracted.candidate is None
+    assert any("model did not produce structured output" in p for p in extracted.problems)
 
 
 def test_grok_extraction_matches_parse_and_flags_vendor_errors() -> None:

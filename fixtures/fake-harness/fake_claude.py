@@ -143,6 +143,23 @@ def rate_limited_once():
     return True
 
 
+def schema_flag_error():
+    """Mirror the real CLI's up-front `--json-schema` validation (observed
+    live 2026-08-24): a document carrying a `$schema` meta-reference the CLI
+    cannot resolve is rejected before any inference."""
+    if "--json-schema" not in sys.argv:
+        return None
+    try:
+        document = json.loads(sys.argv[sys.argv.index("--json-schema") + 1])
+    except (IndexError, json.JSONDecodeError):
+        return "--json-schema is not a valid JSON Schema: unparseable document"
+    if isinstance(document, dict) and "$schema" in document:
+        return "--json-schema is not a valid JSON Schema: no schema with key or ref " + json.dumps(
+            document["$schema"]
+        )
+    return None
+
+
 def synthesis_requested():
     return any("synthesis-report" in element for element in sys.argv)
 
@@ -250,6 +267,10 @@ def main():
         return 0 if logged_in else 1
     stdin_text = read_stdin()
     observe(stdin_text)
+    schema_error = schema_flag_error()
+    if schema_error is not None:
+        sys.stderr.write(schema_error + "\n")
+        return 1
     if is_probe("claude", sys.argv):
         return emit_probe("claude", sys.argv)
     mode = resolve_mode()

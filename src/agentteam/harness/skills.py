@@ -181,6 +181,16 @@ def write_skills(ctx: RenderContext, channel_root: Path, channel: str) -> list[F
                 shutil.rmtree(destination)
         shutil.copytree(source, destination)
         writes.append(FileWriteV1(path=destination / "SKILL.md", role=part, channel=channel))
+    if ctx.platform != "win32":
+        # Owner-only at write time (G6.R3): the config-home channel lives in
+        # the persistent profile home, outside any archive finalize sweep.
+        with contextlib.suppress(OSError):
+            channel_root.chmod(0o700)
+        for path in channel_root.rglob("*"):
+            if path.is_symlink():
+                continue
+            with contextlib.suppress(OSError):
+                path.chmod(0o700 if path.is_dir() else 0o600)
     if undeliverable:
         raise RenderError(
             "required Skills cannot be delivered: "

@@ -9,6 +9,10 @@ Schema cannot express are listed in `schemas/README.md`.
 The two vendor-facing schemas (normalized review, synthesis report) are
 post-processed into the vendors' structured-output dialect intersection:
 `$defs`/`$ref` fully inlined, `const` rewritten as single-value `enum`.
+The checked-in documents keep the `$schema`/`$id` envelope; the documents
+actually delivered to vendor flags are additionally projected through
+`vendor_projection` (no meta-schema reference, no `title` annotations) —
+Claude's CLI rejects a `$schema` it cannot resolve (observed live 2026-08-24).
 """
 
 from __future__ import annotations
@@ -55,8 +59,14 @@ SCHEMA_FILES: dict[str, type[BaseModel]] = {n: m for n, (_, m) in SCHEMA_MODELS.
 VENDOR_FACING = {"normalized-review-v1.schema.json", "synthesis-report-v1.schema.json"}
 
 # JSON Schema keywords whose value is a map of *names* to subschemas, not a
-# subschema itself; the const rewrite must not descend into their keys.
+# subschema itself; schema-position traversals must not treat their keys as
+# schema keywords.
 _NAMED_SUBSCHEMA_MAPS = {"properties", "$defs", "patternProperties", "definitions"}
+
+# Keywords whose values are data, not subschemas; traversals copy them
+# verbatim (a `required` list may name a property called `title`). Shared by
+# the const rewrite and the vendor projection so the two walks cannot drift.
+_SCHEMA_DATA_KEYS = frozenset({"enum", "required", "default", "examples"})
 
 
 def _rewrite_const_as_enum(schema: Any) -> Any:
@@ -71,7 +81,7 @@ def _rewrite_const_as_enum(schema: Any) -> Any:
             out["enum"] = [value]
         elif key in _NAMED_SUBSCHEMA_MAPS and isinstance(value, dict):
             out[key] = {name: _rewrite_const_as_enum(sub) for name, sub in value.items()}
-        elif key in {"enum", "default", "examples"}:
+        elif key in _SCHEMA_DATA_KEYS:
             out[key] = value
         else:
             out[key] = _rewrite_const_as_enum(value)
@@ -158,11 +168,54 @@ def check_all(directory: Path) -> list[str]:
     return problems
 
 
-def vendor_schema_min(name: str) -> str:
-    """One-line minified text of a vendor-facing schema (argv-safe constant)."""
+# Keys stripped from vendor-delivered documents, in schema position only:
+# the meta-schema reference and identity envelope (Claude's CLI fails on an
+# unresolvable `$schema`) and pure `title` annotations. The checked-in
+# canonical documents keep all three.
+VENDOR_STRIP_KEYS = frozenset({"$schema", "$id", "title"})
+
+
+def vendor_projection(schema: Any) -> Any:
+    """A copy with `VENDOR_STRIP_KEYS` removed in schema position only.
+
+    Keys of named-subschema maps (e.g. a *property* called `title`) and the
+    values of data keywords (`enum`, `required`, `default`, `examples`) pass
+    through verbatim. `$defs`/`$ref` inlining and the `const` rewrite already
+    happen at canonical generation time.
+    """
+    if isinstance(schema, list):
+        return [vendor_projection(item) for item in schema]
+    if not isinstance(schema, dict):
+        return schema
+    out: dict[str, Any] = {}
+    for key, value in schema.items():
+        if key in VENDOR_STRIP_KEYS:
+            continue
+        if key in _NAMED_SUBSCHEMA_MAPS and isinstance(value, dict):
+            out[key] = {name: vendor_projection(sub) for name, sub in value.items()}
+        elif key in _SCHEMA_DATA_KEYS:
+            out[key] = value
+        else:
+            out[key] = vendor_projection(value)
+    return out
+
+
+def vendor_schema(name: str) -> dict[str, Any]:
+    """The vendor-delivered projection of one vendor-facing schema."""
     if name not in VENDOR_FACING:
         raise ValueError(f"not a vendor-facing schema: {name}")
-    return json.dumps(generate(name), separators=(",", ":"), ensure_ascii=False)
+    projected: dict[str, Any] = vendor_projection(generate(name))
+    return projected
+
+
+def vendor_schema_min(name: str) -> str:
+    """One-line minified vendor projection (argv-safe constant)."""
+    return json.dumps(vendor_schema(name), separators=(",", ":"), ensure_ascii=False)
+
+
+def vendor_schema_text(name: str) -> str:
+    """Pretty vendor projection for file-channel delivery (Codex)."""
+    return json.dumps(vendor_schema(name), indent=2, ensure_ascii=False) + "\n"
 
 
 __all__ = [
@@ -170,10 +223,14 @@ __all__ = [
     "SCHEMA_FILES",
     "SCHEMA_MODELS",
     "VENDOR_FACING",
+    "VENDOR_STRIP_KEYS",
     "check_all",
     "export_all",
     "generate",
     "render",
+    "vendor_projection",
+    "vendor_schema",
     "vendor_schema_min",
+    "vendor_schema_text",
     "write_all",
 ]

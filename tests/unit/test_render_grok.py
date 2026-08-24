@@ -11,6 +11,7 @@ import pytest
 
 from agentteam.harness.grok import GrokAdapter
 from agentteam.harness.rendering import RenderError
+from agentteam.schema import vendor_schema
 
 Builder = Callable[..., Any]
 
@@ -69,7 +70,9 @@ def test_golden_argv_and_prompt_file(render_context_builder: Builder, tmp_path: 
     assert "--no-subagents" in argv
     assert argv >= ["--sandbox", "read-only"]
     schema_index = argv.index("--json-schema")
-    assert json.loads(argv[schema_index + 1])["$id"].startswith("urn:agentteam")
+    delivered = json.loads(argv[schema_index + 1])
+    assert delivered == vendor_schema("normalized-review-v1.schema.json")
+    assert "$schema" not in delivered and "$id" not in delivered  # G6.R1
     assert rendered.stdin_text is None
     assert rendered.env_values["GROK_HOME"] == str(ctx.config_root)
     assert rendered.env_values["GROK_MEMORY"] == "0"

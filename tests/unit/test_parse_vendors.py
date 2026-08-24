@@ -147,3 +147,19 @@ def test_grok_error_object() -> None:
     assert leg.review is None
     assert leg.schema_outcome is SchemaOutcome.MISSING
     assert any("no auth" in p for p in leg.problems)
+
+
+def test_grok_structured_null_error_fails_hard_and_never_reads_text() -> None:
+    # The initial G6 cycle (2026-08-24): exit 0, `structuredOutput: null`, an
+    # explanatory `structuredOutputError`, and decodable `text` that the
+    # probe-verified field channel must not consume. The vendor's error string
+    # is preserved on the record for diagnosis (G6.R2).
+    raw = _raw(stdout=_read("grok/structured-null-error.json")).model_copy(
+        update={"structured_output_channel": "structured-output-field"}
+    )
+    leg = GrokAdapter().parse(raw)
+    assert leg.review is None
+    assert leg.schema_outcome is SchemaOutcome.MISSING
+    assert any("model did not produce structured output" in p for p in leg.problems)
+    assert any("no structured output" in p for p in leg.problems)
+    assert leg.usage.input_tokens == 7210 and leg.usage.output_tokens == 1893  # telemetry kept

@@ -10,6 +10,7 @@ import pytest
 
 from agentteam.harness.codex import CodexAdapter
 from agentteam.harness.rendering import RenderError
+from agentteam.schema import vendor_schema_text
 
 Builder = Callable[..., Any]
 
@@ -55,6 +56,11 @@ def test_golden_argv(render_context_builder: Builder, tmp_path: Path) -> None:
     schema_index = argv.index("--output-schema")
     schema_file = Path(argv[schema_index + 1])
     assert schema_file.is_file() and schema_file.name == "output-schema.json"
+    # G6.R1: the delivered file carries the projected vendor document, not the
+    # canonical `$schema`/`$id` envelope.
+    assert schema_file.read_text(encoding="utf-8") == vendor_schema_text(
+        "normalized-review-v1.schema.json"
+    )
     out_index = argv.index("-o")
     assert Path(argv[out_index + 1]).name == "final-message.json"
     assert "--json" in argv
