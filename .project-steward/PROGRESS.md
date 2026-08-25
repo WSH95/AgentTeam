@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T22:23:53Z — codex
+M1c G5 hosted attempt 32905220326 was 10/12 green and found unsafe Windows `os.kill(pid, 0)` descendant probing; replaced with fail-closed Win32 process-query APIs, regression added, 35 focused + 737+4 full local matrix green, replacement hosted run pending
+
 ### 2026-08-25T22:07:49Z — cli
 M1c r2 remains locally review-ready after final validation; no runtime install, model call, commit, or push
 

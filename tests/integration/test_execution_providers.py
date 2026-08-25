@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from pathlib import Path
 
 import pytest
@@ -133,3 +134,24 @@ def test_fake_capabilities_expose_ownership_difference() -> None:
     assert owned.process_stop_observability is CapabilityLevel.SUPPORTED
     assert external.process_stop_observability is CapabilityLevel.UNSUPPORTED
     assert external.provider_history_deletion is CapabilityLevel.UNSUPPORTED
+
+
+@pytest.mark.parametrize("reported", [False, True])
+def test_windows_process_probe_never_uses_os_kill(
+    monkeypatch: pytest.MonkeyPatch,
+    reported: bool,
+) -> None:
+    observed: list[int] = []
+
+    def windows_probe(pid: int) -> bool:
+        observed.append(pid)
+        return reported
+
+    def unsafe_kill(_pid: int, _signal: int) -> None:
+        raise AssertionError("Windows os.kill(pid, 0) can terminate the process")
+
+    monkeypatch.setattr(fakes, "_windows_process_is_running", windows_probe)
+    monkeypatch.setattr(os, "kill", unsafe_kill)
+
+    assert fakes._process_is_running(1234, platform="win32") is reported
+    assert observed == [1234]

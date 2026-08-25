@@ -4,6 +4,16 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1c G5 hosted attempt 1 and Windows liveness fix — 2026-08-25
+
+| Check | Result |
+| --- | --- |
+| Hosted attempt | Run [32905220326](https://github.com/WSH95/AgentTeam/actions/runs/32905220326) at `43eaea9` was **10/12 green**: all Ubuntu/macOS scaffold, all optional ClawTeam, and all credential-free vendor-smoke jobs passed. Both Windows scaffold jobs failed in the full test step before the named M1c acceptance |
+| Root cause | CONFIRMED — the owned-process fake used POSIX `os.kill(pid, 0)` to inspect a descendant. On Windows that is not a safe liveness query and raised `WinError 87`; cleanup became truthfully non-terminal and cascaded into 13 controller close failures on each Python leg |
+| Fix | PASS locally — Windows liveness now uses `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)` plus `GetExitCodeProcess`; inaccessible/unknown inspection remains conservatively “possibly running.” Reconstructed process handles use the same shared probe, and a regression proves the Windows route never invokes `os.kill` |
+| Local validation | PASS — provider/controller focus **35 passed**; full tree **737 passed + 4 expected skips** in 77.02s; targeted Ruff/format and mypy clean |
+| Gate | G5 remains open until the fix commit's replacement Ubuntu/Windows/macOS run is fully green |
+
 ## M1c G5 local audit and G6 qualification machinery — 2026-08-25
 
 | Check | Result |

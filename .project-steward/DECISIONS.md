@@ -1085,3 +1085,23 @@ principle but its source work begins only after exact M1c G8 evidence and D0.
 New dependency pins/downloads, contract changes, live calls, commits, and
 pushes retain their explicit plan/Project Steward gates. The pre-existing
 untracked `.codex/` remains outside scope.
+
+## 0046 — 2026-08-25 — Continue M1c G5/G6; preserve the fresh G7 go
+
+**Context**: After reviewing the locally complete M1c implementation and the
+explicit remaining actions, the owner said, “I approve, continue to complete
+the rest gait of m1c.” The preceding handoff named the semantic commit/push,
+hosted G5 evidence, exact pinned runtime installation, G6 no-call
+qualification, and the separate fresh attended G7 model-call gate.
+
+**Decision**: Authorize the reviewed semantic commit and scoped fast-forward
+pushes needed to obtain/fix hosted G5 evidence. Authorize installation of only
+the exact checked-in direct-ACP pins and the per-harness G6 qualification,
+which must remain zero-model-call. Ordinary failures within these gates may be
+diagnosed, fixed, committed, and rerun. Do not treat this continuation as the
+fresh attended G7 go required after G5 and G6 are green.
+
+**Consequences**: Implementation commit `43eaea9` was pushed and its first
+hosted run exposed the Windows liveness issue recorded in VERIFY. Pin changes,
+contract changes, force-pushes, unrelated remote mutations, and every live
+model call remain outside this approval. G7 still stops for the owner.

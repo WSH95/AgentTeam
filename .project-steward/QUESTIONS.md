@@ -10,11 +10,11 @@ must not guess. Answered items remain here for traceability.
 - [ ] Timing and target for any deferred API-test canary. No provider,
   endpoint, or model is selected; no key is needed unless a canary is
   separately approved.
-- [ ] **M1c direct-ACP runtime installation timing.** G6's explicit installer
+- [x] **M1c direct-ACP runtime installation timing.** G6's explicit installer
   and no-call qualification machinery are implemented, but the pinned runtime
-  remains absent. Installing/downloading it is a separate owner-approved
-  dependency action; implementation approval did not authorize it. Until
-  then, direct-ACP support remains unqualified rather than inferred.
+  remains absent. On 2026-08-25 the owner approved continuing the remaining
+  M1c gates, including this separately identified exact-pin install/download
+  action. No pin change or model call is authorized by that decision.
 - [ ] **ClawTeam exit-criterion owner decision — required at M1d D0,
   not required for M1c.** G6 measured **516 / 486 = 86/81 =
   1.061728395×**, below the approved `1.5×` ceiling (729 LOC; 213 LOC

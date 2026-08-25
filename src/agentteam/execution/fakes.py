@@ -78,26 +78,75 @@ while True:
 
 
 def _process_is_running(pid: int, *, platform: str = sys.platform) -> bool:
+    if platform == "win32":
+        return _windows_process_is_running(pid)
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
         return False
     except PermissionError:
         return True
-    if platform != "win32":
-        try:
-            observed = subprocess.run(
-                ["ps", "-o", "stat=", "-p", str(pid)],
-                stdin=subprocess.DEVNULL,
-                capture_output=True,
-                check=False,
-                timeout=2,
-            )
-        except (OSError, subprocess.TimeoutExpired):
+    try:
+        observed = subprocess.run(
+            ["ps", "-o", "stat=", "-p", str(pid)],
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            check=False,
+            timeout=2,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return True
+    state = observed.stdout.decode("ascii", errors="ignore").strip()
+    return observed.returncode == 0 and bool(state) and not state.startswith("Z")
+
+
+def _windows_process_is_running(pid: int) -> bool:
+    """Query process state without using Windows ``os.kill(pid, 0)``.
+
+    CPython maps most Windows ``os.kill`` signals to ``TerminateProcess``;
+    signal zero therefore is not a safe POSIX-style liveness probe there.
+    Unknown inspection failures conservatively mean "possibly running" so a
+    cleanup provider never reports an unverified process as stopped.
+    """
+    import ctypes
+
+    try:
+        loader = vars(ctypes)["WinDLL"]
+        get_last_error = vars(ctypes)["get_last_error"]
+        kernel32 = loader("kernel32", use_last_error=True)
+    except (KeyError, OSError):
+        return True
+
+    process_query_limited_information = 0x1000
+    error_access_denied = 5
+    error_invalid_parameter = 87
+    still_active = 259
+
+    open_process = kernel32.OpenProcess
+    open_process.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_uint32]
+    open_process.restype = ctypes.c_void_p
+    get_exit_code = kernel32.GetExitCodeProcess
+    get_exit_code.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint32)]
+    get_exit_code.restype = ctypes.c_int
+    close_handle = kernel32.CloseHandle
+    close_handle.argtypes = [ctypes.c_void_p]
+    close_handle.restype = ctypes.c_int
+
+    handle = open_process(process_query_limited_information, False, pid)
+    if not handle:
+        error = get_last_error()
+        if error == error_invalid_parameter:
+            return False
+        if error == error_access_denied:
             return True
-        state = observed.stdout.decode("ascii", errors="ignore").strip()
-        return observed.returncode == 0 and bool(state) and not state.startswith("Z")
-    return True
+        return True
+    try:
+        exit_code = ctypes.c_uint32()
+        if not get_exit_code(handle, ctypes.byref(exit_code)):
+            return True
+        return exit_code.value == still_active
+    finally:
+        close_handle(handle)
 
 
 class _OwnedProcessHandle:
@@ -118,13 +167,7 @@ class _OwnedProcessHandle:
             else:
                 if waited == self.pid:
                     return os.waitstatus_to_exitcode(status)
-        try:
-            os.kill(self.pid, 0)
-        except ProcessLookupError:
-            return 0
-        except PermissionError:
-            return None
-        return None
+        return None if _process_is_running(self.pid) else 0
 
     def terminate(self) -> None:
         if sys.platform == "win32":
