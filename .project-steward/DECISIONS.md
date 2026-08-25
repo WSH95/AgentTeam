@@ -1021,3 +1021,35 @@ This change is docs/steward-only: no source, schema, discovery register,
 vendor invocation, live capability claim, push, or live call. R36 now
 tracks the exact isolated adapter mappings and R37 tracks terminal-pair
 drift.
+
+## 0044 — 2026-08-24 — M1b r6 approved for product implementation (G0)
+
+**Context**: Five finding-bearing independent reviews and a sixth
+confirmation froze `docs/plans/m1b-team-foundation.md` revision r6 at full
+commit `760a8ae8c7021b0427bf29c84f005bebdd453bf6`, plan SHA-256
+`1776305f7bb0cca614efc13621b31d870a340444a70e06af168b5e7a86e356f6`.
+The confirmation at `87d23c6` found no implementation blockers. On
+2026-08-24 the owner explicitly approved the current M1b Plan R6 and the
+gate-by-gate execution loop, including automatic debugging/progression,
+one completed-gate commit, and fast-forward pushes when hosted CI evidence
+is needed.
+
+**Decision**: (1) Approve the frozen r6 plan named above as M1b's normative
+implementation contract. (2) Finalize every plan §20 approval item exactly
+as written: the §10 ClawTeam exit-criterion wording and measurement rule;
+the zero-live-call M1b budget; kind-discriminated `atm run` plus the strict
+team flag gate and single `atm team validate` verb; the §6 optional/reserved
+field sets; `MemberResultV1 {summary, deliverables, risks}`; and optional-
+default-read-only task `workspace_access`. (3) Amend the glossary so
+CoordinationSubstrate `stop` is explicitly a run-layer stop-before-cleanup
+duty, not a provider method. (4) Execute G1–G7 in order: plan each gate,
+implement it, test/debug until green, commit it, then begin the next gate's
+planning phase automatically. Ordinary test/CI failures are corrected
+without an owner pause; only an approved-contract amendment, new dependency,
+stop-rule conflict, or other product decision returns to the owner.
+
+**Consequences**: Product implementation may begin only after the G0 commit
+carrying this decision. M1b makes no live model calls and does not spend the
+five calls remaining from M1a. Push approval is limited to the requested
+fast-forward CI workflow; no force-push or unrelated remote mutation is
+authorized. M1c remains separately planned and unapproved.

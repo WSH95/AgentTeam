@@ -1,58 +1,58 @@
 ---
-updated_at: 2026-08-25T02:02:34Z
-updated_by: grok
+updated_at: 2026-08-25T02:48:29Z
+updated_by: codex
 session_status: active
 branch: main
-last_commit: 760a8ae
+last_commit: 87d23c6
 ---
 # Handoff
 
 ## Now
 
-**The M1b plan is draft r6, independently confirmed G0-eligible, and still
-NOT approved.** The sixth review froze r6 at full commit
+**The M1b plan r6 is owner-approved at G0 (ADR 0044).** The sixth review
+froze r6 at full commit
 `760a8ae8c7021b0427bf29c84f005bebdd453bf6` and plan SHA-256
 `1776305f7bb0cca614efc13621b31d870a340444a70e06af168b5e7a86e356f6`;
 r5 hashes re-verified. The immutable confirmation is
-`docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md` (this commit).
+`docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md` (`87d23c6`).
 
-All fifth-review findings are closed. No implementation blockers remain.
+All fifth-review findings are closed. The owner approved every §20 final
+choice, automatic gate-by-gate execution, semantic commits, and CI pushes.
+No implementation blockers remain.
 Residual notes only: dual “materialize” wording (G3 treats 7b as
 verify-or-idempotent-recopy); exclusive-create of an existing project
 `.grok/sandbox.toml` (fifth-review fail-closed, M1c merge if needed).
 
 ## In flight
 
-Nothing after the confirmation record. Product implementation has not
-started. Zero live calls were spent. The pre-existing untracked `.codex/`
-remains untouched.
+G0 documentation/steward changes are prepared and awaiting their semantic
+commit. Product source has not started. Zero live calls were spent. The
+pre-existing untracked `.codex/` remains untouched.
 
-## Next steps (a NEW approval scope — nothing starts automatically)
+## Next steps
 
-1. **Owner G0** — DECISIONS entry naming
-   `docs/plans/m1b-team-foundation.md` and
-   `760a8ae8c7021b0427bf29c84f005bebdd453bf6`; status flip in the
-   following commit. Carry the glossary CoordinationSubstrate `stop`
-   amendment listed in plan §20.
-2. Only after G0: execute plan gates G1–G7 and §16 commit boundaries.
-3. Push only on a separate explicit owner approval.
+1. Validate and commit G0 as
+   `docs(plans): approve M1b r6 for implementation`.
+2. Plan and implement G1 contracts/schemas, test/debug until green, commit.
+3. Continue automatically through G2–G7; fast-forward push when hosted CI
+   evidence is needed under the owner's standing approval.
 
 ## Blockers
 
-No mechanical blocker. Product implementation is intentionally blocked on
-G0. Live writable-member claims remain deferred to M1c, which must re-probe
+No mechanical blocker. Live writable-member claims remain deferred to M1c,
+which must re-probe
 then-supported clients and run one declared-deliverable acceptance per
 supported harness. Team Grok is unsupported on Windows under the r6
 evidence boundary.
 
 ## Key files
 
-- `docs/plans/m1b-team-foundation.md` — **draft r6 at `760a8ae`, G0-eligible,
-  not approved**.
+- `docs/plans/m1b-team-foundation.md` — **approved r6**, frozen approval
+  source `760a8ae`.
 - `docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md` — immutable sixth
   review (confirmation). Prior records through
   `docs/reviews/2026-08-24-m1b-plan-review-at-12ca6c7.md` remain unchanged.
-- `.project-steward/DECISIONS.md` ADR 0043 — r6 design decisions.
+- `.project-steward/DECISIONS.md` ADR 0044 — G0 approval; ADR 0043 — r6 design.
 - `.project-steward/RISKS.md` R36/R37 — adapter-enforcement and terminal-
   pairing boundaries.
 
@@ -76,8 +76,7 @@ evidence boundary.
 
 - **M1b's live-call budget is ZERO.** Five calls remain from M1a and are
   not an M1b allowance.
-- r6 is committed as a proposed draft but NOT approved: no product source,
-  schemas, discovery/register text, or glossary amendment may begin before G0.
+- Product work follows G1–G7 only; do not begin M1c in this approval scope.
 - The no-call mapping evidence is version-bound to Claude Code 2.1.243,
   Codex CLI 0.149.1, and Grok 1.0.5; help/guide inspection did not upgrade
   live capability evidence.

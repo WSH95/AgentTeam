@@ -1,6 +1,9 @@
-# AgentTeam M1b team-foundation plan — draft r6
+# AgentTeam M1b team-foundation plan — approved r6
 
-- Status: **draft r6, proposed 2026-08-24 — NOT approved.** r6 resolves
+- Status: **approved 2026-08-24 at G0 (ADR 0044).** The owner approved the
+  frozen r6 text at full commit
+  `760a8ae8c7021b0427bf29c84f005bebdd453bf6` after the independent
+  confirmation at `87d23c6`. r6 resolves
   the four implementation-blocking areas and the medium/consistency
   corrections of the fifth independent review (of r5;
   `docs/reviews/2026-08-24-m1b-plan-review-at-12ca6c7.md`; resolutions

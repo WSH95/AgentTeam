@@ -4,6 +4,19 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1b G0 approval — 2026-08-24
+
+| Check | Result |
+| --- | --- |
+| Frozen plan identity | PASS — approved source is `docs/plans/m1b-team-foundation.md` at full commit `760a8ae8c7021b0427bf29c84f005bebdd453bf6`; both working-tree pre-flip content and `git show` recomputed SHA-256 `1776305f7bb0cca614efc13621b31d870a340444a70e06af168b5e7a86e356f6` |
+| Independent review | PASS — five finding-bearing records are resolved and the sixth confirmation at `87d23c6` declares r6 G0-eligible with no implementation blockers |
+| Owner decision | PASS — ADR 0044 records explicit approval and every plan §20 finalize-at-approval choice; the glossary stop-before-cleanup amendment is present |
+| Pre-implementation baseline | PASS — lock current; Ruff clean; mypy clean over 98 source files; schemas current; pytest 453 passed + 4 expected skips; wheel and sdist built successfully using the task-local uv cache |
+| Boundary | PASS — G0 is documentation/steward only; no product source/schema change, live call, credential read, push, or M1c work; pre-existing `.codex/` remains untracked and untouched |
+
+Last verified: 2026-08-25 by Codex — M1b r6 approved; G1 may begin only
+after the semantic G0 commit.
+
 ## G8 M1a close — 2026-08-24 (**M1a CLOSED as a semantic PASS**, ADR 0038)
 
 | Check | Result |

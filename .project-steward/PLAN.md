@@ -98,9 +98,9 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
 - [x] G7 — final CI matrices: credential-free core OS×Python matrix, optional ClawTeam compatibility matrix, and the vendor-smoke job; history secret scan repeated (closed 2026-08-24: vendor-smoke landed at `dd2ec0f` and caught two real Windows product bugs on its first runs — bare-name launcher resolution `1555c5d`, case-insensitive env baseline `0864742`; final run 32765672784 **12/12 green** with npm-installed Claude 2.1.241 / Codex 0.149.1 verified through real `.cmd` shims; pinned secret scan at `dd2ec0f` and `0864742` = exactly the 3-hit enumerated benign baseline; VERIFY "G7") 
 - [x] G8 — close M1a (reviewed sanitized evidence bundle committed; M1b draft names the local deterministic provider first and the ClawTeam exit criterion) and stop before TeamRun implementation (closed 2026-08-24, ADR 0038: owner-reviewed bundle at `docs/evidence/m1a-live-2026-08-24/` + sibling G8 record stating the ADR 0036 amendment and Grok FAIL-HARD (`f8b0779`); M1b draft r0 proposed-not-approved (`856d525`); **M1a closed as a semantic PASS**; 25 of 30 calls spent; no M1b work in this scope)
 
-## M1b Team foundation (committed roadmap; outside the M1a approval scope)
+## M1b Team foundation (R6 approved 2026-08-24; ADR 0044)
 
-- [ ] Prepare and approve a separate plan for TeamTemplate/TeamRun foundations, task/message/archive contracts, and the CoordinationSubstrate protocol
+- [x] Prepare and approve a separate plan for TeamTemplate/TeamRun foundations, task/message/archive contracts, and the CoordinationSubstrate protocol
   - [x] Plan expanded to full draft r1 2026-08-24 (`14dc218`; 21 M1a-style sections: contracts, gates M1b G0–G7, test matrix, zero-live-call budget, exit-criterion measurement rule, stop rules)
   - [x] Independent review of r1 delivered 2026-08-24 — "do not approve yet": 7 approval-blocking findings + 3 hygiene items, all re-verified against the tree and confirmed; recorded verbatim at `docs/reviews/2026-08-24-m1b-plan-review-at-14dc218.md` (`9802775`)
   - [x] r2 resolves all ten findings (`54728c8`; plan §21 resolution table; ADR 0039 — HB-03 constraints deferred out of M1b by owner decision)
@@ -112,9 +112,15 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
   - [x] r5 resolves all fourth-review findings (`12ca6c7`; plan §21 r4→r5 table; ADR 0042 — explicit least-privilege workspace access; durable-allocation execution bindings + archive verifier; verified-copy-out cleanup handshake; completion publication barrier; canonical deliverables; occurrence-level containment)
   - [x] Fifth independent review (of r5 at full commit `12ca6c730f99816ed79c6e0537de021d25dd24b2`, plan SHA-256 `95ff6ab3816efd61db845216b34aecb64b8d22efde3f13a727027c612a44acf4`) delivered 2026-08-24 — "do not approve yet": Claude/Grok/target-baseline gaps plus the adjudicated terminal-pairing blocker, two medium gaps, and consistency corrections; recorded at `docs/reviews/2026-08-24-m1b-plan-review-at-12ca6c7.md` (`a140829`)
   - [x] Draft r6 resolves all fifth-review findings (`760a8ae`; plan §21 r5→r6 table; ADR 0043 — explicit team-member rendering, collision-safe project-local Grok profiles, launch-time target baselines, shared substrate typing, truthful failed/cancelled/abandoned terminal pairings, and Windows refusal)
-  - [x] Sixth independent review (confirmation of r6 at `760a8ae`, plan SHA-256 `1776305f7bb0cca614efc13621b31d870a340444a70e06af168b5e7a86e356f6`) delivered 2026-08-25 — G0-eligible, no remaining implementation blockers; recorded at `docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md`. NOT approved — next: owner G0 naming the file + r6 SHA `760a8ae8c7021b0427bf29c84f005bebdd453bf6`
-- [ ] Implement TeamRun orchestration and the optional ClawTeam provider behind the qualified compatibility boundary; keep harness launching on the built-in direct runner
-- [ ] Preserve one AgentTeam-owned process data root with opaque team namespaces; claim namespace separation only
+  - [x] Sixth independent review (confirmation of r6 at `760a8ae`, plan SHA-256 `1776305f7bb0cca614efc13621b31d870a340444a70e06af168b5e7a86e356f6`) delivered 2026-08-25 — G0-eligible, no remaining implementation blockers; recorded at `docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md`
+  - [x] G0 — owner approved frozen r6 at `760a8ae8c7021b0427bf29c84f005bebdd453bf6`; finalize-at-approval choices and glossary amendment recorded in ADR 0044
+- [ ] G1 — team contracts, schemas, `atm team validate`, and committed examples
+- [ ] G2 — CoordinationSubstrate protocol, local deterministic provider, conformance suite, and containment scan
+- [ ] G3 — team runner, member-result/deliverable/handoff pipeline, lifecycle finalization, and fault matrix
+- [ ] G4 — deterministic three-Member lifecycle acceptance through the CLI and hosted core evidence
+- [ ] G5 — optional ClawTeam provider conformance/lifecycle disposition and hosted extra evidence
+- [ ] G6 — pinned ClawTeam exit-criterion measurement and owner decision packet
+- [ ] G7 — M1b evidence/CI close and proposed-not-approved M1c PoC B draft
 
 ## M1c Dynamic-member PoC B (committed roadmap)
 
