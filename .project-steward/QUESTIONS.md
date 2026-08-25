@@ -23,19 +23,22 @@ must not guess. Answered items remain here for traceability.
     deterministic provider remains the product path.
   M1b G0 finalized this criterion; G6 prepared the packet and made no owner
   decision.
+- [ ] **M1c live-call ceiling — decide only during M1c plan review.** Draft r0
+  proposes a new 18-call maximum (three capability probes, two six-call
+  cycles, and three individually approved diagnostic calls). This is an ask,
+  not an allowance: no call is authorized until the M1c plan, exact ceiling,
+  deterministic gate, and fresh owner go are all approved. M1a's five
+  remaining calls do not transfer.
 
 ## Current gate
 
-M1a is complete as a semantic PASS (ADR 0038). M1b Plan R6 is **approved**
-at G0 (ADR 0044), naming frozen commit
-`760a8ae8c7021b0427bf29c84f005bebdd453bf6`; all five finding rounds and
-the sixth confirmation remain immutable. The §10 criterion wording, zero-
-call budget, CLI surface, contract fields, and workspace-access default are
-final. G1–G5 are complete; G5 is `parity-green` at `688fffa` with hosted
-run 32812856864 green 12/12. G6's ratio passes at 1.061728395× and its
-accept/drop packet is ready; G7 closure is next. M1b makes zero live calls;
-the five remaining M1a calls are not an allowance. Fast-forward pushes needed
-for hosted CI are owner-approved; M1c remains separate and unapproved.
+M1a is complete as a semantic PASS (ADR 0038). **M1b is complete** under Plan
+R6/ADR 0044: G0–G7 are closed, `CLAWTEAM_DISPOSITION=parity-green`, hosted
+run 32812856864 is green 12/12 at the final product SHA, and the pinned ratio
+passes at 1.061728395×. M1b spent zero live calls; five of M1a's 30 remain and
+are not an allowance. M1c draft r0 is proposed-not-approved and implementation
+must not begin. Before PoC B, the owner must decide the ClawTeam accept/drop
+packet and, during M1c review, the separate live ceiling.
 
 ## Answered during G5 owner setup
 

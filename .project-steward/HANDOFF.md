@@ -1,124 +1,118 @@
 ---
-updated_at: 2026-08-25T05:32:34Z
-updated_by: codex
-session_status: active
+updated_at: 2026-08-25T05:49:18Z
+updated_by: cli
+session_status: closed
 branch: main
-last_commit: 17b2c4f
+last_commit: 24c6079
 ---
 # Handoff
 
 ## Now
 
-**M1b G6 is measured and its owner decision packet is ready.** The approved
-r6 source remains `760a8ae8c7021b0427bf29c84f005bebdd453bf6` (ADR 0044).
-The thin optional provider now sits behind the generic registry and qualified
-seam, with the logical lead, stable `AGENTTEAM_HOME`-relative process root,
-opaque namespaces, full-roster reconciliation, status/error/message mapping,
-and verified-copy-out snapshot deletion implemented. The full section-13
-three-member lifecycle runs through the public CLI over this provider.
+**M1b is complete through G7 under approved Plan R6 (ADR 0044).** G0–G7
+are closed and indexed in PLAN/VERIFY. Team contracts, the local provider,
+the deterministic runner/lifecycle, and the optional ClawTeam provider are
+implemented. The explicit close disposition is
+`CLAWTEAM_DISPOSITION=parity-green`. Hosted run 32812856864 at full product
+SHA `688fffa019a09ca21156d5e663bfd51f364b10db` was freshly read back as
+completed/success and is 12/12 green across six core, three optional-provider,
+and three credential-free vendor-smoke jobs on Ubuntu/macOS/Windows.
 
-G5 remains `parity-green`. Hosted run 32812856864 at full SHA
-`688fffa019a09ca21156d5e663bfd51f364b10db` is 12/12 green: all three
-optional-provider legs passed the qualification, conformance, and complete
-lifecycle suite on Ubuntu/macOS/Windows; all six scaffold and three
-credential-free vendor-smoke legs also passed. Local evidence is green:
-optional compatibility **31 passed**; the full tree
-with the extra **625 passed + 3 platform skips**; the clean core environment
-with the dependency absent **594 passed + 4 expected skips**. Ruff lint/format,
-strict mypy over 120 source files, schemas, lock, workflow parse, build, and
-diff hygiene all pass. The only initial conformance mismatch was upstream
-`restore()` returning a summary; the adapter now returns the preserved opaque
-bundle required by the shared protocol. Zero live calls were spent.
+Final local evidence is also green: core **594 passed + 4 expected skips**;
+optional compatibility **31 passed** and the full optional tree **625 passed +
+3 expected Windows-only skips**. Lock, Ruff lint/format, strict mypy/120,
+schemas plus export round-trip, build, workflow parse, Assistant/team
+validation, direct/team render-only, version, package hash, and diff hygiene
+pass. The venv is restored to core-only with ClawTeam confirmed absent. M1b
+made zero live calls; M1a's ledger remains 25/30 spent, five remaining.
 
-G6's pinned physical-LOC command reports **516 optional production LOC / 486
-local-provider LOC = 86/81 = 1.061728395×**, below the `1.5×` ceiling of 729
-with 213 LOC headroom. The original compatibility baseline remains exactly
-233 LOC; the provider adds 283. Test context is 558 optional vs 163 local and
-is excluded by the approved rule. The containment inventory is 2/2 green.
-QUESTIONS carries the explicit accept-all-four-caveats vs drop-without-
-replacement packet.
+The M1c PoC B r0 at `docs/plans/m1c-dynamic-member-poc.md` is explicitly
+**PROPOSED — NOT APPROVED**. It names a proposed (unapproved) new 18-call
+ceiling, the pending ClawTeam accept/drop decision, and the live
+`member-result-v1`/writable-deliverable handoff. No M1c implementation began.
 
 ## In flight
 
-G6's steward measurement/packet is uncommitted on top of G5 closure commit
-`17b2c4f`; the branch is one commit ahead of `origin/main` before the G6
-commit, and the pre-existing untracked `.codex/` remains untouched. G7 has
-not started; its first action is a fresh closeout plan.
+Nothing is in flight. The G7 documentation/steward changes and r0 draft belong
+to the semantic commit carrying this handoff. After that commit, expected git
+state is `main` three commits ahead of `origin/main` (origin remains
+`688fffa`) with only the pre-existing untracked `.codex/`; it was deliberately
+untouched and excluded. No G7 push is needed because the final product tree is
+already the exact 12/12 hosted SHA and G7 changes documentation only.
 
 ## Next steps
 
-1. Validate and commit the G6 measurement/packet, excluding `.codex/`.
-2. Plan G7 before closeout: reconcile every G1–G6 SHA/run/evidence row, prove
-   the live-call ledger stayed at five remaining, record the explicit
-   `parity-green` disposition, and draft M1c PoC B as proposed-not-approved.
-3. Run the final required matrices/consistency checks, debug to green, commit
-   M1b closure, and stop before any M1c implementation.
+1. Do not implement M1c from r0. If the owner wants to continue, expand the r0
+   into a detailed revision, independently review it, freeze the resolved SHA,
+   and obtain an explicit owner G0 approval before source work.
+2. During that review, ask the owner to choose the prepared ClawTeam packet:
+   accept optional support plus all four caveats, or drop it without
+   replacement. Record the answer in DECISIONS/QUESTIONS before PoC B starts.
+3. Ask the owner to accept, change, or reject the draft's separate 18-call
+   ceiling. No live call follows merely from accepting a plan: each live cycle
+   still needs its own green no-call gate and fresh owner go.
+4. Preserve the M1c handoff: freshly probe each candidate supported harness,
+   then require full live `member-result-v1` acceptance and one writable
+   declared-deliverable smoke per supported harness before making live-support
+   claims.
 
 ## Blockers
 
-No mechanical blocker to G7 or M1b closure. The measured ratio passes, but the
-owner's accept/drop judgment is genuinely required **before M1c PoC B**, not
-before G7; agents must not infer it. Live writable-member claims remain
-deferred to M1c, which must re-probe then-supported clients and run one
-declared-deliverable acceptance per supported harness. Team Grok is
-unsupported on Windows under the r6 evidence boundary.
+No blocker remains for M1b; it is complete. M1c implementation is intentionally
+blocked on its own detailed reviewed plan and owner G0. Two owner judgments are
+also pending before PoC B: the ClawTeam accept/drop packet and the exact M1c
+live-call ceiling. HB-03 constraint precedence remains open; the detailed plan
+must get an answer or keep constraints out of scope.
 
 ## Key files
 
-- `docs/plans/m1b-team-foundation.md` — **approved r6**, frozen approval
-  source `760a8ae`.
-- `src/agentteam/domain/team.py` / `domain/run.py` — G1 public contracts and
-  the direct/team run-record union.
-- `src/agentteam/resolution/team.py` / `commands/team.py` — template loading,
-  hashing, transitive validation, and CLI.
-- `examples/teams/development.yaml` — committed three-member acceptance shape.
-- `src/agentteam/coordination/protocol.py` / `local.py` — G2 seam and product
-  provider; `tests/coordination_suite.py` is the G5-reusable contract.
-- `src/agentteam/run/team_preflight.py` / `team.py` — G3 preflight and
-  deterministic lifecycle implementation.
-- `tests/integration/test_team_run_execute.py` / `test_team_run_faults.py` —
-  G3 end-to-end and injected-fault evidence.
-- `tests/acceptance/test_team_lifecycle.py` — G4's complete section-13
-  public-CLI acceptance.
-- `.github/workflows/ci.yml` — named direct + team deterministic acceptance on
-  every scaffold leg.
-- `tests/unit/test_import_containment.py` — frozen optional-provider boundary.
-- `docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md` — immutable sixth
-  review (confirmation). Prior records through
-  `docs/reviews/2026-08-24-m1b-plan-review-at-12ca6c7.md` remain unchanged.
-- `.project-steward/DECISIONS.md` ADR 0044 — G0 approval; ADR 0043 — r6 design.
-- `.project-steward/RISKS.md` R36/R37 — adapter-enforcement and terminal-
-  pairing boundaries.
+- `docs/plans/m1b-team-foundation.md` — approved normative R6, frozen approval
+  source `760a8ae`; section 18 defines later-milestone handoffs.
+- `docs/plans/m1c-dynamic-member-poc.md` — proposed-not-approved M1c r0; the
+  next planning input, never implementation authorization.
+- `.project-steward/VERIFY.md` — G7 close table, exact disposition, gate SHA
+  index, hosted run, local matrices, ledger, and M1c handoff.
+- `.project-steward/PLAN.md` — all M1b gates closed; M1c roadmap still open.
+- `.project-steward/QUESTIONS.md` — exact ClawTeam accept/drop packet and draft
+  M1c budget question.
+- `.project-steward/RISKS.md` — R11/R12/R18/R31/R36 carry M1c limits; R37 is
+  mitigated by the implemented fault matrix.
+- `src/agentteam/domain/team.py` / `domain/run.py` — M1b contracts and reserved
+  M1c/M2/M3 fields.
+- `src/agentteam/coordination/protocol.py` / `local.py` / `clawteam.py` — seam,
+  product provider, and optional provider.
+- `src/agentteam/run/team.py` and `tests/acceptance/test_team_lifecycle.py` —
+  deterministic lifecycle and public-CLI acceptance baseline M1c must retain.
+- `.github/workflows/ci.yml` — final 12-job deterministic matrix shape.
 
 ## Tried and rejected
 
-- Rejected `output_contract` or workspace access as a team/direct side
-  channel; scope is explicit.
-- Rejected writes to persistent `GROK_HOME`, fixed globally collidable
-  profile names, pre-existing project-profile overwrite, and Windows
-  unsandboxed continuation.
-- Rejected step-5 copy hashes as invocation baselines; target baselines are
-  launch-time facts after handoff materialization.
-- Rejected a blanket abandoned sweep; succeeded work is never rewritten,
-  interrupted allocated work is cancelled, and abandonment means no
-  durable allocation.
-- Preserved prior decisions: `HarnessAdapter.parse()` stays untouched;
-  team mutation propagates declared files only; direct/synthesis rendering
-  and direct immutability stay unchanged.
+- Rejected treating the passing LOC ratio as the owner's caveat acceptance;
+  the decision remains explicit and owner-owned.
+- Rejected spending or reallocating M1a's five remaining calls; M1b's budget
+  was zero and M1c's 18-call figure is only a proposal.
+- Rejected starting dynamic-member implementation under M1b or describing
+  hidden as a security boundary; r0 defines it as a presentation projection.
+- Rejected a docs-only G7 push solely to manufacture a newer CI run. The final
+  product SHA already has the required full 12/12 matrix, and all G7-local
+  documentation/package checks pass.
+- Preserved M1b design rejections: providers never launch/stop harnesses,
+  `HarnessAdapter.parse()` remains untouched, declared files alone propagate,
+  and direct/synthesis behavior remains unchanged.
 
 ## Warnings
 
-- **M1b's live-call budget is ZERO.** Five calls remain from M1a and are
-  not an M1b allowance.
-- Product work follows G1–G7 only; do not begin M1c in this approval scope.
-- The no-call mapping evidence is version-bound to Claude Code 2.1.243,
-  Codex CLI 0.149.1, and Grok 1.0.5; help/guide inspection did not upgrade
-  live capability evidence.
-- The first parallel `uv` mypy/schema attempt contended on a read-only host
-  cache; sequential reruns with a task-local `/tmp` cache passed. This was
-  an environment failure, not a tree defect.
-- Local pytest needs
-  `env -u PYTHONPATH NO_COLOR=1 TERM=dumb uv run pytest` because of the
-  host's rich-terminal/ROS-Foxy environment, not a tree defect.
-- The pre-existing untracked `.codex/` remains untouched and must not be
-  staged accidentally.
+- **M1c is not approved.** Planning/review is the only next milestone action.
+- `18` is a draft live-budget ask, not permission. M1a's five remaining calls
+  do not transfer. Never make an unattended/automatic live retry.
+- The no-call mapping evidence is version-bound to Claude Code 2.1.243, Codex
+  CLI 0.149.1, and Grok 1.0.5; M1c must probe current versions and keep Grok's
+  task-scale/Windows evidence boundaries explicit.
+- Optional ClawTeam support remains `parity-green` only under the exact pin and
+  recorded caveats. Do not infer the pending keep/drop judgment.
+- Local pytest should unset the host `PYTHONPATH` and use a task-local uv cache;
+  the ROS-Foxy/rich-terminal host environment is not project evidence.
+- The pre-existing untracked `.codex/` is user state. Do not stage, edit, or
+  remove it.
+- Never force-push. M1c requires its own approved plan/scope before treating
+  the earlier M1b CI push authorization as applicable.

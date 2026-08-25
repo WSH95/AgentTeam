@@ -4,6 +4,26 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1b G7 milestone close — 2026-08-25
+
+`CLAWTEAM_DISPOSITION=parity-green`
+
+| Check | Result |
+| --- | --- |
+| Gate/commit index | PASS — G0 `84a60e3`; G1 `9f52dc1`; G2 `d9c93ac`; G3 `8d3f998`; G4 acceptance `8d3b3ae`, cross-platform fix `2d7b9f6`, evidence close `892fd3b`; G5 provider `688fffa`, evidence close `17b2c4f`; G6 measurement `24c6079`; G7 is the semantic commit carrying this entry |
+| Provider disposition | PASS — the registry and this close record explicitly agree on `parity-green`; optional support remains qualified pending the separate pre-M1c owner accept/drop decision |
+| Hosted matrix | PASS — run [32812856864](https://github.com/WSH95/AgentTeam/actions/runs/32812856864), freshly read back at close as `completed/success`, is 12/12 green at full product SHA `688fffa019a09ca21156d5e663bfd51f364b10db`: six scaffold, three ClawTeam, and three credential-free vendor-smoke jobs across Ubuntu/macOS/Windows. G7 changes documentation/steward state only, so no later product SHA requires a replacement run |
+| Final optional matrix | PASS — pinned extra installed from the lock; `tests/compatibility` **31 passed**; full tree **625 passed + 3 expected Windows-only skips**; this includes qualification, shared provider conformance, and the complete CLI lifecycle |
+| Final core matrix | PASS — extra removed and independently confirmed absent; full tree **594 passed + 4 expected skips** (clean compatibility skip plus three Windows-only tests) |
+| Static/package/CLI block | PASS — lock current; Ruff lint and format clean over 124 files; strict mypy clean over 120 source files; 12 schemas current and export round-trip clean; wheel/sdist built; workflow parsed with exactly `scaffold`, `clawteam`, and `vendor-smoke`; Assistant/team validation, direct/team render-only, version, and pinned package-hash checks green; `git diff --check` clean |
+| Live-call ledger | PASS — M1a's reviewed ledger remains **25 spent / 5 remaining**; **zero spent in M1b**. M1a's remaining calls never became an M1b or M1c allowance |
+| M1c handoff | PASS — `docs/plans/m1c-dynamic-member-poc.md` is draft r0 and explicitly **PROPOSED — NOT APPROVED**. It names an unapproved 18-call budget ask, the pending ClawTeam exit-criterion decision, and the first live `member-result-v1` plus writable declared-deliverable acceptance per then-supported harness |
+| Milestone result | **PASS — M1b G0–G7 complete.** Team foundation is implemented and deterministically evidenced; M1c remains a separately reviewed/approved milestone and no M1c implementation began |
+
+Last verified: 2026-08-25 by Codex. The working environment was restored to
+core-only after the optional matrix; the pre-existing untracked `.codex/`
+directory remained untouched.
+
 ## M1b G6 exit-criterion measurement — 2026-08-25
 
 | Check | Result |

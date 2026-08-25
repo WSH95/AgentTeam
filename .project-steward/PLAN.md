@@ -114,15 +114,19 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
   - [x] Draft r6 resolves all fifth-review findings (`760a8ae`; plan §21 r5→r6 table; ADR 0043 — explicit team-member rendering, collision-safe project-local Grok profiles, launch-time target baselines, shared substrate typing, truthful failed/cancelled/abandoned terminal pairings, and Windows refusal)
   - [x] Sixth independent review (confirmation of r6 at `760a8ae`, plan SHA-256 `1776305f7bb0cca614efc13621b31d870a340444a70e06af168b5e7a86e356f6`) delivered 2026-08-25 — G0-eligible, no remaining implementation blockers; recorded at `docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md`
   - [x] G0 — owner approved frozen r6 at `760a8ae8c7021b0427bf29c84f005bebdd453bf6`; finalize-at-approval choices and glossary amendment recorded in ADR 0044
-- [x] G1 — team contracts, schemas, `atm team validate`, and committed examples
-- [x] G2 — CoordinationSubstrate protocol, local deterministic provider, conformance suite, and containment scan
-- [x] G3 — team runner, member-result/deliverable/handoff pipeline, lifecycle finalization, and fault matrix
-- [x] G4 — deterministic three-Member lifecycle acceptance through the CLI and hosted core evidence
-- [x] G5 — optional ClawTeam provider conformance/lifecycle disposition and hosted extra evidence
-- [x] G6 — pinned ClawTeam exit-criterion measurement and owner decision packet
-- [ ] G7 — M1b evidence/CI close and proposed-not-approved M1c PoC B draft
+- [x] G1 — team contracts, schemas, `atm team validate`, and committed examples (closed 2026-08-25 in `9f52dc1`)
+- [x] G2 — CoordinationSubstrate protocol, local deterministic provider, conformance suite, and containment scan (closed 2026-08-25 in `d9c93ac`)
+- [x] G3 — team runner, member-result/deliverable/handoff pipeline, lifecycle finalization, and fault matrix (closed 2026-08-25 in `8d3f998`)
+- [x] G4 — deterministic three-Member lifecycle acceptance through the CLI and hosted core evidence (acceptance `8d3b3ae`; Windows fix `2d7b9f6`; evidence close `892fd3b`; hosted run 32811023030 green 12/12)
+- [x] G5 — optional ClawTeam provider conformance/lifecycle disposition and hosted extra evidence (`688fffa`; evidence close `17b2c4f`; `parity-green`; hosted run 32812856864 green 12/12)
+- [x] G6 — pinned ClawTeam exit-criterion measurement and owner decision packet (closed 2026-08-25 in `24c6079`; 516/486 = 1.061728395x, decision remains owner-owned before M1c)
+- [x] G7 — M1b evidence/CI close and proposed-not-approved M1c PoC B draft (closed 2026-08-25 in the semantic commit carrying this row; final product-tree hosted run 32812856864 green 12/12; zero M1b live calls; draft at `docs/plans/m1c-dynamic-member-poc.md`)
 
 ## M1c Dynamic-member PoC B (committed roadmap)
+
+Status: draft r0 is **proposed-not-approved** at
+`docs/plans/m1c-dynamic-member-poc.md`; no implementation or live call is
+authorized. Its 18-call ceiling is an unapproved budget ask, not an allowance.
 
 - [ ] Implement the product-owned dynamic-member policy gate and hidden/archive roster projections
 - [ ] Prove the PoC B workflow with mechanical enforcement for every AgentTeam-mediated creation; record provider-bypass limits explicitly

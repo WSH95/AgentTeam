@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T05:49:18Z — cli
+M1b G0-G7 complete: parity-green, final local and hosted matrices green, zero live calls; M1c r0 proposed-not-approved
+
 ### 2026-08-25T05:32:34Z — codex
 **M1b G6 measurement and owner packet complete.** Pinned physical LOC: optional numerator 516 (compat baseline still 233 + provider 283), local denominator 486; exact ratio 86/81 = 1.061728395×, below the 1.5×/729 ceiling with 213 LOC headroom. Test context 558 optional vs 163 local, excluded by rule. Frozen containment 2/2 green. QUESTIONS now presents accept-all-four-caveats vs drop-without-replacement; decision remains owner-owned before PoC B and does not block M1b close. Zero live calls.
 
