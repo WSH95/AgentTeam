@@ -10,10 +10,19 @@ must not guess. Answered items remain here for traceability.
 - [ ] Timing and target for any deferred API-test canary. No provider,
   endpoint, or model is selected; no key is needed unless a canary is
   separately approved.
-- [ ] Before M1c PoC B starts, accept the measured ClawTeam ratio and four
-  recorded caveats in writing or drop ClawTeam support without replacement.
-  M1b G6 prepares the packet; M1b G0 finalized the criterion, not this later
-  owner decision.
+- [ ] **ClawTeam exit-criterion owner decision — required before M1c PoC B,
+  not required to close M1b.** G6 measured **516 / 486 = 86/81 =
+  1.061728395×**, below the approved `1.5×` ceiling (729 LOC; 213 LOC
+  headroom). Current disposition is `parity-green`; hosted G5 run 32812856864
+  passed all three optional OS legs. Choose exactly one:
+  - **Accept:** keep optional ClawTeam support and accept in writing all four
+    caveats: (1) two rosters, (2) no parent link for nested teams, (3) cleanup
+    never stops processes, and (4) every containment is caller-written code,
+    not configuration.
+  - **Drop:** remove ClawTeam support without replacement; the local
+    deterministic provider remains the product path.
+  M1b G0 finalized this criterion; G6 prepared the packet and made no owner
+  decision.
 
 ## Current gate
 
@@ -22,11 +31,11 @@ at G0 (ADR 0044), naming frozen commit
 `760a8ae8c7021b0427bf29c84f005bebdd453bf6`; all five finding rounds and
 the sixth confirmation remain immutable. The §10 criterion wording, zero-
 call budget, CLI surface, contract fields, and workspace-access default are
-final. G1 (`9f52dc1`) and G2 are complete and locally green; G3's team
-runner, result/deliverable/handoff pipeline, lifecycle finalization, and
-fault matrix are next. M1b makes zero live calls; the five
-remaining M1a calls are not an allowance. Fast-forward pushes needed for
-hosted CI are owner-approved; M1c remains separate and unapproved.
+final. G1–G5 are complete; G5 is `parity-green` at `688fffa` with hosted
+run 32812856864 green 12/12. G6's ratio passes at 1.061728395× and its
+accept/drop packet is ready; G7 closure is next. M1b makes zero live calls;
+the five remaining M1a calls are not an allowance. Fast-forward pushes needed
+for hosted CI are owner-approved; M1c remains separate and unapproved.
 
 ## Answered during G5 owner setup
 

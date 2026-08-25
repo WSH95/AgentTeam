@@ -119,7 +119,7 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
 - [x] G3 — team runner, member-result/deliverable/handoff pipeline, lifecycle finalization, and fault matrix
 - [x] G4 — deterministic three-Member lifecycle acceptance through the CLI and hosted core evidence
 - [x] G5 — optional ClawTeam provider conformance/lifecycle disposition and hosted extra evidence
-- [ ] G6 — pinned ClawTeam exit-criterion measurement and owner decision packet
+- [x] G6 — pinned ClawTeam exit-criterion measurement and owner decision packet
 - [ ] G7 — M1b evidence/CI close and proposed-not-approved M1c PoC B draft
 
 ## M1c Dynamic-member PoC B (committed roadmap)

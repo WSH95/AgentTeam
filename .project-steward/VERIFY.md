@@ -4,6 +4,32 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1b G6 exit-criterion measurement — 2026-08-25
+
+| Check | Result |
+| --- | --- |
+| Numerator | **516 physical LOC** — `src/agentteam/compat/` is 233 (the G4 qualification baseline reproduces exactly: `clawteam.py` 228 + `__init__.py` 5); `src/agentteam/coordination/clawteam.py` is 283 |
+| Denominator | **486 physical LOC** — `src/agentteam/coordination/local.py` only, per the approved symmetric deletion rule |
+| Ratio and ceiling | **PASS — 516 / 486 = 86/81 = 1.061728395× ≤ 1.5×**; the ceiling is 729 LOC and measured headroom is 213 LOC |
+| Test LOC context | Reported but excluded from the ratio as approved: ClawTeam `tests/compatibility/` **558 LOC**; local `tests/integration/test_coordination_local.py` **163 LOC** |
+| Anti-gaming boundary | PASS — the frozen AST/text occurrence inventory remains green (**2 passed**); shared protocol/registry/domain/run code stays excluded from both sides and no provider glue moved into the run or command layers |
+| Qualification context | PASS — G5 disposition is `parity-green`; hosted run 32812856864 is 12/12 green, including the complete conformance/lifecycle suite on all three optional-provider OS legs |
+| Caveat packet | READY, undecided — owner must choose before M1c PoC B: accept all four in writing (two rosters; no parent link for nested teams; cleanup never stops processes; every containment is caller-written code, not configuration) or drop ClawTeam support without replacement; QUESTIONS carries the two explicit choices |
+| Boundary | PASS — measurement and documentation only; zero live/model calls, credential reads, source/schema/dependency/AGENTS/CLAUDE/M1c changes; the five M1a calls remain untouched |
+
+Pinned production commands, recorded verbatim from approved plan section 10:
+
+```text
+find src/agentteam/compat src/agentteam/coordination/clawteam.py -name '*.py' -exec cat {} + | wc -l
+cat src/agentteam/coordination/local.py | wc -l
+```
+
+Independent `wc -l` file enumeration reproduced every subtotal; exact
+`fractions.Fraction` arithmetic asserted `516/486 == 86/81` and the ceiling.
+
+Last verified: 2026-08-25 by Codex. G6 prepares but does not take the owner
+decision; M1b may proceed to G7, while PoC B may not begin until that decision.
+
 ## M1b G5 hosted evidence — 2026-08-25 (gate closed, parity-green)
 
 | Check | Result |

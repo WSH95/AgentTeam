@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T05:32:34Z — codex
+**M1b G6 measurement and owner packet complete.** Pinned physical LOC: optional numerator 516 (compat baseline still 233 + provider 283), local denominator 486; exact ratio 86/81 = 1.061728395×, below the 1.5×/729 ceiling with 213 LOC headroom. Test context 558 optional vs 163 local, excluded by rule. Frozen containment 2/2 green. QUESTIONS now presents accept-all-four-caveats vs drop-without-replacement; decision remains owner-owned before PoC B and does not block M1b close. Zero live calls.
+
 ### 2026-08-25T05:29:54Z — codex
 **M1b G5 closed parity-green with hosted evidence.** Run 32812856864 at `688fffa019a09ca21156d5e663bfd51f364b10db` is 12/12 green: optional qualification + provider conformance + full CLI lifecycle passed on Ubuntu/macOS/Windows; six scaffold and three credential-free vendor-smoke jobs also passed. Local extra/core matrices remain 625+3 and 594+4. Zero live calls. G6 starts only after this closure commit, with a fresh measurement/owner-decision plan.
 

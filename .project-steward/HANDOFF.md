@@ -1,15 +1,15 @@
 ---
-updated_at: 2026-08-25T05:29:54Z
+updated_at: 2026-08-25T05:32:34Z
 updated_by: codex
 session_status: active
 branch: main
-last_commit: 688fffa
+last_commit: 17b2c4f
 ---
 # Handoff
 
 ## Now
 
-**M1b G5 is complete at parity-green with hosted evidence.** The approved
+**M1b G6 is measured and its owner decision packet is ready.** The approved
 r6 source remains `760a8ae8c7021b0427bf29c84f005bebdd453bf6` (ADR 0044).
 The thin optional provider now sits behind the generic registry and qualified
 seam, with the logical lead, stable `AGENTTEAM_HOME`-relative process root,
@@ -17,7 +17,7 @@ opaque namespaces, full-roster reconciliation, status/error/message mapping,
 and verified-copy-out snapshot deletion implemented. The full section-13
 three-member lifecycle runs through the public CLI over this provider.
 
-Hosted run 32812856864 at full SHA
+G5 remains `parity-green`. Hosted run 32812856864 at full SHA
 `688fffa019a09ca21156d5e663bfd51f364b10db` is 12/12 green: all three
 optional-provider legs passed the qualification, conformance, and complete
 lifecycle suite on Ubuntu/macOS/Windows; all six scaffold and three
@@ -30,29 +30,37 @@ diff hygiene all pass. The only initial conformance mismatch was upstream
 `restore()` returning a summary; the adapter now returns the preserved opaque
 bundle required by the shared protocol. Zero live calls were spent.
 
+G6's pinned physical-LOC command reports **516 optional production LOC / 486
+local-provider LOC = 86/81 = 1.061728395×**, below the `1.5×` ceiling of 729
+with 213 LOC headroom. The original compatibility baseline remains exactly
+233 LOC; the provider adds 283. Test context is 558 optional vs 163 local and
+is excluded by the approved rule. The containment inventory is 2/2 green.
+QUESTIONS carries the explicit accept-all-four-caveats vs drop-without-
+replacement packet.
+
 ## In flight
 
-G5's hosted-evidence steward closure is uncommitted on top of `688fffa`; the
-branch otherwise matches `origin/main`, and the pre-existing untracked
-`.codex/` remains untouched. G6 has not started; its first action is a fresh
-gate plan for the pinned LOC measurement, caveat packet, and owner decision.
+G6's steward measurement/packet is uncommitted on top of G5 closure commit
+`17b2c4f`; the branch is one commit ahead of `origin/main` before the G6
+commit, and the pre-existing untracked `.codex/` remains untouched. G7 has
+not started; its first action is a fresh closeout plan.
 
 ## Next steps
 
-1. Commit this G5 hosted-evidence closure, excluding `.codex/`.
-2. Plan G6 before measuring: reproduce the approved physical-LOC numerator,
-   denominator, ratio, and test-LOC context; restate every recorded caveat;
-   prepare the accept/drop decision packet without deciding for the owner.
-3. Run and debug the measurement/consistency checks, commit the G6 evidence,
-   then request the genuine owner judgment required by the exit criterion.
+1. Validate and commit the G6 measurement/packet, excluding `.codex/`.
+2. Plan G7 before closeout: reconcile every G1–G6 SHA/run/evidence row, prove
+   the live-call ledger stayed at five remaining, record the explicit
+   `parity-green` disposition, and draft M1c PoC B as proposed-not-approved.
+3. Run the final required matrices/consistency checks, debug to green, commit
+   M1b closure, and stop before any M1c implementation.
 
 ## Blockers
 
-No mechanical blocker or open G5 product decision. G6 will produce the pinned
-LOC ratio and caveat packet; the approved exit criterion then genuinely needs
-the owner's accept/drop judgment before G7 can close. Live writable-member
-claims remain deferred to M1c, which must re-probe then-supported clients and
-run one declared-deliverable acceptance per supported harness. Team Grok is
+No mechanical blocker to G7 or M1b closure. The measured ratio passes, but the
+owner's accept/drop judgment is genuinely required **before M1c PoC B**, not
+before G7; agents must not infer it. Live writable-member claims remain
+deferred to M1c, which must re-probe then-supported clients and run one
+declared-deliverable acceptance per supported harness. Team Grok is
 unsupported on Windows under the r6 evidence boundary.
 
 ## Key files
