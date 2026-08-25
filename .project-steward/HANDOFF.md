@@ -1,108 +1,104 @@
 ---
-updated_at: 2026-08-24T23:22:49Z
-updated_by: claude
+updated_at: 2026-08-25T00:21:44Z
+updated_by: codex
 session_status: active
 branch: main
-last_commit: e066937
+last_commit: 84c7919
 ---
 # Handoff
 
 ## Now
 
-**The M1b plan is at draft r4 — three review rounds survived, all
-findings resolved, NOT approved.** Full chain: r1 (`14dc218`) → review 1
-(7 blocking + 3 hygiene; `docs/reviews/…-at-14dc218.md`) → r2
-(`54728c8`; ADR 0039 — HB-03 deferred) → review 2 (6 blocking + 3
-medium; `…-at-54728c8.md`) → r3 (`6d3f329`; ADR 0040 — MemberResultV1;
-stable ClawTeam root) → review 3 (4 blockers + 3 medium;
-`…-at-6d3f329.md`, `e066937`; the reviewed text's SHA-256 cited by the
-reviewer and re-verified) → **r4 resolves all seven** (the commit
-carrying this handoff; §21 r3→r4 table; ADR 0041). Every finding in all
-three rounds was re-verified against the tree before resolution. r4's
-substance: the member-result output pipeline pinned end to end
-(`RenderContext.output_contract` → schema delivery → the adapter's
-`StructuredExtractor` + `MemberResultV1.model_validate` →
-`RunArchive.write_member_result()` at `legs/inv-<member>/member-result.json`
-with an artifact reference; **`HarnessAdapter.parse()` untouched**);
-team-mode target semantics (a member may mutate its own isolated
-workspace; declared-deliverable-only propagation with a seven-case
-negative test set; direct-mode immutability unchanged);
-nullable-until-launch execution bindings with lifecycle validators (7a
-stub renders create no invocation records); the committed
-`CLAWTEAM_DISPOSITION` gating both the CLI and the success-oriented test
-suite under `failed-routed` (dated, VERIFY-cited skip + strict-xfail
-reproduction; CI green either way); accurate ClawTeam cleanup semantics
-(upstream retains `snapshots/<space>` — qualification-verified) with
-adapter-owned deletion after a verified copy-out; the fault-abort scope
-pinned to lifecycle steps 6–9 with finalization ops exempt and a
-`tasks()`-raise row (twelve provider rows); and the containment
-allowlist frozen to four enumerated locations, scanned
-case-insensitively.
+**The M1b plan is at draft r5 after four independent review rounds; all
+current findings are resolved in the plan, but r5 is NOT approved.** The
+fourth review froze r4 at full commit
+`3d0211a456cedb356aa512cb5f257b448dbb70e1` and plan SHA-256
+`e1c7f222ce22785b37eb22fca553281d0936b5367313a3a7b9a1d38c587200c9`;
+its immutable record is
+`docs/reviews/2026-08-24-m1b-plan-review-at-3d0211a.md` (`84c7919`).
+It found 3 high contract gaps, 3 medium implementation gaps, and 4
+consistency corrections.
+
+r5 (the commit carrying this handoff; §21 r4→r5 table; ADR 0042)
+resolves them with:
+
+- explicit per-task `workspace_access`, read-only by default and audited
+  in `tasks[]`; only the fixture's implement task is writable;
+- exact least-privilege mappings for Claude/Codex/Grok, with fail-closed
+  custom Grok profiles for both team grants; direct/synthesis rendering
+  remains unchanged;
+- null execution = no durable invocation allocation, with final render →
+  pending invocation → run binding → provider running → spawn, and a
+  cross-file archive verifier;
+- a state-free render-only branch and disposable normal preflight roots;
+- `cleanup(space, copy_out_verified=...) -> CleanupOutcome`, so
+  ClawTeam deletes only a verified snapshot and events never expose its
+  stable root;
+- one completion publication barrier before provider auto-unblock;
+- NFC/casefold/component-safe deliverables that cannot re-export
+  renderer-owned AGENTS/Skill paths; and
+- exact occurrence-level ClawTeam containment plus a failed-routed
+  reproduction that remains collected outside the skipped success suite.
 
 ## In flight
 
-Nothing after the r4 commit. Zero live calls spent; tree green
-(453 passed + 4 skipped under a plain terminal).
+Nothing after the r5 planning commit. Product implementation has not
+started. Planning-only validation is green: frozen r4 hash exact; 453
+passed + 4 skipped; Ruff clean; mypy clean across 98 source files;
+schemas current; diff check clean. Zero live calls were spent.
 
 ## Next steps (a NEW approval scope — nothing starts automatically)
 
-1. **Owner G0 decision on r4** — approve (DECISIONS entry naming
-   `docs/plans/m1b-team-foundation.md` + r4's commit SHA; status flips
-   in the following commit), or another confirmation pass in a fresh
-   session against r4's frozen SHA (plan §20 is the charter; §21 the
-   three-round resolution history).
-2. Only after G0: implementation per plan §3 gates G1–G7 and §16 commit
-   boundaries.
-3. At G0 the approval ADR also carries the glossary CoordinationSubstrate
-   `stop` amendment (plan §20 follow-up).
-4. Pushes: `main` is now 7 ahead of origin (`14dc218`, `9802775`,
-   `54728c8`, `e89a75f`, `6d3f329`, `e066937`, the r4 commit); **nothing
-   pushed** — every push needs explicit owner approval
-   (`never_push = true`).
+1. **Owner G0 decision on r5** — approve via a DECISIONS entry naming
+   `docs/plans/m1b-team-foundation.md` and r5's commit SHA, or commission
+   another independent review against r5's frozen SHA.
+2. Only after G0: execute plan gates G1–G7 and §16 commit boundaries.
+3. At G0, carry the glossary CoordinationSubstrate `stop` amendment
+   listed in plan §20.
+4. Push only on a separate explicit owner approval; the two r5-session
+   commits are local.
 
 ## Blockers
 
-None mechanical. Implementation is blocked by design on G0. Open owner
-items: G0; the §20 finalize-at-approval list; the HB-03 semantic
-question (open in QUESTIONS.md).
+No mechanical blocker. Product implementation is intentionally blocked
+on G0. Live writable-member claims are additionally deferred to M1c,
+which must re-probe then-supported clients and run one declared-deliverable
+acceptance per supported harness.
 
 ## Key files
 
-- `docs/plans/m1b-team-foundation.md` — **r4, the approval target.**
-- `docs/reviews/2026-08-24-m1b-plan-review-at-{14dc218,54728c8,6d3f329}.md`
-  — the three immutable review records.
-- `.project-steward/DECISIONS.md` ADRs 0039–0041 — the review/resolution
-  trail and the owner decisions.
-- `docs/plans/m1a-direct-harness-poc.md`,
-  `docs/evidence/clawteam-qualification-2026-08-23.md`,
-  `src/agentteam/compat/clawteam.py` — house style, the 233/281 baseline
-  + caveats, and the seam (its `create_space` gains `leader` at G5).
+- `docs/plans/m1b-team-foundation.md` — **r5, the approval target**.
+- `docs/reviews/2026-08-24-m1b-plan-review-at-{14dc218,54728c8,6d3f329,3d0211a}.md`
+  — four immutable review records.
+- `.project-steward/DECISIONS.md` ADRs 0039–0042 — the review/resolution
+  trail.
+- `.project-steward/RISKS.md` R36 — writable-client evidence boundary.
 
-## Tried and rejected (session highlights for a successor)
+## Tried and rejected
 
-- Every review finding in all three rounds was verified against the tree
-  BEFORE resolution (anchors in ADRs 0039–0041 and PROGRESS).
-- Rejected: changing `HarnessAdapter.parse()` for member results — the
-  team runner validates via the existing `StructuredExtractor` instead
-  (round-3 reviewer's shape; strictly more additive).
-- Rejected: extending direct-mode target immutability to team mode — a
-  member producing a deliverable must mutate its own workspace copy;
-  propagation is declared-files-only.
-- Rejected: unconditional collection of the success-oriented ClawTeam
-  suite — disposition-gated, dated, VERIFY-cited; never silent.
+- Rejected implicit writable behavior: every task grant is explicit,
+  defaults read-only, and is audited.
+- Rejected model validators that infer task history absent from the
+  record: the archive verifier owns cross-file execution integrity.
+- Rejected provider-side guessing about verified copy-out: the cleanup
+  handshake carries the fact directly.
+- Rejected file-level containment exceptions: declarative occurrences
+  are frozen individually and the CLI remains generic.
+- Preserved prior decisions: `HarnessAdapter.parse()` stays untouched;
+  team mutation propagates declared files only; direct immutability stays
+  unchanged.
 
 ## Warnings
 
-- **5 of 30 live calls remain from M1a; M1b's budget is ZERO live
-  calls.** `member-result-v1`'s live vendor acceptance is explicitly M1c
-  evidence.
-- r4 is NOT approved: no product code, no schema files, no register or
-  glossary amendments until G0.
-- Local pytest on this host needs a plain terminal:
-  `env -u PYTHONPATH NO_COLOR=1 TERM=dumb uv run pytest` (rich ANSI +
-  a ROS-Foxy PYTHONPATH leak; neither is a tree problem).
-- An untracked `.codex/` directory exists at the repo root (not created
-  by this session; left untouched; owner to decide whether to gitignore).
-- Capability evidence stays version-bound (Claude 2.1.241 /
-  Codex 0.149.1 / Grok 1.0.5); Grok re-entry needs fresh probes + an
-  owner decision (ADR 0036).
+- **M1b's live-call budget is ZERO.** Five calls remain from M1a and are
+  not an M1b allowance.
+- r5 is NOT approved: no product source, schemas, register, or glossary
+  amendment may begin before G0.
+- The no-call mapping check saw Claude 2.1.243, Codex 0.149.1, and Grok
+  1.0.5. Existing live capability evidence remains version-bound
+  (Claude 2.1.241 / Codex 0.149.1 / Grok 1.0.5); help inspection did not
+  upgrade it.
+- Local pytest needs
+  `env -u PYTHONPATH NO_COLOR=1 TERM=dumb uv run pytest` because of the
+  host's rich-terminal/ROS-Foxy environment, not a tree defect.
+- The pre-existing untracked `.codex/` remains untouched.

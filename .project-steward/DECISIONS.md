@@ -927,3 +927,52 @@ the G0 DECISIONS entry naming the plan file and r4's commit SHA (status
 flip in the following commit), or another confirmation pass at r4's
 frozen SHA. Implementation stays blocked until G0. Zero live calls
 spent; 5 of the M1a 30 remain untouched.
+
+## 0042 — 2026-08-24 — M1b r4 independently reviewed: r5 adopts least-privilege writable tasks and closes the remaining lifecycle gaps
+
+**Context**: The fourth independent review — of r4 at full commit
+`3d0211a456cedb356aa512cb5f257b448dbb70e1`, plan SHA-256
+`e1c7f222ce22785b37eb22fca553281d0936b5367313a3a7b9a1d38c587200c9`
+— returned "do not approve yet": three high contract gaps, three medium
+implementation gaps, and four consistency corrections. The immutable
+review record landed separately at
+`docs/reviews/2026-08-24-m1b-plan-review-at-3d0211a.md` (`84c7919`). The
+highest-risk contradiction was concrete: r4 allowed an implementer to
+write a deliverable while every real adapter remained read-only. It also
+asked model validators to infer execution history absent from the record,
+gave the snapshot-deleting provider no verified-copy-out signal, and did
+not order publication before provider auto-unblock.
+
+**Decision**: (1) Plan revision r5 resolves every fourth-review finding;
+its r4 → r5 table is plan §21. (2) Workflow tasks gain explicit
+`workspace_access` with a closed read-only default and a required resolved
+run-record fact. The committed fixture grants write only to `implement`.
+Team writable mappings are Claude `Write,Edit` under the existing denied
+shell/web set and Codex `-s workspace-write`; team Grok renders use
+generated fail-closed custom profiles extending `read-only` or
+`workspace` for the matching grant. Direct and synthesis paths remain
+unchanged. The mapping was checked without model calls against
+installed Claude 2.1.243, Codex 0.149.1, and Grok 1.0.5, but live support
+still requires fresh M1c probes and writable-deliverable acceptance. (3)
+Null execution means no durable invocation allocation. Final render →
+pending invocation → run binding → provider running → spawn is the one
+order; models enforce representable rules and an archive verifier owns
+the cross-file bijection. Render-only is state-free. (4) ADR 0041's
+snapshot-deletion intent is implemented by
+`cleanup(space, copy_out_verified=...) -> CleanupOutcome`: unverified
+paths retain, outcomes/events carry no stable-root path, and hygiene
+warnings remain non-masking. (5) Result persistence, canonical
+deliverable archive/materialization, and ledger/send form a publication
+barrier before provider completion. Deliverables require NFC,
+platform-independent casefold collision checks, component-wise `lstat`,
+renderer-path exclusion, and copy digest verification. (6) Containment
+tests freeze exact declarative AST/token occurrences; the CLI is generic,
+and the failed-routed reproduction is collected outside the skipped
+success module.
+
+**Consequences**: r5 is proposed, NOT approved. No product source,
+schemas, discovery/register text, vendor invocation, or live capability
+claim changes in this planning commit. M1b remains blocked until a later
+G0 decision names the r5 file and commit SHA; its live-call budget remains
+zero and the remaining five M1a calls are untouched. R36 tracks the
+writable-client evidence boundary.

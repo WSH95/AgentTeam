@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T00:21:44Z — codex
+**M1b r5 resolves the complete r4 review.** The owner-authorized revision adds explicit read-only/default vs workspace-write task grants with exact Claude/Codex/Grok mappings; durable-allocation execution bindings + archive verification; a state-free render-only path; verified-copy-out cleanup outcomes; a completion publication barrier; NFC/casefold/component-safe deliverables; and occurrence-level ClawTeam containment (ADR 0042; §21 r4→r5). Steward state now names four review rounds and R36. Planning-only validation: frozen r4 hash exact; 453 passed + 4 skipped; Ruff clean; mypy clean (98 source files); schemas current; diff check clean. Zero live calls, no push, r5 NOT approved — next is owner G0 or another frozen-SHA review.
+
 ### 2026-08-25T00:03:42Z — codex
 **M1b r4 independent review frozen.** Review of `3d0211a` (plan SHA-256 `e1c7f222…200c9`) says do not approve yet: 3 high contract gaps (real adapters still read-only, execution-binding history not model-validatable, no verified-copy-out cleanup handshake), 3 medium gaps (no completion publication barrier, containment exceptions not occurrence-frozen, deliverable paths not canonically safe), plus 4 consistency corrections. The immutable record is `docs/reviews/2026-08-24-m1b-plan-review-at-3d0211a.md`; r5 remediation follows as a separate semantic commit. Zero live calls; `.codex/` untouched.
 
