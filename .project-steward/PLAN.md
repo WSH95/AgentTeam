@@ -115,7 +115,7 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
   - [x] Sixth independent review (confirmation of r6 at `760a8ae`, plan SHA-256 `1776305f7bb0cca614efc13621b31d870a340444a70e06af168b5e7a86e356f6`) delivered 2026-08-25 — G0-eligible, no remaining implementation blockers; recorded at `docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md`
   - [x] G0 — owner approved frozen r6 at `760a8ae8c7021b0427bf29c84f005bebdd453bf6`; finalize-at-approval choices and glossary amendment recorded in ADR 0044
 - [x] G1 — team contracts, schemas, `atm team validate`, and committed examples
-- [ ] G2 — CoordinationSubstrate protocol, local deterministic provider, conformance suite, and containment scan
+- [x] G2 — CoordinationSubstrate protocol, local deterministic provider, conformance suite, and containment scan
 - [ ] G3 — team runner, member-result/deliverable/handoff pipeline, lifecycle finalization, and fault matrix
 - [ ] G4 — deterministic three-Member lifecycle acceptance through the CLI and hosted core evidence
 - [ ] G5 — optional ClawTeam provider conformance/lifecycle disposition and hosted extra evidence

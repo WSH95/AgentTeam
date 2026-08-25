@@ -4,6 +4,22 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1b G2 CoordinationSubstrate and local provider — 2026-08-24
+
+| Check | Result |
+| --- | --- |
+| Shared seam | PASS — synchronous runtime-checkable `CoordinationSubstrate`; exact four-state protocol task vocabulary; frozen task/message/info/cleanup DTOs; closed snapshot/warning enums; named error taxonomy; injected-clock bounded `wait_for_tasks` helper |
+| Shared conformance | PASS — lead/full-roster lifecycle; task DTOs and remaining-blocker auto-unblock; unknown refs; claim ownership; protocol-status rejection; deterministic mailbox claim; opaque snapshot/read/restore; both cleanup handshake values; path-free exact outcomes; post-close inoperability; external archive-copy survival; two-space no-crossover; bounded wait |
+| Local guarantees | PASS — first space is canonical `coordination/space`; per-space `t-<seq>` ids; strict pending→running→completed transitions; atomic write/replace with failure cleanup; owner-only POSIX modes; consumed messages and all state retained; tombstone records the handshake and deletes nothing; IDs/order contain no wall-clock fact; member/snapshot path escape rejected; no background-runtime imports |
+| Containment | PASS — AST import inventory keeps direct optional-package imports inside `compat/clawteam.py` (tests only under `tests/compatibility`); textual inventory has exactly the approved registry key/module and disposition store/load, one domain literal, zero occurrences in `domain/run.py` and commands; new optional-provider references cannot escape without failing core tests |
+| Focused tests | PASS — 29 protocol/local/conformance/containment tests |
+| Full local block | PASS — `uv lock --check`; Ruff lint and format clean over 115 files; strict mypy clean over 111 source files; schemas current; pytest **538 passed + 4 expected skips**; wheel and sdist built; `git diff --check` clean |
+| Boundary | PASS — no schema, dependency, public CLI, harness, compatibility-seam, CI, credential, model-call, push, AGENTS/CLAUDE, or M1c change; `.codex/` untouched |
+
+Last verified: 2026-08-25 by Codex. G1's semantic commit is `9f52dc1`.
+The G2 commit is the semantic commit carrying this entry and is indexed by
+later-gate evidence and at G7.
+
 ## M1b G1 team contracts and schemas — 2026-08-24
 
 | Check | Result |

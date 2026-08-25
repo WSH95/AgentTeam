@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T03:31:12Z — codex
+**M1b G2 closed locally.** The synchronous CoordinationSubstrate protocol/DTO/error/wait seam, deterministic file-backed local provider, reusable conformance base, local atomicity/retention/permission tests, and frozen import/text containment scan are green. Focused 29; full 538+4; Ruff/format, strict mypy/111, schemas, lock, build, and diff clean. No schema/dependency/CLI/harness/live/push change; G3 follows after the semantic commit.
+
 ### 2026-08-25T03:14:42Z — codex
 **M1b G1 closed locally.** TeamTemplate/TeamRunRequest/MemberResult contracts, the schema-level direct/team run-record union, shared substrate/task types, reference-aware `atm team validate`, and the committed implementer/development/team-request fixtures are green. Exact schema delta: three new + only two regenerated; direct body/order unchanged. Focused 154; full 509+4; Ruff/format, strict mypy/104, schemas, lock, build, and diff clean. Zero live calls/push; G2 follows after the semantic commit.
 

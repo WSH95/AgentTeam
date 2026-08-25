@@ -22,8 +22,9 @@ at G0 (ADR 0044), naming frozen commit
 `760a8ae8c7021b0427bf29c84f005bebdd453bf6`; all five finding rounds and
 the sixth confirmation remain immutable. The §10 criterion wording, zero-
 call budget, CLI surface, contract fields, and workspace-access default are
-final. G1 contracts/schemas are complete and locally green; G2's generic
-CoordinationSubstrate protocol and local provider are next. M1b makes zero live calls; the five
+final. G1 (`9f52dc1`) and G2 are complete and locally green; G3's team
+runner, result/deliverable/handoff pipeline, lifecycle finalization, and
+fault matrix are next. M1b makes zero live calls; the five
 remaining M1a calls are not an allowance. Fast-forward pushes needed for
 hosted CI are owner-approved; M1c remains separate and unapproved.
 
