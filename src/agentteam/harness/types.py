@@ -7,6 +7,7 @@ contracts stay the twelve V1 records of `agentteam.domain`.
 from __future__ import annotations
 
 from datetime import datetime
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -28,12 +29,27 @@ from agentteam.domain.run import (
     SelectionV1,
     UsageV1,
 )
+from agentteam.domain.team import WorkspaceAccess
 
 
 class InternalModel(RecordModel):
     """Base for internal working objects; may carry Paths (never serialised as contracts)."""
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+
+
+class OutputContract(StrEnum):
+    """Structured result requested from one harness invocation."""
+
+    NORMALIZED_REVIEW = "normalized-review"
+    MEMBER_RESULT = "member-result"
+
+
+class InvocationScope(StrEnum):
+    """Whether the render is a standalone run or one isolated Team member."""
+
+    STANDALONE = "standalone"
+    TEAM_MEMBER = "team-member"
 
 
 class SynthesisRenderV1(InternalModel):
@@ -79,6 +95,9 @@ class RenderContext(InternalModel):
     cli_version: str | None = None
     profile_file: Path | None = None
     synthesis: SynthesisRenderV1 | None = None
+    output_contract: OutputContract = OutputContract.NORMALIZED_REVIEW
+    workspace_access: WorkspaceAccess = WorkspaceAccess.READ_ONLY
+    invocation_scope: InvocationScope = InvocationScope.STANDALONE
 
 
 class RawInvocationV1(InternalModel):

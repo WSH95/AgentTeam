@@ -116,7 +116,7 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
   - [x] G0 — owner approved frozen r6 at `760a8ae8c7021b0427bf29c84f005bebdd453bf6`; finalize-at-approval choices and glossary amendment recorded in ADR 0044
 - [x] G1 — team contracts, schemas, `atm team validate`, and committed examples
 - [x] G2 — CoordinationSubstrate protocol, local deterministic provider, conformance suite, and containment scan
-- [ ] G3 — team runner, member-result/deliverable/handoff pipeline, lifecycle finalization, and fault matrix
+- [x] G3 — team runner, member-result/deliverable/handoff pipeline, lifecycle finalization, and fault matrix
 - [ ] G4 — deterministic three-Member lifecycle acceptance through the CLI and hosted core evidence
 - [ ] G5 — optional ClawTeam provider conformance/lifecycle disposition and hosted extra evidence
 - [ ] G6 — pinned ClawTeam exit-criterion measurement and owner decision packet

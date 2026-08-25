@@ -15,7 +15,7 @@ from agentteam.domain.run import (
     RenderedPartV1,
 )
 from agentteam.harness.launcher import resolve_launcher
-from agentteam.harness.types import RenderContext
+from agentteam.harness.types import OutputContract, RenderContext
 
 # Windows CreateProcess command lines cap at 32767 chars; stay safely below.
 MAX_ARGV_CHARS = 30_000
@@ -77,11 +77,11 @@ def instruction_parts(ctx: RenderContext, channel: str) -> list[RenderedPartV1]:
 
 
 def schema_name_for(ctx: RenderContext) -> str:
-    return (
-        ctx.synthesis.schema_name
-        if ctx.synthesis is not None
-        else "normalized-review-v1.schema.json"
-    )
+    if ctx.synthesis is not None:
+        return ctx.synthesis.schema_name
+    if ctx.output_contract is OutputContract.MEMBER_RESULT:
+        return "member-result-v1.schema.json"
+    return "normalized-review-v1.schema.json"
 
 
 def read_task_text(ctx: RenderContext) -> str:

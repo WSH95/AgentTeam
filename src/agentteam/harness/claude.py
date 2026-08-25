@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 from agentteam.domain.run import InjectionV1, RenderedPartV1, SchemaOutcome, UsageV1
+from agentteam.domain.team import WorkspaceAccess
 from agentteam.harness.capabilities import (
     CLAUDE_INSTRUCTION_LADDER,
     CLAUDE_SKILL_LADDER,
@@ -40,6 +41,7 @@ from agentteam.harness.types import (
     ExtractedStructured,
     FileWriteV1,
     HarnessCapabilityReportV1,
+    InvocationScope,
     ParsedLegV1,
     RawInvocationV1,
     RenderContext,
@@ -53,6 +55,8 @@ from agentteam.schema import vendor_schema_min
 # constrained by the explicit write/shell/web denies below.
 CLAUDE_ALLOWED_TOOLS = "Read,Grep,Glob,LS,Skill"
 CLAUDE_DISALLOWED_TOOLS = "Write,Edit,NotebookEdit,Bash,WebFetch,WebSearch"
+CLAUDE_WORKSPACE_WRITE_ALLOWED_TOOLS = "Read,Grep,Glob,LS,Skill,Write,Edit"
+CLAUDE_WORKSPACE_WRITE_DISALLOWED_TOOLS = "NotebookEdit,Bash,WebFetch,WebSearch"
 
 
 class ClaudeAdapter:
@@ -123,6 +127,15 @@ class ClaudeAdapter:
         )
         env_values[ctx.profile.environment.config_home_variable] = str(ctx.config_root)
 
+        allowed_tools = CLAUDE_ALLOWED_TOOLS
+        disallowed_tools = CLAUDE_DISALLOWED_TOOLS
+        if (
+            ctx.invocation_scope is InvocationScope.TEAM_MEMBER
+            and ctx.workspace_access is WorkspaceAccess.WORKSPACE_WRITE
+        ):
+            allowed_tools = CLAUDE_WORKSPACE_WRITE_ALLOWED_TOOLS
+            disallowed_tools = CLAUDE_WORKSPACE_WRITE_DISALLOWED_TOOLS
+
         rest = [
             "-p",
             "--output-format",
@@ -136,9 +149,9 @@ class ClaudeAdapter:
             "--permission-mode",
             "dontAsk",
             "--allowedTools",
-            CLAUDE_ALLOWED_TOOLS,
+            allowed_tools,
             "--disallowedTools",
-            CLAUDE_DISALLOWED_TOOLS,
+            disallowed_tools,
         ]
         instruction_file: Path | None = None
         if instruction_channel == "append-system-prompt-file":

@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T04:14:48Z — codex
+**M1b G3 closed locally.** Team-request dispatch/preflight, exact scope-aware harness rendering, state-free render-only, the provider-neutral lifecycle scheduler, durable bindings, member-result/deliverable/handoff/ledger/snapshot pipelines, truthful terminal finalization, archive binding verification, and the complete injected-fault matrix are green. Focused 54; full 592+4; Ruff/format, strict mypy/116, schemas, lock, build, and diff clean. Direct rendering remains covered; zero live calls/push; G4 begins with a fresh gate plan after the semantic commit.
+
 ### 2026-08-25T03:31:12Z — codex
 **M1b G2 closed locally.** The synchronous CoordinationSubstrate protocol/DTO/error/wait seam, deterministic file-backed local provider, reusable conformance base, local atomicity/retention/permission tests, and frozen import/text containment scan are green. Focused 29; full 538+4; Ruff/format, strict mypy/111, schemas, lock, build, and diff clean. No schema/dependency/CLI/harness/live/push change; G3 follows after the semantic commit.
 

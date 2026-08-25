@@ -33,6 +33,12 @@ from agentteam.resolution.archive import build_bundle_manifest
 from agentteam.resolution.profiles import default_profile_path
 from agentteam.run.preflight import PreflightError, ResolvedRun, build_request, preflight
 from agentteam.run.runner import execute_run
+from agentteam.run.team import TeamInfrastructureError, execute_team_run, render_team_only
+from agentteam.run.team_preflight import (
+    load_team_request,
+    preflight_team,
+    request_kind,
+)
 
 _ALIASES = {"claude": "claude-code"}
 
@@ -85,7 +91,61 @@ def register_run(app: typer.Typer) -> None:
         config: Annotated[Path | None, typer.Option("--config")] = None,
         json_out: Annotated[bool, typer.Option("--json")] = False,
     ) -> None:
-        """Run one Assistant over a workspace (direct ensemble or --render-only)."""
+        """Run one Assistant or a committed TeamRun request."""
+        if request_file is not None and request_kind(request_file) == "team-run-request":
+            forbidden_flags: list[str] = []
+            for present, name in (
+                (assistant is not None, "--assistant"),
+                (workspace is not None, "--workspace"),
+                (task_file is not None, "--task-file"),
+                (bool(harness), "--harness"),
+                (bool(model), "--model"),
+                (bool(effort), "--effort"),
+                (no_synthesis, "--no-synthesis"),
+            ):
+                if present:
+                    forbidden_flags.append(name)
+            if forbidden_flags:
+                raise fail(
+                    "team mode takes run-shaping values from the request file's "
+                    "members map; unsupported flags: " + ", ".join(forbidden_flags)
+                )
+            try:
+                team_request = load_team_request(request_file, output_dir=output_dir)
+                profile_path = config if config is not None else default_profile_path(os.environ)
+                team_resolved = preflight_team(
+                    team_request,
+                    request_path=request_file,
+                    profile_path=profile_path,
+                    live=not render_only,
+                    environ=os.environ,
+                    platform=sys.platform,
+                )
+                if render_only:
+                    summary = render_team_only(
+                        team_resolved,
+                        environ=dict(os.environ),
+                        platform=sys.platform,
+                    )
+                    emit(
+                        json_out,
+                        summary,
+                        f"rendered {len(team_resolved.members)} team members into "
+                        f"{summary['output_dir']}; nothing launched",
+                    )
+                    return
+                outcome = asyncio.run(execute_team_run(team_resolved, environ=dict(os.environ)))
+            except (PreflightError, RenderError, EnvironmentConflictError) as error:
+                raise fail(str(error), exit_code=2) from None
+            except TeamInfrastructureError as error:
+                raise fail(str(error), exit_code=1) from None
+            except KeyboardInterrupt:
+                raise typer.Exit(EXIT_CANCELLED) from None
+            emit(json_out, outcome.summary, outcome.human)
+            if outcome.exit_code != 0:
+                raise typer.Exit(outcome.exit_code)
+            return
+
         try:
             request = build_request(
                 request_file=request_file,

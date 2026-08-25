@@ -4,6 +4,21 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1b G3 team runner and lifecycle — 2026-08-25
+
+| Check | Result |
+| --- | --- |
+| Dispatch and preflight | PASS — `atm run` discriminates `team-run-request`; team mode rejects every direct-only shaping flag through the request-file channel; transitive validation/resolution/selection and disposable all-member rendering finish before execution; `--render-only` writes only stubs and creates no archive, space, workspace, invocation, binding, or process |
+| Exact member rendering | PASS — output contract and invocation scope are explicit; user > Assistant > team > default preference precedence is pinned; Claude receives the exact read/write tool grants, Codex the exact sandbox/network pair, and Grok a nonce-scoped project profile with collision, symlink, malformed-global, malformed-nonce, and Windows refusal negatives; standalone direct rendering remains regression-covered |
+| Lifecycle and data flow | PASS — declaration-order DAG registration and readiness waves; durable pending invocation + binding before provider running/spawn; structured `MemberResultV1` extraction; canonical deliverable archive/materialization; ledger-before-send, claim-and-embed, and blinded handoffs; completion publication barrier; snapshot copy-out, cleanup handshake, package/template re-hash, terminal sweep, manifest-last finalization, and archive binding verification |
+| Failure truthfulness | PASS — causal task failure cascades eagerly while unrelated work continues; infrastructure abort cancels allocated work and abandons never-launched work; SIGINT cancels and gathers active process trees before `processes-stopped`; schema outcome remains truthful across structured-output, workspace, deliverable, transport, and provider failures; pending ClawTeam disposition and forward-reference ordering are covered |
+| Fault matrix | PASS — provider runtime operations, completion faults before/after delegation, bounded-wait timeout, cleanup warning, allocation/binding/spawn/result/deliverable/materialization/ledger/snapshot copy windows, cancellation, and a parallel five-task cascade are injected deterministically over the local provider |
+| Local block | PASS — focused **54 passed**; full pytest **592 passed + 4 expected skips**; Ruff lint and format clean over 120 files; strict mypy clean over 116 source files; schemas current; lock current; wheel and sdist built; `git diff --check` clean |
+| Boundary | PASS — no dependency, checked-in schema, CI, live/model call, credential read, push, AGENTS/CLAUDE, optional-provider implementation, or M1c change; pre-existing `.codex/` untouched |
+
+Last verified: 2026-08-25 by Codex. The G3 semantic commit carries this
+entry; hosted lifecycle evidence belongs to G4.
+
 ## M1b G2 CoordinationSubstrate and local provider — 2026-08-24
 
 | Check | Result |

@@ -9,7 +9,7 @@ A `team` layer is reserved for M1b.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from agentteam.domain.assistant import HarnessPolicyV1
@@ -45,6 +45,7 @@ def select_harnesses(
     profiles: HarnessProfileSetV1,
     installed: Callable[[HarnessProfileV1], bool],
     user_forbidden: frozenset[HarnessId] = frozenset(),
+    team_preferred: Sequence[HarnessId] = (),
 ) -> SelectionOutcome:
     by_id = {profile.harness: profile for profile in profiles.profiles}
 
@@ -52,7 +53,8 @@ def select_harnesses(
     candidates = [h for h, p in by_id.items() if installed(p)]
     # (2) remove harnesses forbidden by the user request or the Assistant
     forbidden = set(policy.forbidden) | set(user_forbidden)
-    eligible = [h for h in candidates if h not in forbidden]
+    allowed = set(policy.allowed)
+    eligible = [h for h in candidates if h not in forbidden and (not allowed or h in allowed)]
 
     required = set(policy.required_capabilities)
 
@@ -66,6 +68,8 @@ def select_harnesses(
             return "not installed"
         if harness in forbidden:
             return "forbidden by policy"
+        if allowed and harness not in allowed:
+            return "not in the Assistant's allowed list"
         missing = missing_capabilities(harness)
         if missing:
             return f"missing required capabilities: {', '.join(sorted(missing))}"
@@ -80,7 +84,6 @@ def select_harnesses(
         ]
         # a requested harness outside a non-empty allowed list is a hard failure
         if policy.allowed:
-            allowed = set(policy.allowed)
             problems.extend(
                 f"{h.value}: not in the Assistant's allowed list"
                 for h in requested
@@ -109,7 +112,16 @@ def select_harnesses(
             selection=SelectionV1(decided_by=DecidedBy.ASSISTANT, candidates=sorted(candidates)),
         )
 
-    # (5) profile default -> solo
+    # (5) TeamTemplate preference -> solo. This is a preference only: the
+    # Assistant's hard allowed/forbidden/capability policy remains in force.
+    team_choice = first_eligible(list(team_preferred))
+    if team_choice is not None:
+        return SelectionOutcome(
+            chosen=[team_choice],
+            selection=SelectionV1(decided_by=DecidedBy.TEAM, candidates=sorted(candidates)),
+        )
+
+    # (6) profile default -> solo
     if profiles.default_harness is not None:
         default = first_eligible([profiles.default_harness])
         if default is not None:
@@ -118,7 +130,7 @@ def select_harnesses(
                 selection=SelectionV1(decided_by=DecidedBy.DEFAULT, candidates=sorted(candidates)),
             )
 
-    # (6) nothing eligible: fail with per-harness reasons
+    # (7) nothing eligible: fail with per-harness reasons
     known = sorted(set(by_id) | set(requested), key=lambda h: h.value)
     reasons = "; ".join(f"{h.value}: {eliminate_reason(h)}" for h in known) or "no profiles"
     raise SelectionError(f"no eligible harness: {reasons}")

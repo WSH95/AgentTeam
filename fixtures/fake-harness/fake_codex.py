@@ -80,6 +80,13 @@ INVENTED_FINDING = json.loads("""
   "rationale": "This finding matches nothing in any oracle."
 }
 """)
+MEMBER_RESULT = {
+    "schema_version": 1,
+    "kind": "member-result",
+    "summary": "Completed the assigned team task.",
+    "deliverables": [],
+    "risks": [],
+}
 
 KEEP_ENV = ("CODEX_HOME",)
 CONFIG_HOME_VAR = "CODEX_HOME"
@@ -172,6 +179,65 @@ def synthesis_requested():
             return "synthesis-report" in fh.read()
     except OSError:
         return False
+
+
+def member_result_requested():
+    argv = sys.argv
+    if "--output-schema" not in argv:
+        return False
+    schema_path = argv[argv.index("--output-schema") + 1]
+    try:
+        with open(schema_path, encoding="utf-8") as fh:
+            return "member-result" in fh.read()
+    except OSError:
+        return False
+
+
+def member_result_body(mode):
+    body = json.loads(json.dumps(MEMBER_RESULT))
+    if "inv-implementer" in os.getcwd().split(os.sep):
+        if mode == "team-missing":
+            body["deliverables"] = ["missing.txt"]
+        elif mode == "team-directory":
+            os.mkdir("declared-dir")
+            body["deliverables"] = ["declared-dir"]
+        elif mode == "team-symlink":
+            with open("real.txt", "w", encoding="utf-8") as fh:
+                fh.write("real\n")
+            os.symlink("real.txt", "declared-link")
+            body["deliverables"] = ["declared-link"]
+        elif mode == "team-parent-symlink":
+            os.mkdir("real-dir")
+            with open("real-dir/value.txt", "w", encoding="utf-8") as fh:
+                fh.write("real\n")
+            os.symlink("real-dir", "linked-dir")
+            body["deliverables"] = ["linked-dir/value.txt"]
+        elif mode == "team-duplicate":
+            with open("duplicate.txt", "w", encoding="utf-8") as fh:
+                fh.write("duplicate\n")
+            body["deliverables"] = ["duplicate.txt", "duplicate.txt"]
+        elif mode == "team-case-collision":
+            for name in ("Foo.txt", "foo.txt"):
+                with open(name, "w", encoding="utf-8") as fh:
+                    fh.write(name + "\n")
+            body["deliverables"] = ["Foo.txt", "foo.txt"]
+        elif mode == "team-nonnfc":
+            name = "cafe\u0301.txt"
+            with open(name, "w", encoding="utf-8") as fh:
+                fh.write("decomposed\n")
+            body["deliverables"] = [name]
+        elif mode == "team-handoff-reserved":
+            os.mkdir("handoff")
+            with open("handoff/value.txt", "w", encoding="utf-8") as fh:
+                fh.write("reserved\n")
+            body["deliverables"] = ["handoff/value.txt"]
+        else:
+            with open("implementation.txt", "w", encoding="utf-8") as fh:
+                fh.write("deterministic team implementation\n")
+            body["deliverables"] = ["implementation.txt"]
+    if mode == "schema-invalid":
+        body["summary"] = ""
+    return body
 
 
 def synthesis_document(stdin_text):
@@ -297,6 +363,9 @@ def main():
             fh.write("the fake harness wrote into the target\n")
     if synthesis_requested():
         emit(build_synthesis_report(synthesis_document(stdin_text)), stdin_text)
+        return 0
+    if member_result_requested():
+        emit(member_result_body(mode), stdin_text)
         return 0
     body = review_body(mode)
     event_body = None

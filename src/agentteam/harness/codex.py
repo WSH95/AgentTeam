@@ -14,6 +14,7 @@ import json
 from typing import Any
 
 from agentteam.domain.run import InjectionV1, ObservedV1, RenderedPartV1, UsageV1
+from agentteam.domain.team import WorkspaceAccess
 from agentteam.harness.capabilities import (
     CODEX_INSTRUCTION_LADDER,
     CODEX_SKILL_LADDER,
@@ -37,6 +38,7 @@ from agentteam.harness.types import (
     ExtractedStructured,
     FileWriteV1,
     HarnessCapabilityReportV1,
+    InvocationScope,
     ParsedLegV1,
     RawInvocationV1,
     RenderContext,
@@ -127,6 +129,15 @@ class CodexAdapter:
         )
         env_values[ctx.profile.environment.config_home_variable] = str(ctx.config_root)
 
+        sandbox = "read-only"
+        sandbox_config: list[str] = []
+        if (
+            ctx.invocation_scope is InvocationScope.TEAM_MEMBER
+            and ctx.workspace_access is WorkspaceAccess.WORKSPACE_WRITE
+        ):
+            sandbox = "workspace-write"
+            sandbox_config = ["-c", "sandbox_workspace_write.network_access=false"]
+
         rest = [
             "exec",
             "--ephemeral",
@@ -136,9 +147,10 @@ class CodexAdapter:
             "-C",
             str(ctx.workspace_root),
             "-s",
-            "read-only",
+            sandbox,
             "-c",
             'approval_policy="never"',
+            *sandbox_config,
             *instruction_config,
             "--output-schema",
             str(schema_file),

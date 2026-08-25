@@ -23,6 +23,12 @@ class EventV1(RecordModel):
     event: str
     run_id: str
     invocation_id: str | None = None
+    task_id: str | None = None
+    member: str | None = None
+    seq: int | None = None
+    sender: str | None = None
+    recipient: str | None = None
+    sha256: str | None = None
     detail: str | None = None
 
 
@@ -37,6 +43,12 @@ class EventLog:
         event: str,
         *,
         invocation_id: str | None = None,
+        task_id: str | None = None,
+        member: str | None = None,
+        seq: int | None = None,
+        sender: str | None = None,
+        recipient: str | None = None,
+        sha256: str | None = None,
         detail: str | None = None,
     ) -> None:
         record = EventV1(
@@ -44,6 +56,12 @@ class EventLog:
             event=event,
             run_id=self._run_id,
             invocation_id=invocation_id,
+            task_id=task_id,
+            member=member,
+            seq=seq,
+            sender=sender,
+            recipient=recipient,
+            sha256=sha256,
             detail=detail,
         )
         line = record.model_dump_json(exclude_none=True) + "\n"

@@ -79,6 +79,13 @@ INVENTED_FINDING = json.loads("""
   "rationale": "This finding matches nothing in any oracle."
 }
 """)
+MEMBER_RESULT = {
+    "schema_version": 1,
+    "kind": "member-result",
+    "summary": "Completed the assigned team task.",
+    "deliverables": [],
+    "risks": [],
+}
 
 KEEP_ENV = ("CLAUDE_CONFIG_DIR",)
 CONFIG_HOME_VAR = "CLAUDE_CONFIG_DIR"
@@ -162,6 +169,21 @@ def schema_flag_error():
 
 def synthesis_requested():
     return any("synthesis-report" in element for element in sys.argv)
+
+
+def member_result_requested():
+    return any("member-result" in element for element in sys.argv)
+
+
+def member_result_body(mode):
+    body = json.loads(json.dumps(MEMBER_RESULT))
+    if "inv-implementer" in os.getcwd().split(os.sep):
+        with open("implementation.txt", "w", encoding="utf-8") as fh:
+            fh.write("deterministic team implementation\n")
+        body["deliverables"] = ["implementation.txt"]
+    if mode == "schema-invalid":
+        body["summary"] = ""
+    return body
 
 
 def synthesis_document(stdin_text):
@@ -293,6 +315,9 @@ def main():
             fh.write("the fake harness wrote into the target\n")
     if synthesis_requested():
         emit(build_synthesis_report(synthesis_document(stdin_text)), stdin_text)
+        return 0
+    if member_result_requested():
+        emit(member_result_body(mode), stdin_text)
         return 0
     emit(review_body(mode), stdin_text)
     return 0

@@ -11,15 +11,25 @@ from __future__ import annotations
 
 import contextlib
 import hashlib
+import json
 import os
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from agentteam.domain.bundle import BundleManifestV1
 from agentteam.domain.common import RecordModel
 from agentteam.domain.request import RunRequestV1
 from agentteam.domain.review import NormalizedReviewV1, SynthesisReportV1
-from agentteam.domain.run import ArtifactRefV1, EnsembleRecordV1, HarnessInvocationV1, RunRecordV1
+from agentteam.domain.run import (
+    ArtifactRefV1,
+    EnsembleRecordV1,
+    HarnessInvocationV1,
+    RunRecordV1,
+    TeamRunRecordV1,
+)
+from agentteam.domain.team import MemberResultV1, TeamRunRequestV1
 from agentteam.harness.types import RawInvocationV1, RenderedInvocationV1
 from agentteam.run.ids import SYNTHESIS_INVOCATION_ID
 
@@ -46,6 +56,7 @@ class RunArchive:
         self.root = root
         self._retain_raw_streams = retain_raw_streams
         self._platform = platform
+        self._message_sequence = 0
 
     # -- creation -------------------------------------------------------------
 
@@ -80,6 +91,39 @@ class RunArchive:
         archive._write_json("bundle-manifest.json", bundle)
         return archive, warnings
 
+    @classmethod
+    def create_team(
+        cls,
+        root: Path,
+        *,
+        run_record: TeamRunRecordV1,
+        resolved_request: TeamRunRequestV1,
+        bundles: dict[str, BundleManifestV1],
+        retain_raw_streams: bool = True,
+        platform: str = sys.platform,
+        home: Path | None = None,
+    ) -> tuple[RunArchive, list[str]]:
+        """Create a pending team archive before a coordination side effect."""
+        if root.exists() and any(root.iterdir()):
+            raise ValueError(f"run archive root is not empty: {root}")
+        root.mkdir(parents=True, exist_ok=True)
+        archive = cls(root, retain_raw_streams=retain_raw_streams, platform=platform)
+        archive._chmod_dir(root)
+        warnings: list[str] = []
+        if platform == "win32":
+            resolved_home = home if home is not None else Path.home()
+            resolved_root = root.resolve()
+            if resolved_home.resolve() not in (resolved_root, *resolved_root.parents):
+                warnings.append(
+                    "run archive root is outside the user profile; access control "
+                    f"relies on that profile's ACL: {root}"
+                )
+        archive.write_run_record(run_record)
+        archive._write_json("request.resolved.json", resolved_request)
+        for member, bundle in bundles.items():
+            archive._write_json(f"bundles/{member}.json", bundle)
+        return archive, warnings
+
     # -- layout ---------------------------------------------------------------
 
     @property
@@ -101,7 +145,7 @@ class RunArchive:
 
     # -- writers --------------------------------------------------------------
 
-    def write_run_record(self, record: RunRecordV1) -> None:
+    def write_run_record(self, record: RunRecordV1 | TeamRunRecordV1) -> None:
         self._write_json("run.json", record)
 
     def write_invocation(self, record: HarnessInvocationV1) -> None:
@@ -139,6 +183,88 @@ class RunArchive:
         data = (review.model_dump_json(indent=2) + "\n").encode("utf-8")
         self._write_bytes(relative, data)
         return self._ref("normalized-review", relative, data)
+
+    def write_member_result(self, invocation_id: str, result: MemberResultV1) -> ArtifactRefV1:
+        relative = (
+            self.leg_dir(invocation_id).relative_to(self.root) / "member-result.json"
+        ).as_posix()
+        data = (result.model_dump_json(indent=2) + "\n").encode("utf-8")
+        self._write_bytes(relative, data)
+        return self._ref("member-result", relative, data)
+
+    def write_deliverable(
+        self, invocation_id: str, relative_path: str, data: bytes
+    ) -> ArtifactRefV1:
+        relative = (
+            self.leg_dir(invocation_id).relative_to(self.root)
+            / "deliverables"
+            / Path(relative_path)
+        ).as_posix()
+        self._write_bytes(relative, data)
+        return self._ref("deliverable", relative, data)
+
+    def append_message(self, *, sender: str, recipient: str, body: str) -> tuple[int, str]:
+        """Durably append a full message envelope before provider transport."""
+        self._message_sequence += 1
+        row = {
+            "seq": self._message_sequence,
+            "ts": datetime.now(tz=UTC).isoformat().replace("+00:00", "Z"),
+            "sender": sender,
+            "recipient": recipient,
+            "body": body,
+        }
+        path = self.root / "coordination" / "messages.jsonl"
+        existing = path.read_bytes() if path.is_file() else b""
+        line = (
+            json.dumps(row, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n"
+        ).encode("utf-8")
+        self._write_bytes("coordination/messages.jsonl", existing + line)
+        return self._message_sequence, hashlib.sha256(body.encode("utf-8")).hexdigest()
+
+    def write_coordination_snapshot(self, payload: dict[str, Any]) -> str:
+        data = (
+            json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n"
+        ).encode("utf-8")
+        self._write_bytes("coordination/snapshot.json", data)
+        written = (self.root / "coordination" / "snapshot.json").read_bytes()
+        if written != data:
+            raise OSError("coordination snapshot read-back disagrees with provider bytes")
+        return hashlib.sha256(written).hexdigest()
+
+    def verify_team_bindings(self, record: TeamRunRecordV1) -> list[str]:
+        """Enforce the durable invocation/run-record bijection before sealing."""
+        problems: list[str] = []
+        bindings = {
+            member.execution.ref: member.name
+            for member in record.members
+            if member.execution is not None
+        }
+        invocations: dict[str, HarnessInvocationV1] = {}
+        legs = self.root / "legs"
+        if legs.is_dir():
+            for path in sorted(legs.glob("inv-*/invocation.json")):
+                try:
+                    invocation = HarnessInvocationV1.model_validate_json(
+                        path.read_text(encoding="utf-8")
+                    )
+                except (OSError, ValueError) as error:
+                    problems.append(f"invalid invocation record: {path.parent.name}: {error}")
+                    continue
+                invocations[invocation.invocation_id] = invocation
+        for ref, member in bindings.items():
+            bound_invocation = invocations.get(ref)
+            if bound_invocation is None:
+                problems.append(f"member {member} binding has no invocation: {ref}")
+            elif bound_invocation.status.value not in {
+                "succeeded",
+                "failed",
+                "cancelled",
+                "timed-out",
+            }:
+                problems.append(f"member {member} invocation is not terminal: {ref}")
+        for ref in sorted(set(invocations) - set(bindings)):
+            problems.append(f"invocation has no member binding: {ref}")
+        return problems
 
     def write_leg_text(
         self, invocation_id: str, name: str, text: str, *, role: str

@@ -14,8 +14,15 @@ or is vendor-`cancelled` at turn 2 with no final structured object
 from __future__ import annotations
 
 import json
+import os
+import secrets
+import stat
+import tomllib
+from collections.abc import Callable
+from pathlib import Path
 
 from agentteam.domain.run import InjectionV1, RenderedPartV1, SchemaOutcome, UsageV1
+from agentteam.domain.team import WorkspaceAccess
 from agentteam.harness.capabilities import (
     GROK_INSTRUCTION_LADDER,
     GROK_OUTPUT_LADDER,
@@ -44,6 +51,7 @@ from agentteam.harness.types import (
     ExtractedStructured,
     FileWriteV1,
     HarnessCapabilityReportV1,
+    InvocationScope,
     ParsedLegV1,
     RawInvocationV1,
     RenderContext,
@@ -59,6 +67,9 @@ GROK_MAX_TURNS = 40
 
 class GrokAdapter:
     harness = "grok"
+
+    def __init__(self, *, token_hex: Callable[[int], str] = secrets.token_hex) -> None:
+        self._token_hex = token_hex
 
     async def probe(self, context: object) -> HarnessCapabilityReportV1:
         raise NotImplementedError("profile doctor owns attended capability probes")
@@ -95,6 +106,19 @@ class GrokAdapter:
 
         ctx.workspace_root.mkdir(parents=True, exist_ok=True)
         ctx.scratch_dir.mkdir(parents=True, exist_ok=True)
+        sandbox_name = "read-only"
+        sandbox_write: FileWriteV1 | None = None
+        if ctx.invocation_scope is InvocationScope.TEAM_MEMBER:
+            if ctx.platform == "win32":
+                raise RenderError("Grok team-member sandboxing is unsupported on Windows in M1b")
+            nonce = self._token_hex(16)
+            if len(nonce) != 32 or any(char not in "0123456789abcdef" for char in nonce):
+                raise RenderError("Grok sandbox token source returned an invalid 128-bit nonce")
+            suffix = "rw" if ctx.workspace_access is WorkspaceAccess.WORKSPACE_WRITE else "ro"
+            sandbox_name = f"agentteam_{nonce}_{suffix}"
+            # Guard/create .grok before Skill delivery so a symlinked parent
+            # can never redirect workspace-channel writes outside the copy.
+            sandbox_write = self._write_team_sandbox(ctx, sandbox_name)
         prompt_file = ctx.scratch_dir / "prompt.md"
         prompt_file.write_text(task, encoding="utf-8")
         skill_writes: list[FileWriteV1] = []
@@ -125,7 +149,7 @@ class GrokAdapter:
             "--max-turns",
             str(GROK_MAX_TURNS),
             "--sandbox",
-            "read-only",
+            sandbox_name,
             (
                 "--rules"
                 if instruction_channel == "instructions-rules"
@@ -170,6 +194,7 @@ class GrokAdapter:
         files = [
             FileWriteV1(path=prompt_file, role="prompt", channel="prompt-file"),
             *skill_writes,
+            *([sandbox_write] if sandbox_write is not None else []),
         ]
         return RenderedInvocationV1(
             harness=self.harness,
@@ -186,6 +211,63 @@ class GrokAdapter:
             schema_channel="argv-inline",
             timeout_seconds=ctx.timeout_seconds,
             structured_output_channel=output_channel,
+        )
+
+    def _write_team_sandbox(self, ctx: RenderContext, name: str) -> FileWriteV1:
+        """Create one collision-safe project-local custom sandbox profile."""
+        global_file = Path(ctx.profile.config_home) / "sandbox.toml"
+        if global_file.exists() or global_file.is_symlink():
+            try:
+                parsed = tomllib.loads(global_file.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, tomllib.TOMLDecodeError) as error:
+                raise RenderError(
+                    "persistent Grok sandbox.toml is unreadable or malformed"
+                ) from error
+            profiles = parsed.get("profiles", {})
+            if not isinstance(profiles, dict):
+                raise RenderError("persistent Grok sandbox.toml has a malformed profiles table")
+            if name in profiles:
+                raise RenderError(f"generated Grok sandbox profile already exists: {name}")
+
+        project_dir = ctx.workspace_root / ".grok"
+        try:
+            metadata = project_dir.lstat()
+        except FileNotFoundError:
+            project_dir.mkdir(mode=0o700, parents=False)
+            metadata = project_dir.lstat()
+        if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
+            raise RenderError("workspace .grok must be a real directory")
+        if ctx.platform != "win32":
+            project_dir.chmod(0o700)
+
+        sandbox_file = project_dir / "sandbox.toml"
+        try:
+            sandbox_file.lstat()
+        except FileNotFoundError:
+            pass
+        else:
+            raise RenderError("workspace .grok/sandbox.toml already exists")
+
+        extends = (
+            "workspace" if ctx.workspace_access is WorkspaceAccess.WORKSPACE_WRITE else "read-only"
+        )
+        document = (f'[profiles.{name}]\nextends = "{extends}"\nrestrict_network = true\n').encode()
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+        try:
+            descriptor = os.open(sandbox_file, flags, 0o600)
+        except OSError as error:
+            raise RenderError("cannot exclusively create workspace Grok sandbox profile") from error
+        try:
+            with os.fdopen(descriptor, "wb") as handle:
+                descriptor = -1
+                handle.write(document)
+        finally:
+            if descriptor >= 0:
+                os.close(descriptor)
+        return FileWriteV1(
+            path=sandbox_file,
+            role="sandbox-profile",
+            channel="workspace-grok-sandbox",
         )
 
     async def invoke(self, rendered: RenderedInvocationV1) -> RawInvocationV1:
