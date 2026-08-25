@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T05:02:08Z — codex
+**M1b G4 closed with hosted evidence.** Fix run 32811023030 at `2d7b9f6` is 12/12 green: all six scaffold legs (ubuntu/windows/macos × Python 3.11/3.13) passed the full suite, team validate/render-only smoke, and named direct+team CLI acceptance; all three ClawTeam and all three vendor-smoke jobs also green. The first-run Windows fixture failures are retained as diagnosed evidence. Zero live calls. G5 starts only after this closure commit, with a fresh provider-specific plan.
+
 ### 2026-08-25T04:52:58Z — codex
 **M1b G4 hosted attempt 1 diagnosed and fixed locally.** Run 32810234923 at `8d3b3ae`: all ten non-Windows jobs green; both Windows scaffold legs failed only in G3 fault fixtures that forced Linux launcher semantics and built relative Assistant refs across `C:` temp / `D:` checkout drives. The new section-13 acceptance itself passed on both Windows legs. Fix: real host platform, no Grok in the Windows-parallel fault shape, and same-drive copied Assistant packages. Focused 44; full 594+4; Ruff/format/mypy clean. Next: fix commit and standing-approved rerun; zero live calls.
 

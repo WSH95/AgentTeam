@@ -4,6 +4,19 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1b G4 hosted evidence — 2026-08-25 (gate closed)
+
+| Check | Result |
+| --- | --- |
+| Core matrix | PASS — run [32811023030](https://github.com/WSH95/AgentTeam/actions/runs/32811023030) at full SHA `2d7b9f6e298ced033ebdab21698eff3d7a4ad439`: all six scaffold legs green (ubuntu/windows/macos × Python 3.11/3.13) |
+| Named lifecycle evidence | PASS on every scaffold leg — full pytest, `atm team validate`, direct and state-free team render-only smoke, and `Deterministic direct + team acceptance via the CLI (sections 13-14)` all succeeded; the named execution pins completed tasks, exact access grants, team-layer selection, snapshot digest, cross-OS deliverable digest, and ledger count |
+| Cross-platform debug | PASS — first run 32810234923 proved the new lifecycle acceptance itself green on both Windows versions but exposed Linux-forced launcher semantics and cross-drive temp refs in G3 fault fixtures; `2d7b9f6` uses the real host platform, a Windows-supported Claude/Codex parallel shape, and same-drive copied packages; both Windows full suites then passed |
+| Whole workflow | PASS — all 12 jobs green: six scaffold, three optional ClawTeam compatibility, and three credential-free vendor-smoke jobs; no vendor model invocation or live call |
+| Gate result | PASS — G4's deterministic three-Member lifecycle is proven through the public CLI on every required core leg; local provider remains the product path; G5 may begin after the semantic closure commit |
+
+Last verified: 2026-08-25 by Codex. G4 is complete at product commits
+`8d3b3ae` + `2d7b9f6`; this steward checkpoint records the hosted result.
+
 ## M1b G4 local verification — 2026-08-25 (pre-push)
 
 | Check | Result |
@@ -16,8 +29,8 @@ owner-attended gates.
 | Local block | PASS — new acceptance **2 passed**; targeted acceptance/render/hash block **59 passed**; full pytest **594 passed + 4 expected skips**; Ruff lint and format clean over 121 files; strict mypy clean over 117 source files; schemas current; lock current; workflow YAML parses; wheel and sdist built; `git diff --check` clean |
 | Boundary | PASS — deterministic fakes only; no model/live call, credential read, dependency/schema/optional-provider/vendor-smoke/AGENTS/CLAUDE/M1c change; one owner-approved fast-forward push for hosted CI; pre-existing `.codex/` untouched |
 
-Last verified: 2026-08-25 by Codex. G4 remains open until the semantic
-candidate is pushed and all six hosted scaffold legs are green.
+Last verified: 2026-08-25 by Codex. At this pre-push checkpoint G4 remained
+open; the hosted closure is recorded immediately above.
 
 ## M1b G3 team runner and lifecycle — 2026-08-25
 
