@@ -178,6 +178,61 @@ def test_qualification_fingerprint_binds_child_environment_values(
     assert first.fingerprint != second.fingerprint
 
 
+@pytest.mark.skipif(os.name == "nt", reason="symlink creation needs privilege on Windows")
+def test_qualification_accepts_a_stable_cli_symlink_and_binds_its_target(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    profile_path = tmp_path / "profiles.yaml"
+    first_executable = tmp_path / "codex-v1"
+    second_executable = tmp_path / "codex-v2"
+    for executable in (first_executable, second_executable):
+        executable.write_text("fake executable\n", encoding="utf-8")
+        executable.chmod(0o700)
+    launcher = tmp_path / "codex"
+    launcher.symlink_to(first_executable)
+    config_home = tmp_path / "vendors" / "codex"
+    config_home.mkdir(parents=True)
+    profile = next(
+        item for item in seed_default_profiles().profiles if item.harness is HarnessId.CODEX
+    ).model_copy(
+        update={
+            "executable": str(launcher),
+            "config_home": str(config_home),
+            "expected_version": "codex 1.2.3",
+        }
+    )
+    monkeypatch.setattr(direct_acp, "capture_version", lambda *_args, **_kwargs: "codex 1.2.3")
+    monkeypatch.setattr(
+        direct_acp,
+        "resolve_acp_agent_command",
+        lambda *_args, **_kwargs: ("node", "pinned-agent.mjs"),
+    )
+    environ = {"HOME": str(tmp_path), "PATH": str(tmp_path)}
+
+    first = direct_acp.build_direct_acp_qualification_target(
+        profile,
+        profile_path=profile_path,
+        runtime_path=tmp_path / "runtime",
+        node="node",
+        environ=environ,
+        runtime_tree_hash="d" * 64,
+    )
+    launcher.unlink()
+    launcher.symlink_to(second_executable)
+    second = direct_acp.build_direct_acp_qualification_target(
+        profile,
+        profile_path=profile_path,
+        runtime_path=tmp_path / "runtime",
+        node="node",
+        environ=environ,
+        runtime_tree_hash="d" * 64,
+    )
+
+    assert first.fingerprint != second.fingerprint
+    assert first.environment["PATH"].split(os.pathsep)[0] == str(tmp_path)
+
+
 def test_bridge_event_preserves_structured_control_for_controller_validation() -> None:
     control = {
         "schema_version": 1,

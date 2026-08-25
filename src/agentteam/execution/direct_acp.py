@@ -217,9 +217,16 @@ def build_direct_acp_qualification_target(
         config_home = resolve_config_home(profile_path, profile.config_home)
     except ProfileError as error:
         raise DirectAcpError(str(error)) from None
-    if not executable.is_file() or executable.is_symlink():
+    try:
+        executable_target = executable.resolve(strict=True)
+        executable_stat = executable_target.stat()
+    except (OSError, RuntimeError):
+        raise DirectAcpError(
+            f"agent executable is missing or unsafe: {profile.harness.value}"
+        ) from None
+    if not executable_target.is_file() or executable_target.is_symlink():
         raise DirectAcpError(f"agent executable is missing or unsafe: {profile.harness.value}")
-    if platform != "win32" and not os.access(executable, os.X_OK):
+    if platform != "win32" and not os.access(executable_target, os.X_OK):
         raise DirectAcpError(f"agent executable is not owner-executable: {profile.harness.value}")
     if not config_home.is_dir() or config_home.is_symlink():
         raise DirectAcpError(f"agent config home is missing or unsafe: {profile.harness.value}")
@@ -229,6 +236,29 @@ def build_direct_acp_qualification_target(
     version = capture_version(concrete, parent=environ, platform=platform)
     if version is None:
         raise DirectAcpError(f"agent --version failed: {profile.harness.value}")
+    try:
+        current_target = executable.resolve(strict=True)
+        current_stat = current_target.stat()
+    except (OSError, RuntimeError):
+        raise DirectAcpError(
+            f"agent executable changed during inspection: {profile.harness.value}"
+        ) from None
+    executable_identity = (
+        executable_stat.st_dev,
+        executable_stat.st_ino,
+        executable_stat.st_size,
+        executable_stat.st_mtime_ns,
+        executable_stat.st_mode,
+    )
+    current_identity = (
+        current_stat.st_dev,
+        current_stat.st_ino,
+        current_stat.st_size,
+        current_stat.st_mtime_ns,
+        current_stat.st_mode,
+    )
+    if current_target != executable_target or current_identity != executable_identity:
+        raise DirectAcpError(f"agent executable changed during inspection: {profile.harness.value}")
     if profile.expected_version is not None and version != profile.expected_version:
         raise DirectAcpError(
             f"agent version mismatch for {profile.harness.value}: "
@@ -259,6 +289,9 @@ def build_direct_acp_qualification_target(
         "runtime_lock_hash": runtime_lock_hash(),
         "runtime_tree_hash": runtime_tree_hash or _runtime_tree_hash(runtime_path),
         "command": list(command),
+        "native_executable": str(executable),
+        "native_executable_target": str(executable_target),
+        "native_executable_stat": list(executable_identity),
         "native_version": version,
         "expected_version": profile.expected_version,
         "config_home_variable": profile.environment.config_home_variable,

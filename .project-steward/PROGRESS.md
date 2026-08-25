@@ -4,6 +4,12 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T22:51:19Z — codex
+M1c G6 closed at zero model calls: exact direct-ACP runtime `ecd3525e…bfb2b5` installed, safe standard-CLI symlink provenance fixed and fingerprinted, Grok 1.0.5 passed strict no-call lifecycle while Claude Code 2.1.245 and Codex 0.149.1 were excluded on real adapter resume errors; 11 focused + 738+4 full local block green, final hosted correction evidence pending before the fresh G7 go
+
+### 2026-08-25T22:40:10Z — codex
+M1c G5 closed at `f53b314`: hosted run 32906748578 passed all 12 Ubuntu/macOS/Windows scaffold, ClawTeam, and vendor-smoke jobs, including both full Windows suites and named M1c acceptance; the owner's conditional Windows hold did not activate, and G6 exact-pin zero-call qualification may proceed
+
 ### 2026-08-25T22:32:09Z — codex
 M1c G5 hosted attempt 32906060190 was 10/12 green and proved the Win32 process-query fix; Windows then exposed the active exclusive `controller.lock` as invalid manifest content, so the ephemeral lease is now excluded consistently with audit export, with 35 focused + 737+4 full local validation green and a third hosted run pending
 

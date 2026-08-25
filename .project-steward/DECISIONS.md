@@ -1105,3 +1105,35 @@ fresh attended G7 go required after G5 and G6 are green.
 hosted run exposed the Windows liveness issue recorded in VERIFY. Pin changes,
 contract changes, force-pushes, unrelated remote mutations, and every live
 model call remain outside this approval. G7 still stops for the owner.
+
+## 0047 — 2026-08-25 — G6 admits safe CLI symlinks and records Grok-only direct-ACP support
+
+**Context**: The exact direct-ACP runtime installed successfully, but the first
+per-harness zero-call qualification rejected all three owner profiles before
+ACP initialization because their standard owner-local CLI launchers are
+symlinks. The established profile doctor safely resolves those launchers and
+reported all three executables/auth homes healthy. The direct-ACP layer's
+blanket symlink rejection was therefore an accidental incompatibility, not an
+approved product boundary. After resolving each link to a regular executable
+and binding both launcher path and canonical target stat identity into the
+qualification fingerprint, the real current-version ACP lifecycles ran.
+
+**Decision**: (1) Accept a CLI symlink only when it resolves strictly to a
+regular executable target; check executability on that target, reject changes
+during version inspection, preserve the selected launcher directory for the
+ACP agent, and bind launcher path, canonical target path, device/inode,
+size/mtime, and mode into the cache fingerprint. Retargeting makes evidence
+stale. (2) At Node `v24.16.0` and exact pins `acpx 0.13.1`,
+`claude-agent-acp 0.69.0`, and `codex-acp 1.6.2`, record Claude Code
+`2.1.245` as excluded because strict no-prompt resume returned `Resource not
+found`, and Codex `0.149.1` as excluded because its ACP lifecycle returned
+`Internal error`. (3) Record Grok `1.0.5 (5115b46bc9)` as supported: its
+initialize/new/strict-resume/status/close lifecycle passed and declared
+`loadSession`. All reports used zero model calls.
+
+**Consequences**: G6 closes with an honest Grok-supported,
+Claude/Codex-excluded capability record. The conditional hard ceiling is 23
+because Grok passed G6, but the currently eligible lifecycle matrix contains
+only Grok's five calls; excluded harnesses cannot be live-called unless a fresh
+zero-call qualification passes. Changing an ACP pin remains a separate owner
+decision. G7 still requires a fresh attended go.

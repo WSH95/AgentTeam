@@ -4,6 +4,21 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1c G6 exact-runtime no-call qualification — 2026-08-25
+
+| Check | Result |
+| --- | --- |
+| Exact install | PASS — owner-approved `atm runtime install direct-acp` installed lock/content address `ecd3525e8ca0f8e7e5faeb27a463496246251b26cee84a74cfa59e8ad4bfb2b5`; packaged pins are `acpx 0.13.1`, `@agentclientprotocol/claude-agent-acp 0.69.0`, and `@agentclientprotocol/codex-acp 1.6.2`; Node is `v24.16.0` |
+| Launcher provenance correction | PASS — real owner CLIs are standard symlink launchers. Qualification now requires a strict regular executable target, rejects target/stat changes during inspection, and fingerprints both selected launcher and canonical target metadata. A regression proves symlink retargeting changes the fingerprint; no owner profile was mutated |
+| Claude Code | **EXCLUDED fail-closed** — native version `2.1.245 (Claude Code)` resolved and ACP initialization was reached, but strict no-prompt resume failed with `Resource not found: <ephemeral session id>`; capabilities remain unknown |
+| Codex | **EXCLUDED fail-closed** — native version `codex-cli 0.149.1` resolved and ACP initialization was reached, but the strict lifecycle failed with adapter `Internal error`; capabilities remain unknown |
+| Grok | **SUPPORTED** — native version `grok 1.0.5 (5115b46bc9)` passed `initialize/new/strict-resume/status/close`; declared `loadSession`, session status/config controls, prompt embedded context, hooks, and filesystem notification. Product capability record keeps tool filtering and provider-history deletion unknown and native spawn unsupported |
+| Evidence safety | PASS — every initial and final report records `model_calls: 0`; qualification files are owner-only `0600` under an owner-only `0700` directory; no credential value was read or copied, no profile/login state was changed, and no live prompt occurred |
+| Local correction validation | PASS — direct-runtime/CLI focus **11 passed**; complete tree **738 passed + 4 expected skips** in 93.41s; Ruff lint/format, strict mypy over 149 source files, 25 schemas, lock, and diff checks clean |
+| Gate | **G6 closed** with Grok supported and Claude/Codex excluded (ADR 0047). Grok's pass activates the plan's conditional 23-call hard ceiling, but only its five lifecycle calls are eligible now. G7 remains stopped on a fresh attended owner go; final hosted evidence for the post-G5 launcher correction is pending |
+
+Last verified: 2026-08-25 by Codex. Zero model calls were made.
+
 ## M1c G5 hosted attempts and Windows portability fixes — 2026-08-25
 
 | Check | Result |
@@ -13,7 +28,8 @@ owner-attended gates.
 | Hosted attempt 2 | Run [32906060190](https://github.com/WSH95/AgentTeam/actions/runs/32906060190) at `55b04fd` was **10/12 green**. Both Windows legs passed provider conformance, confirming fix 1, then failed in controller close tests before named M1c acceptance. The other ten jobs passed |
 | Root cause/fix 2 | CONFIRMED locally — Windows holds `controller.lock` with an exclusive `msvcrt.locking` lease, so manifest finalization could not read the active lease and raised `PermissionError`. The lease is ephemeral OS coordination state, was already excluded from audit export, and is now excluded from the durable manifest; a successful-close regression asserts that contract |
 | Local validation after fix 2 | PASS — provider/controller focus **35 passed**; full tree **737 passed + 4 expected skips** in 77.68s; targeted Ruff/format and mypy clean |
-| Gate | G5 remains open until the archive-lease fix commit's third Ubuntu/Windows/macOS run is fully green |
+| Hosted attempt 3 | **PASS, 12/12** — run [32906748578](https://github.com/WSH95/AgentTeam/actions/runs/32906748578) at `f53b314`: all six scaffold legs passed the full suite, named M1c acceptance, build/schema/CLI checks, and earlier deterministic acceptance; all three optional ClawTeam and all three credential-free vendor-smoke jobs passed |
+| Gate | **G5 closed** at `f53b314`. Both Windows Python 3.11 and 3.13 scaffold legs are green, so the owner's conditional Windows hold did not activate |
 
 ## M1c G5 local audit and G6 qualification machinery — 2026-08-25
 
