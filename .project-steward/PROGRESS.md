@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T05:29:54Z — codex
+**M1b G5 closed parity-green with hosted evidence.** Run 32812856864 at `688fffa019a09ca21156d5e663bfd51f364b10db` is 12/12 green: optional qualification + provider conformance + full CLI lifecycle passed on Ubuntu/macOS/Windows; six scaffold and three credential-free vendor-smoke jobs also passed. Local extra/core matrices remain 625+3 and 594+4. Zero live calls. G6 starts only after this closure commit, with a fresh measurement/owner-decision plan.
+
 ### 2026-08-25T05:23:04Z — codex
 **M1b G5 is locally parity-green; hosted evidence pending.** The optional provider now passes the shared conformance contract and the same twelve-condition three-member CLI lifecycle behind the frozen containment boundary. Optional suite 31; full extra-installed tree 625+3; clean core tree 594+4 with the directory skipped; Ruff/format, mypy/120, schemas, lock, workflow parse, build, and diff clean. One initial restore-return mismatch was normalized and the immediate rerun passed. Zero live calls; next is candidate commit + standing-approved hosted matrix.
 

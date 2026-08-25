@@ -1,15 +1,15 @@
 ---
-updated_at: 2026-08-25T05:23:04Z
+updated_at: 2026-08-25T05:29:54Z
 updated_by: codex
 session_status: active
 branch: main
-last_commit: 892fd3b
+last_commit: 688fffa
 ---
 # Handoff
 
 ## Now
 
-**M1b G5 is locally parity-green; hosted evidence is pending.** The approved
+**M1b G5 is complete at parity-green with hosted evidence.** The approved
 r6 source remains `760a8ae8c7021b0427bf29c84f005bebdd453bf6` (ADR 0044).
 The thin optional provider now sits behind the generic registry and qualified
 seam, with the logical lead, stable `AGENTTEAM_HOME`-relative process root,
@@ -17,7 +17,12 @@ opaque namespaces, full-roster reconciliation, status/error/message mapping,
 and verified-copy-out snapshot deletion implemented. The full section-13
 three-member lifecycle runs through the public CLI over this provider.
 
-Local evidence is green: optional compatibility **31 passed**; the full tree
+Hosted run 32812856864 at full SHA
+`688fffa019a09ca21156d5e663bfd51f364b10db` is 12/12 green: all three
+optional-provider legs passed the qualification, conformance, and complete
+lifecycle suite on Ubuntu/macOS/Windows; all six scaffold and three
+credential-free vendor-smoke legs also passed. Local evidence is green:
+optional compatibility **31 passed**; the full tree
 with the extra **625 passed + 3 platform skips**; the clean core environment
 with the dependency absent **594 passed + 4 expected skips**. Ruff lint/format,
 strict mypy over 120 source files, schemas, lock, workflow parse, build, and
@@ -27,20 +32,19 @@ bundle required by the shared protocol. Zero live calls were spent.
 
 ## In flight
 
-G5 implementation, tests, CI label, and this local-evidence checkpoint are
-uncommitted on top of `892fd3b`; the branch is one commit ahead of
-`origin/main` before that candidate commit. The pre-existing untracked
-`.codex/` remains untouched. G5 stays open until the fast-forward push and
-three-OS hosted optional-provider evidence are green.
+G5's hosted-evidence steward closure is uncommitted on top of `688fffa`; the
+branch otherwise matches `origin/main`, and the pre-existing untracked
+`.codex/` remains untouched. G6 has not started; its first action is a fresh
+gate plan for the pinned LOC measurement, caveat packet, and owner decision.
 
 ## Next steps
 
-1. Review and commit the locally green G5 candidate, excluding `.codex/`.
-2. Fast-forward push under the owner's standing CI approval; monitor all 12
-   jobs, especially the three Python-3.11 optional-provider legs, and debug any
-   platform failure without pausing on a failed gate.
-3. Once hosted evidence is green, close G5 in PLAN/VERIFY/HANDOFF, commit the
-   closure, then begin G6 with a fresh measurement/decision plan.
+1. Commit this G5 hosted-evidence closure, excluding `.codex/`.
+2. Plan G6 before measuring: reproduce the approved physical-LOC numerator,
+   denominator, ratio, and test-LOC context; restate every recorded caveat;
+   prepare the accept/drop decision packet without deciding for the owner.
+3. Run and debug the measurement/consistency checks, commit the G6 evidence,
+   then request the genuine owner judgment required by the exit criterion.
 
 ## Blockers
 

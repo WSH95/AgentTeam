@@ -4,6 +4,19 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1b G5 hosted evidence — 2026-08-25 (gate closed, parity-green)
+
+| Check | Result |
+| --- | --- |
+| Optional three-OS matrix | PASS — run [32812856864](https://github.com/WSH95/AgentTeam/actions/runs/32812856864) at full SHA `688fffa019a09ca21156d5e663bfd51f364b10db`: Ubuntu, macOS, and Windows Python 3.11 all passed the pinned-extra qualification + provider conformance + complete three-member CLI lifecycle step |
+| Containment/lifecycle result | PASS — every optional leg exercised the logical lead, stable process root, opaque namespace, roster/status/error/message reconciliation, exact cleanup handshake, all twelve section-13 conditions, stop-before-cleanup ordering, and forbidden-backend import assertions |
+| Core regression matrix | PASS — all six scaffold legs (three OSes × Python 3.11/3.13) passed lock, core-only sync, Ruff, format, mypy, full tests with clean optional skip, build, schemas, CLI smoke, hash identity, and named direct+team acceptance |
+| Whole workflow | PASS — all 12 jobs green, including the three unchanged credential-free vendor-smoke legs; no vendor login, model invocation, secret, or live call |
+| Gate result | PASS — committed `CLAWTEAM_DISPOSITION` is `parity-green`; G5 is closed and the measured G6 exit-criterion decision may begin after this closure commit |
+
+Last verified: 2026-08-25 by Codex. G5 product commit is `688fffa`; this
+steward checkpoint records the hosted result.
+
 ## M1b G5 local verification — 2026-08-25 (pre-push)
 
 | Check | Result |
