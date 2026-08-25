@@ -39,13 +39,16 @@ vendor-smoke 12/12 at `0864742` (two real Windows bugs caught and fixed),
 pinned secret scan at the enumerated baseline, the owner-reviewed sanitized
 bundle committed (`docs/evidence/m1a-live-2026-08-24/`), and the M1b draft
 proposed-not-approved. Next milestone work (M1b) requires its own reviewed
-plan and explicit owner approval. **The M1b plan is at draft r5
-(2026-08-24)** after four independent review rounds, all recorded
+plan and explicit owner approval. **The M1b plan is at draft r6
+(2026-08-24)** after five independent review rounds, all recorded
 immutably in `docs/reviews/` (r1 at `14dc218`: 7 blocking + 3 hygiene →
 r2, ADR 0039; r2 at `54728c8`: 6 blocking + 3 medium → r3, ADR 0040; r3
 at `6d3f329`, text SHA-256 verified: 4 blockers + 3 medium → r4, ADR
 0041; r4 at `3d0211a`, plan SHA-256 verified: 3 high + 3 medium + 4
-consistency corrections → r5, ADR 0042). Owner decisions so far: HB-03 constraint semantics deferred out
+consistency corrections → r5, ADR 0042; r5 at full `12ca6c7`, plan
+SHA-256 `95ff6ab3…a44acf4`: 3 stated high gaps plus the adjudicated
+terminal-pairing blocker, 2 medium gaps, and consistency corrections → r6,
+ADR 0043). Owner decisions so far: HB-03 constraint semantics deferred out
 of M1b entirely (ADR 0039; the question below stays open);
 `MemberResultV1` introduced now and the stable `~/.agentteam/clawteam/`
 process root restored per ADR 0015 (ADR 0040); adapter-owned snapshot
@@ -53,10 +56,14 @@ deletion after verified copy-out (ADR 0041), now made executable by the
 ADR 0042 cleanup handshake; r5 also adopts explicit least-privilege
 workspace grants, durable-allocation execution bindings, a completion
 publication barrier, canonical deliverable paths, and occurrence-level
-containment. The ClawTeam exit-criterion
+containment. r6 adds explicit team-member render scope; exact disjoint
+Claude sets; collision-safe project-local Grok profiles with Windows
+refusal; launch-time handoff-inclusive baselines; shared substrate typing;
+and causal failed / interrupted cancelled / never-allocated abandoned task
+pairings. The ClawTeam exit-criterion
 wording (plan §10) finalizes at approval. Next: owner approval as the G0
-DECISIONS entry naming the file + r5's commit SHA, or another
-confirmation pass at r5's frozen SHA first.
+DECISIONS entry naming the file + r6's commit SHA, or another
+confirmation pass at r6's frozen SHA first.
 
 ## Answered during G5 owner setup
 

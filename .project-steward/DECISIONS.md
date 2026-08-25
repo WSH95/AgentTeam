@@ -976,3 +976,48 @@ claim changes in this planning commit. M1b remains blocked until a later
 G0 decision names the r5 file and commit SHA; its live-call budget remains
 zero and the remaining five M1a calls are untouched. R36 tracks the
 writable-client evidence boundary.
+
+## 0043 — 2026-08-24 — M1b r5 independently reviewed: r6 isolates team rendering and makes terminal pairings truthful
+
+**Context**: The fifth independent review froze r5 at full commit
+`12ca6c730f99816ed79c6e0537de021d25dd24b2`, plan SHA-256
+`95ff6ab3816efd61db845216b34aecb64b8d22efde3f13a727027c612a44acf4`.
+The owner-supplied review, rechecked and adjudicated in
+`docs/reviews/2026-08-24-m1b-plan-review-at-12ca6c7.md` (`a140829`), found three stated
+high gaps plus a terminal-state gap elevated to implementation-blocking:
+Claude's writable allow/deny collision; Grok's implicit team dispatch and
+persistent-home write; step-5 rather than launch-time target baselines;
+and fault-abort pairings that could mark succeeded/launched work
+`abandoned`. It also found a missing `domain/run.py` containment rule,
+unsupported Windows team-Grok claims, and operation-count/network/direct-
+render precision gaps.
+
+**Decision**: (1) Plan revision r6 resolves the fifth review; its r5 → r6
+table is plan §21. (2) `RenderContext.invocation_scope` explicitly selects
+`standalone` (default) or `team-member`, independently of output and access.
+Claude grants use complete disjoint tool sets. Team Codex writable access
+pins workspace-write with network disabled. Team Grok on Linux/macOS writes
+one guarded, declared project `.grok/sandbox.toml` with a collision-checked
+per-render custom profile; it never mutates authenticated `GROK_HOME`,
+and Windows is refused. Direct/synthesis rendering remains byte-identical.
+(3) Lifecycle step 5 verifies source-copy identity only; each invocation's
+baseline is taken at launch after handoff materialization and renderer
+writes, excluding renderer-owned paths symmetrically with the after-hash.
+(4) `SubstrateKind` is shared from `domain/team.py`, leaving
+`domain/run.py` with zero `clawteam` token occurrences. (5) Run tasks gain
+run-only `cancelled`; the terminal sweep preserves truthful pairings:
+causal work fails, non-causal allocated work stopped before task completion
+cancels (without rewriting an already-succeeded invocation), never-allocated
+work is abandoned, and completed work remains completed. A provider-completion
+raise after the successful publication barrier preserves the succeeded
+invocation, fails its task/run, accepts only the exact pre-/post-commit
+provider projections, and schedules no successor. (6) Runtime fault
+coverage is described as eleven provider methods plus the protocol `wait`
+helper.
+
+**Consequences**: r6 is proposed, NOT approved. Product implementation
+remains blocked on a later G0 decision naming the r6 file and commit SHA.
+This change is docs/steward-only: no source, schema, discovery register,
+vendor invocation, live capability claim, push, or live call. R36 now
+tracks the exact isolated adapter mappings and R37 tracks terminal-pair
+drift.

@@ -1,11 +1,13 @@
-# AgentTeam M1b team-foundation plan — draft r5
+# AgentTeam M1b team-foundation plan — draft r6
 
-- Status: **draft r5, proposed 2026-08-24 — NOT approved.** r5 resolves
-  the three high contract gaps, three medium implementation gaps, and
-  four consistency corrections of the fourth independent review (of r4;
-  `docs/reviews/2026-08-24-m1b-plan-review-at-3d0211a.md`; resolutions
-  mapped in section 21), after r4 resolved the third round, r3 the second,
-  and r2 the first (`docs/reviews/2026-08-24-m1b-plan-review-at-6d3f329.md`,
+- Status: **draft r6, proposed 2026-08-24 — NOT approved.** r6 resolves
+  the four implementation-blocking areas and the medium/consistency
+  corrections of the fifth independent review (of r5;
+  `docs/reviews/2026-08-24-m1b-plan-review-at-12ca6c7.md`; resolutions
+  mapped in section 21), after r5 resolved the fourth round, r4 the third,
+  r3 the second, and r2 the first
+  (`docs/reviews/2026-08-24-m1b-plan-review-at-3d0211a.md`,
+  `docs/reviews/2026-08-24-m1b-plan-review-at-6d3f329.md`,
   `docs/reviews/2026-08-24-m1b-plan-review-at-54728c8.md`,
   `docs/reviews/2026-08-24-m1b-plan-review-at-14dc218.md`).
   Implementation starts only after owner approval as a `DECISIONS.md`
@@ -13,11 +15,11 @@
   0021 precedent; the status line flips to `approved` in the following
   commit because a commit cannot name its own SHA). Per M1a plan §18,
   nothing here begins in the M1a approval scope.
-- Revision baseline: r4 was full commit
-  `3d0211a456cedb356aa512cb5f257b448dbb70e1` (third-round findings
+- Revision baseline: r5 was full commit
+  `12ca6c730f99816ed79c6e0537de021d25dd24b2` (fourth-round findings
   resolved; reviewed again; plan SHA-256
-  `e1c7f222ce22785b37eb22fca553281d0936b5367313a3a7b9a1d38c587200c9`);
-  r3 was `6d3f329`; r2 was `54728c8`; r1 was `14dc218`; r0 was
+  `95ff6ab3816efd61db845216b34aecb64b8d22efde3f13a727027c612a44acf4`);
+  r4 was `3d0211a`; r3 was `6d3f329`; r2 was `54728c8`; r1 was `14dc218`; r0 was
   `856d525` (`docs(plans): draft M1b team foundation (proposed; G8
   naming deliverable)`).
 - Prerequisites carried in: the G4-qualified ClawTeam seam
@@ -30,7 +32,9 @@
   policy), ADR 0042 (r4 review recorded; explicit workspace grants,
   durable execution allocation, cleanup verification handshake,
   publication barrier, canonical deliverables, occurrence-level
-  containment).
+  containment), ADR 0043 (r5 review recorded; explicit team render scope,
+  isolated Grok project profiles, launch-time target baselines, and the
+  task/invocation terminal-state matrix).
 - Sections marked **[finalize-at-approval]** carry proposed wording the
   owner finalizes at approval; every such item is listed once in section
   20.
@@ -156,7 +160,21 @@ behavior, record, and test of M1a continues to pass unchanged.
     before provider completion can unblock successors. Declared-content
     errors fail the task; infrastructure publication errors abort the run
     (sections 11.2–11.4).
-16. **Approval convention**: owner approval of this plan is a DECISIONS
+16. **Team rendering is explicit and never mutates an authenticated
+    vendor home.** `RenderContext.invocation_scope` is a standalone
+    discriminator (`standalone` default | `team-member`); only the team
+    runner selects `team-member`. It is independent of output shape and
+    workspace access. Grok team profiles are collision-checked,
+    per-invocation project files; direct/synthesis recipes remain exact
+    regressions (section 11.1; ADR 0043).
+17. **Run-task terminal states describe what happened, not merely what
+    the provider still projects.** `failed` is the causal task failure,
+    `cancelled` is non-causal durably allocated work stopped before task
+    completion by abort or user cancellation, and `abandoned` is
+    non-causal never-allocated/never-launched cascade remainder.
+    Provider-completion ambiguity cannot rewrite a successfully published
+    invocation (sections 6, 11.3–11.4; ADR 0043).
+18. **Approval convention**: owner approval of this plan is a DECISIONS
     entry naming this file and the commit SHA of the approved text,
     recorded after the independent review and before any product source
     work (G0); the status line flips in the following commit.
@@ -170,10 +188,10 @@ the house format (commands, commit SHAs, CI run IDs).
 
 | Gate | Work | Evidence required |
 | --- | --- | --- |
-| G0 | Approve this plan | Four independent reviews are recorded in `docs/reviews/` (r1 `14dc218`, r2 `54728c8`, r3 `6d3f329`, r4 `3d0211a`); findings resolved; owner approval as a DECISIONS entry naming this file and the approved commit SHA, committed before product source work; status flips to `approved` in the following commit |
-| G1 | Team contracts and schemas | `TeamTemplateV1`, `TeamRunRequestV1`, and `MemberResultV1` models land with `team-template-v1.schema.json`, `team-run-request-v1.schema.json`, and `member-result-v1.schema.json` checked in; workflow tasks gain optional-default-read-only `workspace_access`, and team run `tasks[]` audit the required resolved value; `run-record-v1.schema.json` is regenerated as the mode-discriminated `oneOf` (direct variant field-identical) and `harness-invocation-v1.schema.json` is regenerated with `team` in the `DecidedBy` enum — **three new files, two regenerated, nothing else** (section 8 types remain internal); all new kinds are registered, direct/team schema variants and lifecycle negatives are tested, `member-result-v1` passes the vendor-dialect lint, the pre-M1b suite stays green, and `atm team validate` passes on the committed template |
+| G0 | Approve this plan | Five independent reviews are recorded in `docs/reviews/` (r1 `14dc218`, r2 `54728c8`, r3 `6d3f329`, r4 `3d0211a`, r5 `12ca6c7`); findings resolved; owner approval as a DECISIONS entry naming this file and the approved commit SHA, committed before product source work; status flips to `approved` in the following commit |
+| G1 | Team contracts and schemas | `TeamTemplateV1`, `TeamRunRequestV1`, and `MemberResultV1` models land with `team-template-v1.schema.json`, `team-run-request-v1.schema.json`, and `member-result-v1.schema.json` checked in; workflow tasks gain optional-default-read-only `workspace_access`, team run `tasks[]` audit the required resolved value and the three run-only terminals, and one shared `SubstrateKind` in `domain/team.py` is imported by `domain/run.py`; `run-record-v1.schema.json` is regenerated as the mode-discriminated `oneOf` (direct variant field-identical) and `harness-invocation-v1.schema.json` is regenerated with `team` in the `DecidedBy` enum — **three new files, two regenerated, nothing else** (section 8 types remain internal); all new kinds are registered, direct/team schema variants and lifecycle negatives are tested, `member-result-v1` passes the vendor-dialect lint, the pre-M1b suite stays green, and `atm team validate` passes on the committed template |
 | G2 | CoordinationSubstrate protocol and local provider | `coordination/protocol.py` (status/DTO/error types plus `CleanupOutcome`) and `coordination/local.py` land; the shared conformance suite is green over the local provider — including both `copy_out_verified` cleanup values, path-free outcomes, inoperability plus archive-snapshot survival, and all existing lifecycle/task/mailbox/snapshot/no-crossover cases; the occurrence-level containment scan lands on all core legs |
-| G3 | Team runner integration | `atm run` executes the committed request over fakes/local per section 11: access resolution and exact adapter rendering, disposable preflight plus the state-free render-only branch, durable invocation allocation/binding before running/spawn, member-result persistence, canonical deliverable archive/materialization, the completion publication barrier, handoff transport/blinding, ledger, cleanup handshake, archive binding verifier, and failure finalization; the expanded fault matrix is green; run records audit `tasks[].substrate_id` and `workspace_access`; direct/synthesis paths remain byte/argv-compatible |
+| G3 | Team runner integration | `atm run` executes the committed request over fakes/local per section 11: access resolution and exact scope-aware adapter rendering, disposable preflight plus the state-free render-only branch, copy verification followed by launch-time target baselines, durable invocation allocation/binding before running/spawn, member-result persistence, canonical deliverable archive/materialization, the completion publication barrier, handoff transport/blinding, ledger, cleanup handshake, archive binding verifier, and terminal-state-aware failure finalization; the expanded fault matrix is green; run records audit `tasks[].substrate_id` and `workspace_access`; direct/synthesis paths remain byte/argv-compatible |
 | G4 | Deterministic team-lifecycle acceptance | The section 13 acceptance is green through the CLI on all six core legs, including exact read-only/workspace-write grants (`plan` and `review` read-only; `implement` workspace-write), a real fake-created deliverable, ordering/publication, transport, ledger, blinding, at least one `decided_by: team`, and at least two harnesses; no vendor executable is invoked |
 | G5 | ClawTeam provider disposition | `coordination/clawteam.py` lands behind the extra; **either** the same conformance suite plus the section 13 lifecycle pass over the ClawTeam provider on the three-OS `clawteam` job — with containment tests holding (event-bus reset, the one process-scoped data root of section 9.2, opaque `atm-<hex8>` namespaces, owner `~/.clawteam` refused, no subprocess/tmux import), the seam's `create_space` carrying the logical lead, `members()` reconciling to the full roster, the `running ↔ in_progress` mapping and error translations pinned, caveat behaviors pinned (stop-before-cleanup ordering; roster reconciliation), verified-true deleting only the exact snapshot and every false/failure path retaining it with path-free outcomes, and clean skip without the extra on the core legs — **or** the failed branch is applied: a dated failure record is written and routed to the section 10 decision, the registry's committed `CLAWTEAM_DISPOSITION` marks `clawteam` **unsupported** (`substrate: clawteam` exits 2 citing the VERIFY record), the success-oriented provider suite is disposition-gated by a dated, VERIFY-cited module-level skip while the failing reproduction is retained as a dated strict-xfail outside that skipped module (section 9.2), and required CI is green. Both outcomes close the gate; only the disposition differs |
 | G6 | Exit-criterion measurement | The pinned section 10 command is run and recorded in VERIFY: numerator and denominator LOC, the ratio against 1.5×, and test LOC reported as context; the accept/drop decision packet for the owner is prepared — the decision itself is taken by the owner before PoC B, not at this gate |
@@ -223,8 +241,9 @@ src/agentteam/
     local.py           # LocalCoordinationProvider (file task store, mailbox, snapshot)
     clawteam.py        # ClawTeamCoordinationProvider (imports agentteam.compat.clawteam
                        #   only; status mapping and error translation live here)
-  domain/team.py       # TeamTemplateV1, TeamRunRequestV1, MemberResultV1
-                       #   (+ embedded sub-models: MemberOverridesV1, HandoffPayloadV1)
+  domain/team.py       # TeamTemplateV1, TeamRunRequestV1, MemberResultV1,
+                       #   shared SubstrateKind (+ embedded sub-models:
+                       #   MemberOverridesV1, HandoffPayloadV1)
   run/team.py          # the team lifecycle (section 11) beside the direct state machine
   commands/team.py     # `atm team validate`
 schemas/
@@ -410,9 +429,12 @@ decision 11, ADR 0040):
   `RenderContext` gains an `output_contract` discriminator
   (`normalized-review` default | `member-result`; the existing synthesis
   discriminator is untouched) and a `workspace_access` discriminator
-  (`read-only` default | `workspace-write`). Direct and synthesis callers
-  use both defaults and render byte-for-byte as before; the team runner
-  supplies the resolved task grant. `schema_name_for` returns
+  (`read-only` default | `workspace-write`), plus the independent
+  `invocation_scope` discriminator (`standalone` default | `team-member`).
+  Direct and synthesis callers use all defaults and render byte-for-byte
+  as before; the team runner supplies `team-member` and the resolved task
+  grant. Neither `output_contract` nor `workspace_access` is a side channel
+  for scope. `schema_name_for` returns
   `member-result-v1.schema.json` when the contract says so, and delivery
   uses the same per-vendor channels and `vendor_projection`.
   **`HarnessAdapter.parse()` is not touched**: the team runner extracts
@@ -464,17 +486,23 @@ level** for non-Python consumers:
     11.2's; the direct-mode immutability condition is not a team-mode
     rule;
   - `substrate {kind: local | clawteam, namespace, snapshot {id, path,
-    sha256}}` — the snapshot reference is the section 11.6 copy-out;
+    sha256}}` — `kind` uses the single `SubstrateKind` alias defined in
+    `domain/team.py` and imported by `domain/run.py`; the snapshot reference
+    is the section 11.6 copy-out;
   - `tasks[]` — run-level task rows `{id, subject, status, owner,
     blocked_by[], workspace_access, substrate_id}`; `workspace_access`
     is the required resolved grant from the template (omission already
     defaulted to `read-only`); `id` **is** the skeleton id;
     `substrate_id` is the provider-minted id (null until registered);
-    status ∈ `blocked | pending | running | completed | failed |
+    status ∈ `blocked | pending | running | completed | failed | cancelled |
     abandoned` — the run vocabulary is the section 8 protocol vocabulary
-    plus the two **run-only terminals** `failed`/`abandoned`, which never
-    cross the protocol; the run-level rows are authoritative, the
-    provider's projection is secondary; the record's `blocked_by[]` holds
+    plus the three **run-only terminals** `failed`/`cancelled`/`abandoned`,
+    which never cross the protocol; `failed` is a causal failure,
+    `cancelled` is non-causal durably allocated work stopped before task
+    completion by abort or SIGINT, and `abandoned` is non-causal
+    never-allocated or never-launched remainder. The run-level rows are
+    authoritative; the provider's projection is secondary. The record's
+    `blocked_by[]` holds
     the **declared** skeleton edges, immutable (the protocol DTO's
     remaining-blockers view is section 8's); **the step-4 pending record
     already carries the full `tasks[]`** (DAG roots `pending`, the rest
@@ -523,9 +551,9 @@ Construction, transport, and blinding are specified in section 11.2;
 detail strings only — never bodies, paths, or environment values) gains
 the team vocabulary: `space-created`, `member-added`, `task-created`,
 `task-started`, `task-unblocked`, `task-completed`, `task-failed`,
-`task-abandoned`, `message-sent`, `message-claimed`, `snapshot-taken`,
-`snapshot-archived`, `snapshot-failed`, `snapshot-retained`,
-`processes-stopped`,
+`task-cancelled`, `task-abandoned`, `message-sent`, `message-claimed`,
+`snapshot-taken`, `snapshot-archived`, `snapshot-failed`,
+`snapshot-retained`, `processes-stopped`,
 `provider-cleanup`; reused unchanged: `run-created`, `leg-started`,
 `leg-retry`, `leg-finished`, `run-finished`, `run-cancelled`. The internal
 `EventV1` record gains optional `task_id`, `member`, and `seq` fields so
@@ -601,8 +629,8 @@ task-status enum and the DTOs — all internal types, no schema files.
 **`SubstrateTaskStatus = blocked | pending | running | completed`** — the
 only task-status vocabulary that crosses the protocol, in both
 directions. Two correspondences hold by construction: (i) the protocol
-vocabulary is the run-record vocabulary minus the two run-only terminals
-(`failed`, `abandoned` — section 11.3); (ii) protocol ↔ ClawTeam upstream
+vocabulary is the run-record vocabulary minus the three run-only terminals
+(`failed`, `cancelled`, `abandoned` — section 11.3); (ii) protocol ↔ ClawTeam upstream
 is a total bijection with the single rename `running ↔ in_progress`,
 implemented in the provider adapter (section 9.2). The run layer *writes*
 only `running` and `completed`; `blocked` and `pending` are
@@ -924,16 +952,22 @@ normative sub-contracts.
 3. Resolve harness selection per member (user > Assistant > team >
    default; `decided_by` recorded per invocation; hard eligibility per
    M1a §11) and resolve each owned task's `workspace_access` (omission →
-   `read-only`). **Render-only branches here** into section 11.1's
-   disposable stub rendering and exits without entering step 4.
+   `read-only`). A team-member Grok selection on Windows is unsupported
+   in M1b and fails here with exit 2 before a run directory: the bundled
+   1.0.5 guide documents kernel enforcement only for Linux/macOS, and the
+   stop rule forbids an unsandboxed continuation. **Render-only branches
+   here** into section 11.1's disposable stub rendering and exits without
+   entering step 4.
 4. Create the pending team-mode `run.json` — full roster, template ref +
    hash, declared independence, and the **complete `tasks[]`** (DAG roots
    `pending`, the rest `blocked`, resolved `workspace_access`,
    `substrate_id: null`; lifecycle
    nullability per section 6) — **before** the coordination space exists
    and before any process starts.
-5. Materialize one isolated workspace per member (the M1a per-leg copy
-   mechanism); target hashes detect mutation.
+5. Materialize one isolated workspace per member with the M1a per-leg
+   copy mechanism. This step is **copy verification only**: hash the
+   source, copy, and require `hash(copy) == hash(source)`. It does not
+   populate an invocation's `target.before`.
 6. Create the provider space with the logical Lead
    (`create_space(lead=...)`), add the remaining members, and register
    the skeleton tasks through the `CoordinationSubstrate` protocol in
@@ -949,8 +983,10 @@ normative sub-contracts.
 7. Staged rendering (section 11.1): **7a** — render-preflight every
    member with a deterministic handoff stub in disposable roots before
    any launch (exit 2 on failure); **7b** — at each launch, compose the
-   real task document and render the final invocation in its real
-   workspace.
+   real task document, materialize all incoming handoffs, render the final
+   invocation in its real workspace, then compute `target.before` from
+   that launch-ready workspace while excluding renderer-owned files by the
+   same rule used for `target.after`.
 8. Launch on readiness only (section 11.1): after 7b, durably write the
    pending invocation and its run-record binding, then claim/mark the
    provider task `running`, then spawn through the direct runner. Use
@@ -964,7 +1000,7 @@ normative sub-contracts.
 10. Finalize per sections 11.4–11.6: stop all AgentTeam-owned processes,
     take and archive the final snapshot (iff a space was created), then
     provider cleanup — always in that order.
-11. Re-hash every member bundle (mutation check), run the **abandon
+11. Re-hash every member bundle (mutation check), run the **terminal
     sweep** (section 11.4), write the terminal record, then finalize the
     archive manifest **last** (owner-only modes swept), and return the
     stable exit code.
@@ -993,7 +1029,13 @@ normative sub-contracts.
   the task is pending; this is the archived render. A launch-time render
   failure is exit-1 runtime, fails that task, and leaves both invocation
   and binding absent.
-- **Durable allocation/binding point.** After 7b succeeds, write the
+- **Launch-time target baseline and durable allocation/binding point.**
+  Step 5 proves copy identity only. During 7b, after incoming deliverables
+  and blinding markers are materialized and the final renderer has
+  declared every `files_written` path, compute `target.before` over the
+  launch-ready workspace excluding those renderer-owned paths exactly as
+  `target.after` does. Thus the baseline contains the received handoff but
+  not injected task/config/Skill files. Only then write the
   deterministic `inv-<member>` pending invocation atomically, then write
   `members[].execution` to `run.json`, then transition the provider/run
   task to `running` and spawn. If binding or later launch fails, the
@@ -1002,26 +1044,55 @@ normative sub-contracts.
   that reached `running` has a resolvable binding, while `execution:
   null` means exactly that no pending invocation was allocated. The
   archive verifier enforces this cross-file rule before the manifest.
-- **Workspace-access adapter mapping** (team member invocations only):
-  Claude read-only keeps `Read,Grep,Glob,LS,Skill` allowed and
-  `Write,Edit,NotebookEdit,Bash,WebFetch,WebSearch` denied; writable adds
-  only `Write,Edit`. Both retain `dontAsk`. Codex selects `-s read-only`
-  or `-s workspace-write` with the existing
-  `approval_policy="never"`. Grok writes one isolated
-  `GROK_HOME/sandbox.toml` containing two custom profiles:
-  `agentteam-read-only` extends `read-only`, and
-  `agentteam-workspace` extends `workspace`; both set
-  `restrict_network = true`, and the adapter passes the matching custom
-  name to `--sandbox`. Custom wrappers are required for **both** Grok
-  grants because the installed client's built-in profiles can warn and
-  continue if kernel enforcement is unavailable, whereas an explicitly
-  requested custom profile fails closed. Profile creation is recorded as
-  an adapter-owned config write outside the member workspace. Direct and
-  synthesis callers retain their current read-only recipes verbatim.
+- **Workspace-access adapter mapping** (`invocation_scope: team-member`
+  only; exact sets, no allow/deny overlap):
+  - Claude read-only allows `Read,Grep,Glob,LS,Skill` and denies
+    `Write,Edit,NotebookEdit,Bash,WebFetch,WebSearch`; workspace-write
+    allows `Read,Grep,Glob,LS,Skill,Write,Edit` and denies
+    `NotebookEdit,Bash,WebFetch,WebSearch`. Both retain `dontAsk`.
+  - Codex read-only selects `-s read-only`; workspace-write selects
+    `-s workspace-write` and explicitly adds
+    `-c sandbox_workspace_write.network_access=false`. Both retain the
+    current `approval_policy="never"` and `--ignore-user-config`. The
+    workspace-write switch governs the shell filesystem sandbox; r6 keeps
+    network disabled explicitly instead of treating write access as a
+    network grant.
+  - Grok on Linux/macOS writes exactly one guarded project file at
+    `<member-workspace>/.grok/sandbox.toml`, recorded in
+    `RenderedInvocationV1.files_written`; it never writes
+    `$GROK_HOME/sandbox.toml`, because that is the persistent authenticated
+    home and auth cannot be relocated. It `lstat`s `.grok` (creating an
+    owner-only real directory if absent; refusing a symlink/non-directory)
+    and exclusively creates `sandbox.toml`; if that leaf already exists as
+    any filesystem object, rendering fails rather than overwriting target
+    content. Through an injectable token source, the adapter obtains
+    one 128-bit `secrets.token_hex(16)` nonce per render and names the
+    profile `agentteam_<32-lowercase-hex>_<ro|rw>`; this works identically
+    for real, disposable-preflight, and state-free render-only calls. The
+    read-only form extends `read-only`, the writable form extends
+    `workspace`, and both set `restrict_network = true`; the adapter passes
+    that exact name to `--sandbox`, with the direct runner's cwd pinned to
+    the member workspace so Grok discovers the project file. Before
+    writing, it parses the existing
+    persistent `$GROK_HOME/sandbox.toml` read-only (missing is valid) and
+    fails closed if the file is unreadable/malformed or already defines
+    the generated name under `profiles`, because Grok 1.0.5 otherwise lets the
+    global profile win with a warning. Custom profiles are required for
+    **both** grants because the built-ins can warn and continue when kernel
+    enforcement is unavailable, whereas an explicitly requested custom
+    profile fails closed. On Windows the mapping is refused at lifecycle
+    step 3; fake/argv unit coverage remains OS-agnostic through injected
+    platform facts.
+  `invocation_scope: standalone` (all direct and synthesis callers) never
+  enters these branches and retains its current read-only render recipe
+  byte-for-byte — in particular, direct Grok remains exactly
+  `--sandbox read-only` and writes no project sandbox file.
 - **Version/evidence boundary.** These argv/tool mappings were rechecked
   without model calls on 2026-08-24 against installed Claude Code
   2.1.243, Codex CLI 0.149.1, and Grok 1.0.5 (`--help` plus Grok's bundled
-  sandbox guide). That is planning evidence, not a live capability
+  sandbox guide). The guide documents the custom-profile mechanism and
+  fail-closed distinction on Linux/macOS, not a Windows kernel sandbox.
+  That is planning evidence, not a live capability
   upgrade: version drift still fails the existing profile gate, and M1c
   must re-probe and run one writable declared-deliverable acceptance per
   then-supported harness before claiming live support.
@@ -1075,9 +1146,12 @@ normative sub-contracts.
   `handoff/<predecessor-task-id>/`. It hashes the source, copies to the
   archive, verifies the archive digest, copies from the archive, and
   verifies the materialized digest before publication — closing mutation
-  and copy-corruption windows. The successor's recorded baseline is
-  computed only afterward, so it includes the hand-off and the successor
-  can actually read its inputs.
+  and copy-corruption windows. The final renderer then declares its owned
+  writes, and the successor's recorded baseline is computed only afterward
+  with those writes excluded exactly as they are from the after-hash. The
+  baseline therefore includes the handoff and the successor can actually
+  read its inputs; lifecycle step 5's copy digest is never reused as
+  `target.before`.
 - **Blinded handoff on declared-independence edges** (the normative
   TC-03 means: no message edge, blinded inputs): a dependency edge whose
   two members form a declared independence pair gets **no mailbox
@@ -1113,7 +1187,15 @@ normative sub-contracts.
   use the dependency cascade. Artifact/ledger/materialization/hash I/O,
   provider send, or provider completion errors are infrastructure faults
   and abort the run; already-published ledger rows remain honest evidence
-  and are never replayed.
+  and are never replayed. The step-7 fault window is special because step
+  6 is already durable: if provider completion raises before or after its
+  state commit, the invocation **stays `succeeded`**, the owning run task
+  becomes `failed`, and the run fault-aborts. Its provider projection may
+  be `running` (pre-commit raise) or `completed` (post-commit raise); both
+  exact outcomes are legal and tested, and the scheduler launches no
+  successor even if the provider already auto-unblocked one. Publication
+  faults in steps 1–5 instead terminalize that invocation `failed` and its
+  owning task `failed` before the abort.
 - **Missing-body fault abort**: a claim that returns fewer bodies than
   the successor's incoming **completed, non-blinded** edges is a fault
   abort before launch (transport loss is infrastructure; launching with a
@@ -1130,16 +1212,22 @@ normative sub-contracts.
   `update_task(completed, caller=owner)`. The provider then auto-unblocks
   dependents (`blocked → pending`), observed through `wait`; only after
   the run record/events reconcile may the scheduler launch them.
-- **`failed` and `abandoned` never cross the protocol** — a correctness
-  property, not a convenience: a failed task is never provider-side
-  `completed`, so provider auto-unblock can never fire for its
-  dependents, and the provider DAG stays consistent with the cascade by
-  construction. Residual-projection rule: a `failed` row's provider
-  projection remains `running`; an `abandoned` row's remains `blocked` or
-  `pending` — a surviving sibling's completion is still sent to the
-  provider and may auto-unblock an abandoned row provider-side, which is
-  unobserved and harmless (after a cascade begins the scheduler issues no
-  further waits or launches).
+- **`failed`, `cancelled`, and `abandoned` never cross the protocol** — a
+  correctness property, not a convenience: a failed task is never
+  provider-side `completed` during the ordinary cascade, so provider
+  auto-unblock cannot fire for its dependents. The sole exception is the
+  explicitly ambiguous post-commit `update_task(completed)` fault in
+  section 11.2: publication already succeeded, so the invocation remains
+  succeeded while the run task records the infrastructure failure.
+  Residual-projection rule by closure cause: a `failed` row may project
+  `pending` (pre-allocation launch failure), `running`
+  (execution/publication failure), or `completed` only in that post-commit
+  fault; a `cancelled` row projects `pending` (aborted after allocation but
+  before provider claim) or `running`; an `abandoned` row projects `blocked`
+  or `pending`. A surviving sibling's completion may auto-unblock
+  an abandoned row provider-side, which is unobserved and harmless because
+  the scheduler issues no further waits or launches after failure/abort
+  begins.
 - Two named failure modes (exhaustive **by cause**):
   - **Failure cascade** (a task-level outcome): invocation failure
     post-retry, attempt timeout, launch-time render failure, invalid
@@ -1150,18 +1238,24 @@ normative sub-contracts.
     sibling invocations run to completion** (the M1a process contract
     terminates trees only for cancellation or timeout of *that*
     invocation — their evidence is kept, and their completions still
-    reach the provider); any remaining never-launched tasks are closed by
-    the abandon sweep at finalization (section 11.4); the run finalizes
-    `failed`, exit 1.
+    reach the provider); any remaining never-allocated tasks are closed by
+    the terminal sweep as `abandoned` at finalization (section 11.4); the
+    run finalizes `failed`, exit 1.
   - **Fault abort** (an infrastructure failure): any provider operation
     raises **during lifecycle steps 6–9 — including the `tasks()` polling
     underneath `wait`** — or `wait` raises `WaitTimeoutError`, a handoff
     claim comes up short, or member-result/deliverable archive I/O,
     digest verification, successor materialization, ledger append, or
-    handoff publication fails (section 11.2) → the run layer
-    terminates in-flight member process trees per M1a §9, marks those
-    invocations `cancelled`, and finalizes per section 11.4 (the sweep
-    closes every non-terminal task); run `failed`, exit 1.
+    handoff publication fails (section 11.2) → first freeze scheduling;
+    mark the causal task `failed` when one exists (including a
+    launch-preparation failure with no invocation); before the successful
+    invocation write, terminalize any allocated causal invocation
+    `failed`, while a pre-allocation cause keeps a null binding; after that
+    write, apply section 11.2's provider-completion pairing. Then terminate
+    non-causal in-flight member process trees per M1a §9 and mark those
+    invocations `cancelled`; finalization's terminal sweep marks their
+    tasks `cancelled` and only never-allocated remainder `abandoned`. Run
+    `failed`, exit 1.
     **Finalization-phase provider operations are explicitly exempt from
     fault-abort semantics**: the copy-out compound (`snapshot` /
     `read_snapshot`), `cleanup`, and the section 9.2 snapshot deletion
@@ -1171,9 +1265,10 @@ normative sub-contracts.
 - Snapshot-time status parity is asserted exactly for run-level rows
   whose status is in `SubstrateTaskStatus`, via per-provider test-side
   bundle readers (the ClawTeam reader translates `in_progress → running`;
-  test LOC, ratio-exempt per section 10); `failed`/`abandoned` rows are
-  asserted against the residual-projection rule only where the fixture
-  makes the residual deterministic (fault-matrix rows).
+  test LOC, ratio-exempt per section 10);
+  `failed`/`cancelled`/`abandoned` rows are asserted against the
+  cause-specific residual-projection rule only where the fixture makes the
+  residual deterministic (fault-matrix rows).
 - Team-run success = every run-level task `completed` and every member
   invocation succeeded. Team-mode exit codes are 0/1/2/130; exit 3 is
   unused (section 7).
@@ -1185,10 +1280,9 @@ ends with, in order: stop every AgentTeam-owned process (the
 `processes-stopped` event is emitted exactly once per finalization,
 zero terminations permitted) → best-effort snapshot copy-out iff a space
 was created → provider cleanup attempted iff a space was created → the
-abandon sweep (every still-non-terminal `tasks[]` row → `abandoned`, with
-its `task-abandoned` event) → terminal `run.json` with every row terminal
-(`completed | failed | abandoned`) **and every member's execution binding
-consistent** — present for every durably allocated member invocation,
+**terminal sweep** → terminal `run.json` with every row terminal
+(`completed | failed | cancelled | abandoned`) **and every member's
+execution binding consistent** — present for every durably allocated member invocation,
 `null` exactly where no invocation record exists; every present ref
 resolves to one terminal invocation and every invocation has one binding
 (the archive verifier, not a history-guessing model validator, enforces
@@ -1196,9 +1290,19 @@ the cross-file rule on the step-5, step-7a, launch-render, post-allocation,
 cascade, fault-abort, and cancellation paths) → finalized manifest.** Nothing may
 reorder stop before cleanup, skip the sweep, or write the manifest before
 the terminal record. The sweep is run-record-only (it never crosses the
-protocol) and is the single mechanism that discharges the all-terminal
-invariant for arbitrary DAGs — cascade remainders, fault aborts, and
-cancellation all resolve through it.
+protocol) and applies one exhaustive closure table: keep already-terminal
+rows unchanged; if a task's provider-completion call returned but its run
+row did not reconcile, finish it as `completed` and emit its missing
+completion/unblock reconciliation events exactly once without scheduling;
+mark the causal task
+`failed` before the sweep, including the provider-completion ambiguity;
+mark every non-causal durably allocated task that did not finish provider
+completion `cancelled` and emit `task-cancelled` (terminalize a nonterminal
+invocation `cancelled`, but preserve an already-`succeeded` invocation);
+mark every remaining never-allocated/never-launched row `abandoned` and
+emit `task-abandoned`. No successful invocation is rewritten. This is the
+single mechanism that discharges the all-terminal invariant for arbitrary DAGs — cascade
+remainders, fault aborts, and cancellation all resolve through it.
 
 Per phase:
 
@@ -1207,11 +1311,11 @@ Per phase:
 | Validate / resolve / selection (1–3) | exit 2, **no run directory**; skeleton-id cycle/self/unknown and access-vocabulary rejection happen here, provider-neutrally |
 | Render-only branch (after 3) | emit disposable stub render records under the requested output root, exit 0; **no run archive, provider space, real member workspace, invocation, or binding** |
 | Pending record (4) | archive-creation failure: exit 2, nothing to finalize (M1a semantics) |
-| Workspaces (5) | archive exists, no space yet — terminal `failed` + manifest; source-hash mismatch exit 2, copy mismatch exit 1 (mirrors M1a) |
-| Space / roster / task registration (6) | if `create_space` itself failed there is no space — **no snapshot, no cleanup, and no `provider-cleanup` event** (the fault matrix asserts its absence; the record's `substrate.namespace` and `snapshot` stay null per the section 6 nullability — the same fact seen from events and record); mid-phase failure: best-effort snapshot, cleanup attempted; sweep closes the rows (`substrate_id` null where never registered); exit 1 |
+| Workspaces (5) | archive exists, no space yet — terminal `failed` + manifest; source-hash mismatch exit 2, copy mismatch exit 1 (mirrors M1a); only source/copy digests exist, never an invocation `target.before` |
+| Space / roster / task registration (6) | if `create_space` itself failed there is no space — **no snapshot, no cleanup, and no `provider-cleanup` event** (the fault matrix asserts its absence; the record's `substrate.namespace` and `snapshot` stay null per the section 6 nullability — the same fact seen from events and record); mid-phase failure: best-effort snapshot, cleanup attempted; terminal sweep closes never-launched rows as `abandoned` (`substrate_id` null where never registered); exit 1 |
 | Render preflight (7a) | exit 2 **with** an archive (M1a render-error parity); disposable render roots do not contaminate real workspaces; snapshot/cleanup as above; no invocation was allocated |
 | Launch loop (7b–9) | failure cascade or fault abort per section 11.3; exit 1 |
-| Cancellation (SIGINT, any phase ≥ 4) | the team analog of the direct runner's cancellation finalizer: terminate process trees, non-terminal invocations `cancelled`, best-effort snapshot, cleanup attempted, sweep, run **`cancelled`** (the existing status — no new status value ships), manifest, exit 130 |
+| Cancellation (SIGINT, any phase ≥ 4) | the team analog of the direct runner's cancellation finalizer: terminate process trees; every durably allocated but incomplete task becomes `cancelled` (a nonterminal invocation becomes `cancelled`, an already-succeeded invocation is preserved); never-allocated tasks become `abandoned`; best-effort snapshot, cleanup attempted, terminal sweep, run **`cancelled`** (the existing run status), manifest, exit 130 |
 | Final snapshot fails on the otherwise-green path (10) | run `failed`, exit 1 — the snapshot is section 13 acceptance evidence; a run without it did not meet its contract (`substrate.snapshot` null per section 6). On an already-failing path, a `snapshot-failed` event is recorded and the primary `failure_reason` is kept |
 | Cleanup/deletion warns (10) | **finalization-exempt from fault abort**: record `CleanupOutcome.space_closed`, `snapshot_state`, and path-free `warning_codes` on `provider-cleanup`; emit `snapshot-retained` when applicable; never alter `failure_reason` or status. A green run remains `succeeded`, exit 0 because the copy-out was already verified; no raw exception text or stable-root path enters events |
 | Manifest write fails (11) | exit 1, archive left partial, error surfaced (M1a parity; the terminal record was already written) |
@@ -1345,8 +1449,10 @@ The milestone evidence (G4), run through the CLI on every core leg:
      immutability); workspace `target {before, after}` hashes are
      recorded facts per the section 11.2 team-mode semantics — the
      implementer's after-hash differs by design (its declared
-     deliverable), the reviewer's baseline includes its materialized
-     handoff, and no team-mode condition requires `after == before`; the
+     deliverable), step 5's copy hash is not an invocation baseline, and
+     the reviewer's launch-time baseline includes its materialized handoff
+     while excluding final-renderer-owned files by the same rule as its
+     after-hash; no team-mode condition requires `after == before`; the
      direct-run regression (`direct-review.yaml`, with its unchanged
      direct-mode immutability condition) still passes in the same job;
   9. ordering/publication — for every dependency edge (a, b), the
@@ -1401,7 +1507,9 @@ verification block, including `uv run python -m agentteam.schema check`).
   validating against the checked-in files): a direct record carrying any
   team field, a team record carrying `member`, a team record with one
   member, invalid `workspace_access`, missing resolved access in a team
-  task row, reserved fields non-empty, an unknown `decided_by` value — each
+  task row, an unknown task status (with valid fixtures covering each of
+  `failed`/`cancelled`/`abandoned`), reserved fields non-empty, an unknown
+  `decided_by` value — each
   must be rejected by the schema itself, not only by the models.
   Model-level negatives cover only representable section 6 invariants
   (`succeeded` with a null namespace/achieved/snapshot rejected; the
@@ -1426,10 +1534,19 @@ verification block, including `uv run python -m agentteam.schema check`).
   unsupported-substrate rejection. `test_team_selection.py` — the
   four-layer precedence (user > Assistant > team > default),
   `decided_by: team`, fail-closed user requests unchanged, forced
-  variants still rejected. Adapter render tests pin exact team access
-  recipes (Claude tool allow/deny sets; Codex sandbox enum; Grok custom
-  profile text/path/argv and fail-closed selection) and byte-identical
-  direct/synthesis renders. Run-record mode-split and nullability
+  variants still rejected. Adapter render tests pin
+  `RenderContext.invocation_scope` as an independent defaulted
+  discriminator and exact team access recipes: disjoint Claude allow/deny
+  sets for each grant; Codex's sandbox enum plus explicit writable-network
+  denial; and Grok's per-invocation name, guarded workspace-local
+  `.grok/sandbox.toml`, `files_written` declaration, no persistent-home
+  write, parent-symlink/non-directory rejection, malformed/global-name/
+  pre-existing-project-file rejection, member-workspace cwd, and
+  Windows refusal. Tests inject the nonce source and platform facts so the
+  fake/argv assertions are deterministic and OS-agnostic.
+  Direct/synthesis renders are byte-identical; the direct
+  Grok regression pins `--sandbox read-only` and no project sandbox write.
+  Run-record mode-split and nullability
   validators sit beside the schema-level negatives.
   `test_import_containment.py` — the **static containment scan** (core
   legs, no extra needed): an **AST import scan** (`Import`/`ImportFrom`
@@ -1444,7 +1561,10 @@ verification block, including `uv run python -m agentteam.schema check`).
   constant `"clawteam"`, one lazy-module constant
   `"agentteam.coordination.clawteam"`, one assignment target and one load
   of `CLAWTEAM_DISPOSITION`; (d) `src/agentteam/domain/team.py` — exactly
-  one `substrate.kind` literal `"clawteam"`. The CLI calls only the
+  one `SubstrateKind` literal occurrence `"clawteam"`; (e)
+  `src/agentteam/domain/run.py` — **zero** case-insensitive token
+  occurrences because it imports the shared alias from `domain/team.py`.
+  The CLI calls only the
   generic `provider_disposition(substrate)` registry API and has zero
   case-insensitive token occurrences. Tests compare normalized AST
   occurrence tuples plus raw case-insensitive token counts (comments and
@@ -1501,13 +1621,14 @@ verification block, including `uv run python -m agentteam.schema check`).
   cleanup handshake ordering, archive verification/finalization, exit
   codes, and reserved fields fail closed.
   `test_team_run_faults.py` — the **fault-injection matrix**, with a
-  `FaultInjectingProvider` double (wraps the local provider, raises at a
-  named op). Provider rows cover **all twelve runtime-invoked
-  operations**: `create_space`, `info`, `add_member`, `create_task`,
-  `update_task` (distinct running and completed failure windows),
-  `tasks` (raise — the polling operation underneath
-  `wait`, distinct from the timeout row; fault abort), `send`, `receive`,
-  `wait` (timeout), `snapshot`, `read_snapshot`, `cleanup` (**not** a
+  `FaultInjectingProvider` double (wraps the local provider and can raise
+  before or after delegating a named method). Rows cover **all eleven
+  runtime-invoked provider methods plus the protocol `wait` helper**:
+  `create_space`, `info`, `add_member`, `create_task`, `update_task`
+  (distinct running and completed windows; completed has pre-commit and
+  post-commit raises), `tasks` (raise — the provider polling method
+  underneath `wait`, distinct from the helper-timeout row; fault abort),
+  `send`, `receive`, `wait` (helper timeout), `snapshot`, `read_snapshot`, `cleanup` (**not** a
   fault abort — finalization-exempt per section 11.3: an injected cleanup
   exception is normalized to a warning outcome, and the green row still
   finishes `succeeded` exit 0 with `provider-cleanup` facts recorded and
@@ -1525,13 +1646,31 @@ verification block, including `uv run python -m agentteam.schema check`).
   I/O/digest failure, successor materialization failure, ledger append
   failure; the missing-body abort (injected on the transported edge);
   SIGINT cancellation (exit 130); fault abort with a member in flight
-  (process tree terminated, invocation `cancelled`). **A `receive` raise
+  (process tree terminated, invocation and task `cancelled`). **A `receive` raise
   is a fault abort** (taxonomy by cause: provider raise =
   infrastructure). `read_snapshot` gets two rows — green path (run
   `failed` exit 1, `snapshot-failed` event, null `substrate.snapshot` per
   section 6) and failing path (`snapshot-failed` event, primary
-  `failure_reason` kept). Every row asserts: terminal `run.json` with
-  all-terminal `tasks[]` (the abandon sweep observed), **execution-binding
+  `failure_reason` kept). The provider-completion rows pin the publication
+  ambiguity exactly: pre-commit raise leaves the provider task `running`;
+  post-commit raise leaves it `completed` and its dependent provider task
+  `pending`; in both rows the already-published invocation stays
+  `succeeded`, the owning run task is `failed`, the run fails, and no
+  successor launches. Publication faults before the successful invocation
+  write pair invocation `failed` with task `failed`; a causal pre-allocation
+  fault pairs task `failed` with a null binding; non-causal allocated work
+  caught by abort makes the task `cancelled`, terminalizing a nonterminal
+  invocation `cancelled` while preserving an already-succeeded invocation;
+  a provider-completion call known to have returned reconciles to
+  `completed`; never-allocated/never-launched remainder is `abandoned`.
+  Barrier-controlled sibling rows pause after allocation/before provider
+  running, while the process is running, and after the successful
+  invocation write/before provider completion, plus after provider
+  completion returns/before run-row reconciliation, to prove the exact
+  pending/running residuals, both invocation pairings, and completed
+  reconciliation without a successor launch. Every
+  row asserts: terminal `run.json` with all-terminal `tasks[]` (the terminal
+  sweep and this pairing table observed), **execution-binding
   consistency** through the archive verifier (a binding for every
   allocated invocation, null iff no invocation record; asserted across
   pre-allocation, allocation/binding, running/spawn, cascade, fault-abort,
@@ -1544,8 +1683,8 @@ verification block, including `uv run python -m agentteam.schema check`).
   a **tests-only parallel-branch template** (a root; two parallel mid
   tasks — one fails, the sibling completes on merit; a dependent of the
   failed task, eager-abandoned; a task blocked only on the survivor,
-  never launched, closed by the sweep) so eager abandonment,
-  sibling-on-merit completion, sweep closure of an unrelated branch, and
+  never launched, closed `abandoned` by the sweep) so eager abandonment,
+  sibling-on-merit completion, terminal-sweep closure of an unrelated branch, and
   the all-terminal invariant are proven generally; the committed 3-chain
   acceptance fixture is unchanged. The matrix is **G3 evidence**.
 - **Acceptance**: `test_team_lifecycle.py` — the section 13 conditions
@@ -1565,7 +1704,10 @@ verification block, including `uv run python -m agentteam.schema check`).
 - **Cross-platform**: the local provider's file semantics (atomic rename,
   ordering, permissions) run on all three OSes on the core job; any
   Windows/macOS deviation is fixed, never skip-listed silently (M1a §18
-  discipline).
+  discipline). Team-Grok rendering is affirmatively refused on Windows at
+  preflight (exit 2, no run directory), while platform-injected unit tests
+  keep both grant recipes covered on every host; vendor-smoke remains
+  unchanged and still skips Grok.
 
 ## 15. CI (delta to M1a §16)
 
@@ -1642,13 +1784,16 @@ discovered during runner work; gate closure order never changes.
 - Stop if a requested workspace grant cannot be mapped to a
   version-supported fail-closed adapter control; never silently broaden
   a read-only task or continue unsandboxed. Direct and synthesis renders
-  must remain byte/argv-compatible.
+  must remain byte/argv-compatible. In particular, refuse team Grok on
+  Windows, any project/global profile collision, or any attempt to write
+  the persistent authenticated `GROK_HOME`; never downgrade to a built-in
+  warning-and-continue team profile.
 - Stop if a deliverable path is non-NFC, collides after casefolding,
   traverses a symlinked component, or intersects `handoff/` or a
   renderer-owned workspace prefix; cross-platform archive identity is
   part of the contract, not a host-dependent best effort.
 - Always stop AgentTeam-owned processes before provider `cleanup`, and
-  always run the abandon sweep and write the terminal record **before**
+  always run the terminal sweep and write the terminal record **before**
   the manifest for any run that wrote the pending record (the section
   11.4 invariant); provider cleanup never stops processes (recorded
   caveat; section 8).
@@ -1741,8 +1886,8 @@ M1a §19 remains the roadmap of record. M1b-specific handoffs:
 ## 20. Approval checklist, finalize-at-approval decisions, and traceability
 
 **What the independent review must confirm** (the review charter; each
-item tickable against the frozen tree — four passes are recorded at r1
-`14dc218`, r2 `54728c8`, r3 `6d3f329`, and r4 `3d0211a` in
+item tickable against the frozen tree — five passes are recorded at r1
+`14dc218`, r2 `54728c8`, r3 `6d3f329`, r4 `3d0211a`, and r5 `12ca6c7` in
 `docs/reviews/`, resolved per section 21):
 
 1. scope: deterministic-only M1b, zero live calls, M1c/M2/M3 boundaries
@@ -1770,26 +1915,32 @@ item tickable against the frozen tree — four passes are recorded at r1
    references, `goal` interpolation, owner bijection, deterministic
    topological registration, the protocol status vocabulary with run-only
    terminals and residual projections, claim semantics, explicit audited
-   workspace access, launch-on-ready with disposable staged rendering and
-   a state-free render-only branch,
+   workspace access, independent standalone/team-member render scope,
+   exact collision-safe project-local adapter controls, launch-on-ready
+   with disposable staged rendering and a state-free render-only branch,
    the pinned member-result pipeline (`output_contract` →
    `StructuredExtractor` + validation → `write_member_result`; `parse()`
-   untouched), the team-mode target semantics (member-owned mutation;
-   canonical declared-deliverable-only propagation), nullable-until-
+   untouched), the team-mode target semantics (member-owned mutation; copy
+   verification distinct from the launch-time baseline; canonical
+   declared-deliverable-only propagation), nullable-until-
    durable-allocation execution bindings with model/archive validation,
    handoff construction/transport/blinding, the completion publication
-   barrier, failure cascade and fault abort (finalization ops exempt), and
-   the finalization invariant with the abandon sweep and binding
-   consistency (sections 6, 8, 11);
+   barrier, provider-completion ambiguity, failure cascade and fault abort
+   (finalization ops exempt), and the finalization invariant with the
+   terminal sweep, causal `failed` / interrupted `cancelled` /
+   never-allocated `abandoned` pairing, and binding consistency
+   (sections 6, 8, 11);
 8. gate evidence is mechanically checkable and each gate names its VERIFY
-   entry; the fault matrix (twelve provider ops, conditional assertions)
-   is G3 evidence (sections 3, 14);
+   entry; the fault matrix (eleven runtime-invoked provider methods plus
+   the protocol `wait` helper, with conditional assertions) is G3 evidence
+   (sections 3, 14);
 9. test matrix and CI mapping: conformance suite shared across providers
    with local-only guarantees separated, core-vs-extra job split, no new
    marker, direct regression retained, containment scan on core legs
    (sections 14, 15);
 10. stop rules and falsification routing cover the risks register rows
-    R01/R02/R08/R12/R30-class/R33-lesson/R34/R36 (sections 12, 13, 17);
+    R01/R02/R08/R12/R30-class/R33-lesson/R34/R36/R37
+    (sections 12, 13, 17);
 11. approval/traceability mechanics: DECISIONS entry naming file + SHA,
     status flip in the following commit, review immutability (header,
     sections 2, 3).
@@ -1825,18 +1976,19 @@ XC-04 audit (sections 8, 11.5, 12). Risk rows: R01/R08 (sections 9.2, 17
 routing), R02 (no fork modules reused; the failed-branch xfail follows
 its precedent), R12 (sections 6, 11, 13, 17), R30-class file semantics
 (section 14), R33 lesson (section 13), R34 (section 12), R36
-(workspace-write live evidence deferred to M1c). Open questions:
+(workspace-write live evidence deferred to M1c), R37 (run-task/invocation
+terminal-pair integrity). Open questions:
 exit criterion (section 10, finalizes at approval), HB-03 (deferred,
 open), Q4/Q6 (section 19, stay outside), R15/overlay (section 18, not
 foreclosed). Decisions inherited: ADRs 0003, 0007, 0014, 0015, 0016,
 0018, 0021, 0022, 0033 (amendment convention), 0036, 0037, 0038, 0039,
-0040, 0041, 0042.
+0040, 0041, 0042, 0043.
 
 Implementation begins only after review findings are resolved and the
 owner explicitly marks this plan approved (G0). Project-local sources:
 `docs/discovery/team-execution-model.md` (v2.3), the glossary,
 `docs/evidence/clawteam-qualification-2026-08-23.md`, the M1a plan as
-amended, and the four review records; volatile facts (CLI versions,
+amended, and the five review records; volatile facts (CLI versions,
 capability evidence) are rechecked at their execution gate, not trusted
 from this text.
 
@@ -1892,7 +2044,7 @@ from this text.
 | M6 — taxonomy vs cleanup; missing `tasks()` row | Fault-abort scope pinned to lifecycle steps 6–9 (incl. the `tasks()` polling under `wait`); finalization ops (copy-out, cleanup, snapshot deletion) explicitly exempt with their own §11.4 rows; a `tasks()`-raise row added beside the timeout row (twelve provider rows); the cleanup row pins `succeeded`/exit 0 on green | 11.3, 11.4, 14 |
 | M7 — the containment allowlist was not frozen | Case-insensitive scan with an exactly-enumerated allowlist (compat/ any; coordination/clawteam.py any; coordination/__init__.py registry id + disposition only; domain/team.py kind literal only); the allowlist is diff-visible test data commented with the §10 boundary | 10, 14 |
 
-- **r5** (2026-08-24, this commit): resolves the fourth independent
+- **r5** (2026-08-24, `12ca6c7`): resolves the fourth independent
   review (of r4 at full commit
   `3d0211a456cedb356aa512cb5f257b448dbb70e1`, plan SHA-256
   `e1c7f222ce22785b37eb22fca553281d0936b5367313a3a7b9a1d38c587200c9`;
@@ -1908,6 +2060,25 @@ from this text.
 | M2 — containment froze files, not occurrences | The test now freezes exact normalized AST/token occurrences in the two declarative exception files; the CLI uses generic `provider_disposition(substrate)` with zero token occurrences; the failed-routed strict-xfail lives outside the skipped success module and its collection is asserted | 2, 3, 9.2, 10, 14, 17 |
 | M3 — deliverable paths were not canonically safe | Require NFC and all-OS casefold collision keys; `lstat` every component; reserve casefolded `handoff/` and renderer-written files plus non-root parent prefixes; verify source→archive→materialized digests; expand the negative matrix with case, Unicode, parent-symlink, and injected-file cases | 6, 11.2, 13, 14, 17 |
 | C1 — stale counts/traceability/rationale | Current text says twelve runtime provider operations and four reviews, inherits ADRs 0041/0042, names R36, and defines owner bijection as the deliberate M1b one-member/one-task constraint rather than field-requiredness | 2, 6, 14, 20, 21 |
+
+- **r6** (2026-08-24, this commit): resolves the fifth independent review
+  (of r5 at full commit
+  `12ca6c730f99816ed79c6e0537de021d25dd24b2`, plan SHA-256
+  `95ff6ab3816efd61db845216b34aecb64b8d22efde3f13a727027c612a44acf4`;
+  `docs/reviews/2026-08-24-m1b-plan-review-at-12ca6c7.md`; ADR 0043).
+  Findings and resolutions:
+
+| Finding | Resolution | Sections |
+| --- | --- | --- |
+| H1 — Claude writable allow and deny sets collided | Both grants now pin complete, disjoint sets: read-only allows `Read,Grep,Glob,LS,Skill` and denies `Write,Edit,NotebookEdit,Bash,WebFetch,WebSearch`; writable adds `Write,Edit` to allow and removes them from deny; both retain `dontAsk` | 11.1, 14 |
+| H2 — Grok team dispatch/profile location was unsafe | Added independent `RenderContext.invocation_scope` (`standalone` default / `team-member`), never inferred from access or output. Team Grok writes a guarded, recorded project `.grok/sandbox.toml`, never persistent `GROK_HOME`; a per-render 128-bit nonce gives the custom profile name and an injected source keeps tests deterministic. The parsed global file, malformed input, name collision, and pre-existing project path all fail closed. Both grants use custom profiles; direct Grok stays byte-identical on built-in `read-only` | 2, 6, 11.1, 14, 17 |
+| H3 — `target.before` still inherited the step-5 copy time | Step 5 now verifies source/copy equality only. Each invocation baseline is computed at launch after incoming handoff materialization and final render, excluding `files_written` by the same rule as `after`; acceptance pins the reviewer's handoff-inclusive baseline | 3, 11, 11.1, 11.2, 13, 14 |
+| M4 — containment omitted `domain/run.py` | `SubstrateKind` is defined once in `domain/team.py`; `domain/run.py` imports it and is frozen at zero case-insensitive `clawteam` occurrences | 3, 5, 6, 14 |
+| M5 — provider-completion and abort paths produced false `abandoned` pairings | Added run-only task `cancelled` plus `task-cancelled`; the terminal sweep preserves completed/failed, cancels non-causal allocated work without rewriting an already-succeeded invocation, and reserves abandoned for never-allocated remainder. Pre-barrier publication faults pair failed/failed; a pre- or post-commit provider-completion raise preserves the already-succeeded invocation, fails its task/run, pins the residual provider projection, and launches no successor | 2, 6, 8, 11.2–11.4, 14, 20 |
+| M6 — Grok Windows enforcement was unpinned | Team Grok is refused at step-3 preflight on Windows (exit 2, no run directory); unit/fake argv coverage uses injected platform facts and remains OS-agnostic; vendor-smoke is unchanged | 11, 11.1, 14, 15, 17 |
+| C1 — `wait` was counted as a provider method | The plan consistently says eleven runtime-invoked provider methods plus one protocol `wait` helper over `tasks()` | 8, 14, 20 |
+| C2 — Codex network posture and direct Grok regression needed precision | Team Codex workspace-write explicitly pins `sandbox_workspace_write.network_access=false`; read-only retains the vendor-default denial under `--ignore-user-config`. Direct/synthesis recipes remain exact regressions, including direct Grok `--sandbox read-only` | 11.1, 14, 17 |
+| C3 — fifth-round traceability/steward state | The frozen review carries the full commit and plan hashes; ADR 0043 records the r6 decisions; PLAN/HANDOFF/QUESTIONS name five review rounds; R36 is tightened and R37 tracks terminal-pair drift | Header, 2, 3, 20, 21; steward records |
 
 Amendments after approval follow the ADR 0022/0033 convention
 (in-document marker plus a dated amendment table) at amendment time.

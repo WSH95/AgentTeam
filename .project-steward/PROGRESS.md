@@ -4,6 +4,12 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T01:45:13Z — codex
+**M1b r6 planning revision committed.** The immutable fifth-review record landed separately at `a140829`; draft r6, ADR 0043, R36/R37, and synchronized PLAN/HANDOFF/QUESTIONS state land in the commit carrying this entry. The docs-only validation remains green (453 passed + 4 skipped; Ruff, mypy/98, schemas, diff/fences); zero live calls, no product source, no push, and r6 remains NOT approved pending owner G0 or a frozen-SHA confirmation pass.
+
+### 2026-08-25T01:28:17Z — codex
+[auto-checkpoint] M1b r5 frozen at `12ca6c7` / plan SHA `95ff6ab3…a44acf4`; fifth review recorded and draft r6 closes its adapter, launch-baseline, containment, Windows, operation-count, and terminal-pairing gaps (ADR 0043; R36/R37); docs-only validation green (453 passed + 4 skipped, Ruff, mypy/98, schemas, diff/fences), zero live calls, no product source or push, r6 uncommitted and NOT approved.
+
 ### 2026-08-25T00:21:44Z — codex
 **M1b r5 resolves the complete r4 review.** The owner-authorized revision adds explicit read-only/default vs workspace-write task grants with exact Claude/Codex/Grok mappings; durable-allocation execution bindings + archive verification; a state-free render-only path; verified-copy-out cleanup outcomes; a completion publication barrier; NFC/casefold/component-safe deliverables; and occurrence-level ClawTeam containment (ADR 0042; §21 r4→r5). Steward state now names four review rounds and R36. Planning-only validation: frozen r4 hash exact; 453 passed + 4 skipped; Ruff clean; mypy clean (98 source files); schemas current; diff check clean. Zero live calls, no push, r5 NOT approved — next is owner G0 or another frozen-SHA review.
 
