@@ -132,7 +132,10 @@ def preflight_team(
     if request.overlay_refs:
         raise PreflightError("overlay_refs are reserved for M3 and must be empty in M1b")
     disposition = provider_disposition(request.substrate)
-    if disposition is not ProviderDisposition.SUPPORTED:
+    if disposition not in {
+        ProviderDisposition.SUPPORTED,
+        ProviderDisposition.PARITY_GREEN,
+    }:
         raise PreflightError(
             f"coordination substrate {request.substrate.value!r} is unavailable in M1b "
             f"(disposition: {disposition.value})"

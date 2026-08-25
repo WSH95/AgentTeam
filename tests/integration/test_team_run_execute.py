@@ -14,6 +14,7 @@ import yaml
 from typer.testing import CliRunner
 
 from agentteam.cli import app
+from agentteam.coordination import ProviderDisposition
 from agentteam.run.archive import RunArchive
 
 runner = CliRunner()
@@ -288,7 +289,17 @@ def test_forward_reference_declaration_registers_in_stable_topological_order(
     ]
 
 
-def test_pending_clawteam_disposition_fails_before_archive(tmp_path: Path) -> None:
+def test_non_runnable_provider_disposition_fails_before_archive(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from agentteam.run import team_preflight
+
+    monkeypatch.setattr(
+        team_preflight,
+        "provider_disposition",
+        lambda _substrate: ProviderDisposition.FAILED_ROUTED,
+    )
     request_path = tmp_path / "clawteam.yaml"
     request = yaml.safe_load(REQUEST.read_text(encoding="utf-8"))
     request["template"] = str(REPO_ROOT / "examples/teams/development.yaml")
@@ -309,5 +320,5 @@ def test_pending_clawteam_disposition_fails_before_archive(tmp_path: Path) -> No
         ],
     )
     assert result.exit_code == 2
-    assert "disposition: pending" in result.output
+    assert "disposition: failed-routed" in result.output
     assert not out.exists()

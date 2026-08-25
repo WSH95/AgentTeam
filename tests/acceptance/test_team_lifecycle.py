@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -66,6 +68,26 @@ def _target_hash(out: Path, member: str, rendered: dict[str, Any]) -> str:
     return hash_tree(workspace, exclude=exclusions_for(writes, workspace))
 
 
+@dataclass(frozen=True)
+class ProviderSnapshotProjection:
+    namespace: str
+    members: list[str]
+    tasks: list[dict[str, Any]]
+    messages: list[dict[str, str]]
+
+
+SnapshotProjector = Callable[[dict[str, Any]], ProviderSnapshotProjection]
+
+
+def _local_snapshot_projection(snapshot: dict[str, Any]) -> ProviderSnapshotProjection:
+    return ProviderSnapshotProjection(
+        namespace=str(snapshot["metadata"]["id"]),
+        members=list(snapshot["metadata"]["members"]),
+        tasks=list(snapshot["tasks"]),
+        messages=[row["message"] for row in snapshot["messages"]],
+    )
+
+
 def test_three_member_cli_acceptance_satisfies_every_lifecycle_condition(
     tmp_path: Path,
 ) -> None:
@@ -85,10 +107,28 @@ def test_three_member_cli_acceptance_satisfies_every_lifecycle_condition(
     )
     assert result.exit_code == 0, result.output
 
+    assert_three_member_lifecycle(
+        out,
+        project_snapshot=_local_snapshot_projection,
+        expected_substrate="local",
+        expected_achieved="data-dir",
+    )
+
+
+def assert_three_member_lifecycle(
+    out: Path,
+    *,
+    project_snapshot: SnapshotProjector,
+    expected_substrate: str,
+    expected_achieved: str,
+) -> None:
+    """Assert all twelve section-13 conditions against a normalized bundle view."""
+
     run = _load(out / "run.json")
     events = _jsonl(out / "events.jsonl")
     snapshot_path = out / run["substrate"]["snapshot"]["path"]
     snapshot = _load(snapshot_path)
+    provider = project_snapshot(snapshot)
     ledger = _jsonl(out / "coordination" / "messages.jsonl")
     template = load_team_template(TEAM_TEMPLATE)
 
@@ -96,16 +136,16 @@ def test_three_member_cli_acceptance_satisfies_every_lifecycle_condition(
     roster = [member.name for member in template.definition.members]
     assert roster == ["lead", "implementer", "reviewer"]
     assert [member["name"] for member in run["members"]] == roster
-    assert snapshot["metadata"]["members"] == roster
+    assert provider.members == roster
 
     # 2. Every DAG task completed, with exact provider ids and remaining blockers.
     assert [task["status"] for task in run["tasks"]] == ["completed"] * 3
-    provider_tasks = {task["id"]: task for task in snapshot["tasks"]}
+    provider_tasks = {task["id"]: task for task in provider.tasks}
     for task in run["tasks"]:
-        provider = provider_tasks[task["substrate_id"]]
-        assert provider["subject"] == task["subject"]
-        assert provider["status"] == "completed"
-        assert provider["blocked_by"] == []
+        provider_task = provider_tasks[task["substrate_id"]]
+        assert provider_task["subject"] == task["subject"]
+        assert provider_task["status"] == "completed"
+        assert provider_task["blocked_by"] == []
     for predecessor, successor in (("plan", "implement"), ("implement", "review")):
         completed, _ = _event(events, "task-completed", task_id=predecessor)
         unblocked, _ = _event(events, "task-unblocked", task_id=successor)
@@ -115,16 +155,16 @@ def test_three_member_cli_acceptance_satisfies_every_lifecycle_condition(
     # 3. Every persisted/transported envelope stays inside the validated roster.
     assert ledger
     assert all({row["sender"], row["recipient"]} <= set(roster) for row in ledger)
-    provider_envelopes = [row["message"] for row in snapshot["messages"]]
+    provider_envelopes = provider.messages
     assert all({row["sender"], row["recipient"]} <= set(roster) for row in provider_envelopes)
 
     # 4. The archived opaque bundle is digest-linked and reproduces provider state.
-    assert snapshot["provider"] == "local"
+    assert run["substrate"]["kind"] == expected_substrate
     assert (
         hashlib.sha256(snapshot_path.read_bytes()).hexdigest()
         == run["substrate"]["snapshot"]["sha256"]
     )
-    assert snapshot["metadata"]["id"] == run["substrate"]["namespace"]
+    assert provider.namespace == run["substrate"]["namespace"]
     assert set(provider_tasks) == {task["substrate_id"] for task in run["tasks"]}
     assert [row["body"] for row in provider_envelopes] == [row["body"] for row in ledger]
 
@@ -174,9 +214,12 @@ def test_three_member_cli_acceptance_satisfies_every_lifecycle_condition(
     assert members["implementer"]["selection"]["decided_by"] == "team"
     assert len({rendered["harness"] for rendered in renders.values()}) >= 2
 
-    # 7. Successful terminal lifecycle records the honest local isolation level.
+    # 7. Successful terminal lifecycle records the provider's honest isolation level.
     assert run["status"] == "succeeded"
-    assert run["independence"] == {"declared": "advisory", "achieved": "data-dir"}
+    assert run["independence"] == {
+        "declared": "advisory",
+        "achieved": expected_achieved,
+    }
     assert run["substrate"]["namespace"]
     assert run["substrate"]["snapshot"]
 
@@ -220,7 +263,7 @@ def test_three_member_cli_acceptance_satisfies_every_lifecycle_condition(
     assert len(ledger) == 1
     handoff = ledger[0]
     assert (handoff["sender"], handoff["recipient"]) == ("lead", "implementer")
-    provider_handoff = snapshot["messages"][0]["message"]
+    provider_handoff = provider_envelopes[0]
     assert provider_handoff["body"] == handoff["body"]
     implement_task = (out / "legs" / "inv-implementer" / "task.md").read_text(encoding="utf-8")
     assert handoff["body"] in implement_task

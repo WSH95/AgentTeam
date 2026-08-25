@@ -9,6 +9,7 @@ import re
 import shutil
 import sys
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -472,3 +473,14 @@ class LocalCoordinationProvider:
             return int(path.stem.rsplit("-", 1)[1])
         except (IndexError, ValueError) as error:
             raise CoordinationError(f"invalid local sequence file: {path.name}") from error
+
+
+def create_provider(
+    coordination_root: Path,
+    *,
+    environ: Mapping[str, str],
+    platform: str,
+) -> LocalCoordinationProvider:
+    """Registry constructor with the provider-neutral factory signature."""
+    del environ
+    return LocalCoordinationProvider(coordination_root, platform=platform)

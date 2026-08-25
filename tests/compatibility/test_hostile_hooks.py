@@ -47,7 +47,7 @@ def test_config_hooks_never_execute_through_the_seam(seam_env: Any) -> None:
     assert report.subscriber_count == 0
     assert report.config_hook_loader_disarmed is True
 
-    space = seam.create_space()
+    space = seam.create_space(leader="atm-lead")
     task_id = seam.create_task(space, "exercise the update event path")
     seam.update_task(space, task_id, "in_progress", caller="atm-lead")
     seam.update_task(space, task_id, "completed", caller="atm-lead")

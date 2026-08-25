@@ -46,7 +46,7 @@ def test_the_owners_default_state_is_refused(seam_env: Any) -> None:
 
 def test_team_and_member_lifecycle_stays_inside_the_data_root(seam_env: Any) -> None:
     seam = ClawTeamCompat(seam_env.data_root)
-    space = seam.create_space()
+    space = seam.create_space(leader="atm-lead")
     assert space.startswith("atm-")
     seam.add_member(space, "atm-worker")
     members = seam.members(space)
@@ -64,7 +64,7 @@ def test_team_and_member_lifecycle_stays_inside_the_data_root(seam_env: Any) -> 
 
 def test_task_dependency_auto_unblock(seam_env: Any) -> None:
     seam = ClawTeamCompat(seam_env.data_root)
-    space = seam.create_space()
+    space = seam.create_space(leader="atm-lead")
     blocker = seam.create_task(space, "the blocker")
     dependent = seam.create_task(space, "the dependent", blocked_by=[blocker])
     assert seam.task(space, dependent)["status"] == "blocked"
@@ -79,7 +79,7 @@ def test_lock_semantics_refuse_a_second_caller(seam_env: Any) -> None:
     from clawteam.store.base import TaskLockError
 
     seam = ClawTeamCompat(seam_env.data_root)
-    space = seam.create_space()
+    space = seam.create_space(leader="atm-lead")
     task_id = seam.create_task(space, "contended work")
     seam.update_task(space, task_id, "in_progress", caller="atm-lead")
     with pytest.raises(TaskLockError):
@@ -90,7 +90,7 @@ def test_lock_semantics_refuse_a_second_caller(seam_env: Any) -> None:
 
 def test_mailbox_send_receive_consumes(seam_env: Any) -> None:
     seam = ClawTeamCompat(seam_env.data_root)
-    space = seam.create_space()
+    space = seam.create_space(leader="atm-lead")
     seam.add_member(space, "atm-worker")
     seam.send(space, "atm-lead", "atm-worker", "please review the target")
     first = seam.receive(space, "atm-worker")
@@ -101,7 +101,7 @@ def test_mailbox_send_receive_consumes(seam_env: Any) -> None:
 
 def test_snapshot_survives_cleanup_and_restores(seam_env: Any) -> None:
     seam = ClawTeamCompat(seam_env.data_root)
-    space = seam.create_space()
+    space = seam.create_space(leader="atm-lead")
     task_id = seam.create_task(space, "snapshot me")
     seam.send(space, "atm-lead", "atm-lead", "note to self")
     snapshot_id = seam.snapshot(space, "qualification")
@@ -117,8 +117,8 @@ def test_snapshot_survives_cleanup_and_restores(seam_env: Any) -> None:
 
 def test_two_namespaces_have_no_api_level_crossover(seam_env: Any) -> None:
     seam = ClawTeamCompat(seam_env.data_root)
-    space_a = seam.create_space()
-    space_b = seam.create_space()
+    space_a = seam.create_space(leader="atm-lead")
+    space_b = seam.create_space(leader="atm-lead")
     assert space_a != space_b
     task_a = seam.create_task(space_a, "only in a")
     seam.send(space_a, "atm-lead", "atm-lead", "a-mail")

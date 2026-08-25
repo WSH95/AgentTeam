@@ -1,55 +1,55 @@
 ---
-updated_at: 2026-08-25T05:02:08Z
+updated_at: 2026-08-25T05:23:04Z
 updated_by: codex
 session_status: active
 branch: main
-last_commit: 8d3b3ae
+last_commit: 892fd3b
 ---
 # Handoff
 
 ## Now
 
-**M1b G4 is complete with hosted evidence.** The approved r6 source remains
-`760a8ae8c7021b0427bf29c84f005bebdd453bf6` (ADR 0044). G4's acceptance
-candidate is `8d3b3ae`; the cross-platform fixture fix is `2d7b9f6`. Hosted
-run 32811023030 is 12/12 green: all six scaffold legs, all three optional
-ClawTeam compatibility jobs, and all three credential-free vendor-smoke jobs.
-Every scaffold leg passed the full suite plus the named direct+team CLI
-acceptance and validate/render-only smoke.
+**M1b G5 is locally parity-green; hosted evidence is pending.** The approved
+r6 source remains `760a8ae8c7021b0427bf29c84f005bebdd453bf6` (ADR 0044).
+The thin optional provider now sits behind the generic registry and qualified
+seam, with the logical lead, stable `AGENTTEAM_HOME`-relative process root,
+opaque namespaces, full-roster reconciliation, status/error/message mapping,
+and verified-copy-out snapshot deletion implemented. The full section-13
+three-member lifecycle runs through the public CLI over this provider.
 
-The G4 local block passed: new acceptance 2; targeted acceptance/render/hash
-59; exact CI shell path; full 594 passed + 4 expected skips; Ruff lint/format,
-strict mypy over 117 source files, schemas, lock, workflow parse, build, and
-diff check clean. The first hosted attempt's two Windows failures were fully
-diagnosed as test-fixture portability defects; the lifecycle acceptance itself
-had passed there, and both Windows full suites passed after the fix. Zero live
-calls were spent.
+Local evidence is green: optional compatibility **31 passed**; the full tree
+with the extra **625 passed + 3 platform skips**; the clean core environment
+with the dependency absent **594 passed + 4 expected skips**. Ruff lint/format,
+strict mypy over 120 source files, schemas, lock, workflow parse, build, and
+diff hygiene all pass. The only initial conformance mismatch was upstream
+`restore()` returning a summary; the adapter now returns the preserved opaque
+bundle required by the shared protocol. Zero live calls were spent.
 
 ## In flight
 
-G4's hosted-evidence steward checkpoint is uncommitted on top of `2d7b9f6`;
-the pre-existing untracked `.codex/` remains untouched. G5 has not started;
-its first action is a gate-specific plan for the optional ClawTeam provider
-and its parity-or-failed-routed disposition.
+G5 implementation, tests, CI label, and this local-evidence checkpoint are
+uncommitted on top of `892fd3b`; the branch is one commit ahead of
+`origin/main` before that candidate commit. The pre-existing untracked
+`.codex/` remains untouched. G5 stays open until the fast-forward push and
+three-OS hosted optional-provider evidence are green.
 
 ## Next steps
 
-1. Commit this G4 hosted-evidence closure, excluding `.codex/`.
-2. Plan G5 before implementation: optional-provider containment, upstream
-   vocabulary/error mapping, one stable process root, roster reconciliation,
-   snapshot copy-out/deletion semantics, shared conformance, lifecycle reuse,
-   and the explicit parity-green vs failed-routed branches.
-3. Implement/test/debug G5 to a green required matrix, commit at completion,
-   fast-forward push for hosted extra evidence under the owner's standing
-   approval, then begin G6 with a fresh plan.
+1. Review and commit the locally green G5 candidate, excluding `.codex/`.
+2. Fast-forward push under the owner's standing CI approval; monitor all 12
+   jobs, especially the three Python-3.11 optional-provider legs, and debug any
+   platform failure without pausing on a failed gate.
+3. Once hosted evidence is green, close G5 in PLAN/VERIFY/HANDOFF, commit the
+   closure, then begin G6 with a fresh measurement/decision plan.
 
 ## Blockers
 
-No mechanical blocker or open G5 product decision. Live writable-member claims remain deferred to M1c,
-which must re-probe
-then-supported clients and run one declared-deliverable acceptance per
-supported harness. Team Grok is unsupported on Windows under the r6
-evidence boundary.
+No mechanical blocker or open G5 product decision. G6 will produce the pinned
+LOC ratio and caveat packet; the approved exit criterion then genuinely needs
+the owner's accept/drop judgment before G7 can close. Live writable-member
+claims remain deferred to M1c, which must re-probe then-supported clients and
+run one declared-deliverable acceptance per supported harness. Team Grok is
+unsupported on Windows under the r6 evidence boundary.
 
 ## Key files
 

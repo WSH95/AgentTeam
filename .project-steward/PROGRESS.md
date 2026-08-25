@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T05:23:04Z — codex
+**M1b G5 is locally parity-green; hosted evidence pending.** The optional provider now passes the shared conformance contract and the same twelve-condition three-member CLI lifecycle behind the frozen containment boundary. Optional suite 31; full extra-installed tree 625+3; clean core tree 594+4 with the directory skipped; Ruff/format, mypy/120, schemas, lock, workflow parse, build, and diff clean. One initial restore-return mismatch was normalized and the immediate rerun passed. Zero live calls; next is candidate commit + standing-approved hosted matrix.
+
 ### 2026-08-25T05:02:08Z — codex
 **M1b G4 closed with hosted evidence.** Fix run 32811023030 at `2d7b9f6` is 12/12 green: all six scaffold legs (ubuntu/windows/macos × Python 3.11/3.13) passed the full suite, team validate/render-only smoke, and named direct+team CLI acceptance; all three ClawTeam and all three vendor-smoke jobs also green. The first-run Windows fixture failures are retained as diagnosed evidence. Zero live calls. G5 starts only after this closure commit, with a fresh provider-specific plan.
 

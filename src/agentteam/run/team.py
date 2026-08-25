@@ -18,7 +18,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from agentteam.coordination.local import LocalCoordinationProvider
+from agentteam.coordination import create_provider
 from agentteam.coordination.protocol import (
     CleanupOutcome,
     CleanupWarningCode,
@@ -421,7 +421,12 @@ class _TeamRunner:
         self.provider = (
             self.provider_factory(root)
             if self.provider_factory is not None
-            else LocalCoordinationProvider(root, platform=self.platform)
+            else create_provider(
+                self.resolved.request.substrate,
+                root,
+                environ=self.environ,
+                platform=self.platform,
+            )
         )
         info = self.provider.info()
         definition = self.resolved.template.definition

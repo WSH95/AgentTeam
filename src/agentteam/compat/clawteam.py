@@ -121,7 +121,7 @@ class ClawTeamCompat:
 
     # -- team lifecycle -------------------------------------------------------
 
-    def create_space(self) -> str:
+    def create_space(self, *, leader: str) -> str:
         from clawteam.team.manager import TeamManager
 
         name = f"atm-{uuid4().hex[:8]}"
@@ -129,7 +129,7 @@ class ClawTeamCompat:
         # ("{user}_{agent}"), which would desynchronise send and receive.
         TeamManager.create_team(
             name,
-            leader_name="atm-lead",
+            leader_name=leader,
             leader_id=uuid4().hex,
             description="AgentTeam compatibility qualification",
             user="",

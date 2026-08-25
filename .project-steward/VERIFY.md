@@ -4,6 +4,22 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1b G5 local verification — 2026-08-25 (pre-push)
+
+| Check | Result |
+| --- | --- |
+| Optional provider | PASS — thin `coordination/clawteam.py` adapter behind the generic registry and qualified seam; logical lead reaches upstream; stable `AGENTTEAM_HOME/clawteam` process root; opaque `atm-<hex8>` namespaces; exact pin/version and honest `namespace` isolation |
+| Shared conformance | PASS — **31 compatibility tests total** cover the existing 12 qualification/hostile-hook scenarios, shared protocol lifecycle, full-roster reconciliation, deterministic task order and remaining blockers, `running ↔ in_progress`, lock/lookup/message translations, snapshot restore, post-close inoperability, and two-space isolation |
+| Cleanup containment | PASS — both handshake values are exact and path-free; false retains evidence; true removes only `snapshots/<space>`; a neighboring subtree survives; upstream cleanup and exact deletion are independently attempted; injected deletion failure retains evidence and reports only the closed warning code |
+| Section 13 lifecycle | PASS — the same normalized twelve-condition helper used by local acceptance runs the committed three-member fake workflow through the public CLI over the optional provider; roster/DAG/messages/snapshot/member records/access/selection/isolation/immutability/publication/transport/ledger/blinding all pass; `processes-stopped` precedes provider cleanup |
+| Containment and optionality | PASS — direct upstream imports remain frozen in `compat/clawteam.py`; run/commands contain no provider-specific token; the core environment has no optional package and skips the compatibility directory cleanly; the locked extra is unchanged |
+| Local matrices | PASS — extra installed: full pytest **625 passed + 3 platform skips**; extra absent: full pytest **594 passed + 4 expected skips**; Ruff lint/format clean over 124 files; strict mypy clean over 120 source files; schemas and lock current; workflow YAML parses; wheel/sdist build; `git diff --check` clean |
+| Debug record | PASS — first provider-conformance attempt exposed that upstream `restore()` returns a summary rather than the protocol's original opaque bundle; the adapter now reads/preserves the bundle, performs restore, and returns that bundle; immediate conformance rerun and both full matrices passed |
+| Boundary | PASS — deterministic fakes only; zero model/live calls, credential reads, schema/lock-pin/AGENTS/CLAUDE/M1c changes; hosted three-OS evidence still pending; pre-existing `.codex/` untouched |
+
+Last verified: 2026-08-25 by Codex. G5 remains open until the candidate is
+fast-forward pushed and required hosted CI is green.
+
 ## M1b G4 hosted evidence — 2026-08-25 (gate closed)
 
 | Check | Result |

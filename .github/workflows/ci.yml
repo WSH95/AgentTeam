@@ -1,8 +1,9 @@
 # Scaffold smoke matrix (M1a plan section 16). The workflow grows gate by
 # gate: G3 adds adapter tests and the Windows .cmd fake, G4 adds deterministic
-# acceptance / hash identity / optional ClawTeam jobs, G7 runs the final
-# matrices plus the vendor-smoke job. No vendor login, model call, API key, or
-# secret is ever used here.
+# acceptance / hash identity / optional ClawTeam jobs, G5 fills that optional
+# job with provider conformance and lifecycle coverage, and G7 runs the final
+# matrices plus vendor smoke. No vendor login, model call, API key, or secret
+# is ever used here.
 name: ci
 
 on:
@@ -180,7 +181,7 @@ jobs:
         run: uv python install 3.11
       - name: Sync with the optional provider extra
         run: uv sync --frozen --all-groups --extra clawteam
-      - name: ClawTeam compatibility suite only (temp data/config fixtures)
+      - name: ClawTeam qualification + provider conformance + lifecycle
         run: uv run --no-sync pytest tests/compatibility
 
   # G7 vendor smoke (plan section 16): npm-installed Claude Code and Codex
