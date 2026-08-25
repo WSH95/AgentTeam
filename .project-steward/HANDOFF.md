@@ -1,34 +1,30 @@
 ---
-updated_at: 2026-08-25T22:51:19Z
+updated_at: 2026-08-25T22:58:18Z
 updated_by: codex
 session_status: active
 branch: main
-last_commit: f53b314
+last_commit: 35790ad
 ---
 # Handoff
 
 ## Now
 
-M1a and M1b remain complete. M1c G5 is closed at `f53b314`: hosted run
-32906748578 passed all 12 jobs across Ubuntu, macOS, and Windows, including the
-full suite, named M1c acceptance, build/schema/CLI tail, optional ClawTeam, and
-credential-free vendor smoke. The two retained 10/12 attempts and their Win32
-process-query and ephemeral archive-lease corrections remain documented.
-The owner's conditional Windows hold did not activate because both Windows
-scaffold legs passed. M1c G6 is now closed at zero model calls: the exact
-runtime installed, Grok 1.0.5 passed strict no-call ACP lifecycle, and Claude
-Code 2.1.245 plus Codex 0.149.1 are excluded on real adapter resume failures.
-The safe standard-CLI symlink provenance correction is locally green at 11
-focused and 738 passed + 4 expected skips; it awaits commit/push and final
-hosted evidence. No credential value was read or copied and no model/live call
-has occurred.
+M1a and M1b remain complete. M1c G5 and G6 are closed. The final exact product
+candidate `35790ad` passed hosted run 32908268851 **12/12** across all six
+Ubuntu/macOS/Windows scaffold legs, all three optional ClawTeam jobs, and all
+three credential-free vendor-smoke jobs. Both Windows scaffold legs passed the
+full suite and named M1c acceptance, so the owner's conditional Windows hold
+did not activate. The exact direct-ACP runtime is installed and the zero-call
+qualification is honest: Grok 1.0.5 is supported; Claude Code 2.1.245 and Codex
+0.149.1 are fail-closed excluded on real ACP resume errors. No credential value
+was read or copied and no model/live call has occurred.
 
 ## In flight
 
-- G5 product/fix commits are pushed and its 12/12 hosted evidence is green.
+- G5 product/fix commits and the G6 launcher-provenance correction are pushed;
+  the final exact candidate is locally and hosted green.
 - G6 exact runtime and owner-only qualification records are installed. Grok is
-  supported; Claude/Codex remain fail-closed excluded. The launcher provenance
-  source correction and ADR/evidence are locally complete but uncommitted.
+  supported; Claude/Codex remain fail-closed excluded.
 - The final adversarial review has no unresolved high-severity implementation
   finding. RISKS R38 records the bounded M3 follow-up for Skill supporting
   scripts/assets; M1c projects `SKILL.md` instructions only.
@@ -36,20 +32,20 @@ has occurred.
 
 ## Next steps
 
-1. Commit/push the G6 launcher-provenance correction and evidence, then obtain
-   a green final hosted matrix for the exact candidate.
-2. Stop before G7 and request its fresh attended Grok-only five-call go. Do not infer
-   authorization from the approved plan or implementation review.
-3. Close M1c G8 before starting M1d D0; M1d also needs the ClawTeam/native-spawn
-   owner ruling and has a zero-call budget.
+1. Obtain the fresh attended owner go required for G7. Do not infer it from the
+   approved plan, implementation approval, or zero-call qualification.
+2. If approved, execute only Grok's five bounded lifecycle calls and record the
+   exact ledger; Claude/Codex remain ineligible unless a fresh no-call G6
+   qualification first succeeds.
+3. Close M1c G8 before starting M1d D0; M1d also needs the
+   ClawTeam/native-spawn owner ruling and has a zero-call budget.
 
 ## Blockers
 
-G5 and G6 have no capability blocker; final hosted evidence is pending for the
-post-G5 launcher correction. G7 remains blocked by design on a fresh attended
-owner go. Claude/Codex are ineligible under their current G6 exclusions; only
-Grok's five lifecycle calls may be proposed. M1d remains blocked on M1c G8 and
-its D0 decisions. HB-03 remains deferred.
+G5 and G6 have no remaining blocker. G7 is blocked by design on a fresh
+attended owner go. Claude/Codex are ineligible under their current G6
+exclusions; only Grok's five lifecycle calls may be proposed. M1d remains
+blocked on M1c G8 and its D0 decisions. HB-03 remains deferred.
 
 ## Key files
 
@@ -60,8 +56,7 @@ its D0 decisions. HB-03 remains deferred.
 - `docs/interactive-teamruns.md` — operator, lifecycle, permission, and
   provider-ownership guide.
 - `.project-steward/VERIFY.md` — final local audit and exact validation block.
-- `.project-steward/PLAN.md` — G5 is closed; G6 remains unchecked with its
-  missing installed-runtime evidence stated explicitly.
+- `.project-steward/PLAN.md` — G5/G6 are closed; G7/G8 remain open.
 - `/tmp/agentteam-m1c-g5-review/review_results.md` — local adversarial review
   synthesis (not a committed project artifact).
 

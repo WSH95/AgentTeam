@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T22:58:18Z — codex
+[auto-checkpoint] M1c final pre-G7 candidate `35790ad` is green locally and in hosted run 32908268851 (12/12, including both Windows scaffold legs); G5/G6 are closed, Grok alone is G7-eligible for five attended lifecycle calls, and work stops for the required fresh owner go
+
 ### 2026-08-25T22:51:19Z — codex
 M1c G6 closed at zero model calls: exact direct-ACP runtime `ecd3525e…bfb2b5` installed, safe standard-CLI symlink provenance fixed and fingerprinted, Grok 1.0.5 passed strict no-call lifecycle while Claude Code 2.1.245 and Codex 0.149.1 were excluded on real adapter resume errors; 11 focused + 738+4 full local block green, final hosted correction evidence pending before the fresh G7 go
 
