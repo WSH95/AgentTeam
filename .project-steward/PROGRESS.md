@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T02:02:34Z — grok
+**M1b r6 independently confirmed G0-eligible.** Sixth review froze `760a8ae` (plan SHA-256 `1776305f…e356f6`); r5 hashes re-verified. All fifth-review findings closed; no implementation blockers. Residual notes only (dual “materialize” wording; exclusive-create of an existing project sandbox.toml). Immutable record `docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md`. Zero live calls, no product source, no G0, no push.
+
 ### 2026-08-25T01:45:13Z — codex
 **M1b r6 planning revision committed.** The immutable fifth-review record landed separately at `a140829`; draft r6, ADR 0043, R36/R37, and synchronized PLAN/HANDOFF/QUESTIONS state land in the commit carrying this entry. The docs-only validation remains green (453 passed + 4 skipped; Ruff, mypy/98, schemas, diff/fences); zero live calls, no product source, no push, and r6 remains NOT approved pending owner G0 or a frozen-SHA confirmation pass.
 

@@ -40,7 +40,8 @@ pinned secret scan at the enumerated baseline, the owner-reviewed sanitized
 bundle committed (`docs/evidence/m1a-live-2026-08-24/`), and the M1b draft
 proposed-not-approved. Next milestone work (M1b) requires its own reviewed
 plan and explicit owner approval. **The M1b plan is at draft r6
-(2026-08-24)** after five independent review rounds, all recorded
+(`760a8ae`, 2026-08-24)** after five finding rounds plus a sixth
+confirmation, all recorded
 immutably in `docs/reviews/` (r1 at `14dc218`: 7 blocking + 3 hygiene →
 r2, ADR 0039; r2 at `54728c8`: 6 blocking + 3 medium → r3, ADR 0040; r3
 at `6d3f329`, text SHA-256 verified: 4 blockers + 3 medium → r4, ADR
@@ -60,10 +61,12 @@ containment. r6 adds explicit team-member render scope; exact disjoint
 Claude sets; collision-safe project-local Grok profiles with Windows
 refusal; launch-time handoff-inclusive baselines; shared substrate typing;
 and causal failed / interrupted cancelled / never-allocated abandoned task
-pairings. The ClawTeam exit-criterion
-wording (plan §10) finalizes at approval. Next: owner approval as the G0
-DECISIONS entry naming the file + r6's commit SHA, or another
-confirmation pass at r6's frozen SHA first.
+pairings. A sixth independent review confirmed r6 at `760a8ae` (plan
+SHA-256 `1776305f…e356f6`) as G0-eligible with no remaining
+implementation blockers (`docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md`).
+The ClawTeam exit-criterion wording (plan §10) finalizes at approval.
+Next: owner G0 as a DECISIONS entry naming the file + r6 SHA
+`760a8ae8c7021b0427bf29c84f005bebdd453bf6`.
 
 ## Answered during G5 owner setup
 

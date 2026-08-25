@@ -1,56 +1,41 @@
 ---
-updated_at: 2026-08-25T01:45:13Z
-updated_by: codex
+updated_at: 2026-08-25T02:02:34Z
+updated_by: grok
 session_status: active
 branch: main
-last_commit: a140829
+last_commit: 760a8ae
 ---
 # Handoff
 
 ## Now
 
-**The M1b plan is at draft r6 after five independent review rounds; r6 is
-NOT approved.** The fifth review froze r5 at full commit
-`12ca6c730f99816ed79c6e0537de021d25dd24b2` and plan SHA-256
-`95ff6ab3816efd61db845216b34aecb64b8d22efde3f13a727027c612a44acf4`.
-Its immutable adjudicated record is
-`docs/reviews/2026-08-24-m1b-plan-review-at-12ca6c7.md` (`a140829`).
+**The M1b plan is draft r6, independently confirmed G0-eligible, and still
+NOT approved.** The sixth review froze r6 at full commit
+`760a8ae8c7021b0427bf29c84f005bebdd453bf6` and plan SHA-256
+`1776305f7bb0cca614efc13621b31d870a340444a70e06af168b5e7a86e356f6`;
+r5 hashes re-verified. The immutable confirmation is
+`docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md` (this commit).
 
-r6 (plan §21 r5→r6 table; ADR 0043) closes the fifth-round gaps with:
-
-- complete disjoint Claude allow/deny sets for both grants;
-- an explicit `standalone | team-member` render discriminator;
-- collision-safe, per-render project `.grok/sandbox.toml` profiles that
-  never rewrite persistent `GROK_HOME`, plus fail-closed Windows refusal;
-- team Codex workspace-write with network explicitly disabled;
-- step-5 copy verification separated from the handoff-inclusive,
-  launch-time `target.before`;
-- a shared `SubstrateKind` leaving `domain/run.py` at zero `clawteam`
-  occurrences; and
-- a run-only task `cancelled` state and exhaustive terminal sweep: causal
-  task failure, non-causal allocated cancellation, never-allocated
-  abandonment, completed preservation, and explicit pre-/post-commit
-  provider-completion ambiguity.
+All fifth-review findings are closed. No implementation blockers remain.
+Residual notes only: dual “materialize” wording (G3 treats 7b as
+verify-or-idempotent-recopy); exclusive-create of an existing project
+`.grok/sandbox.toml` (fifth-review fail-closed, M1c merge if needed).
 
 ## In flight
 
-The immutable fifth-review record is committed separately at `a140829`.
-The r6 docs/steward change is complete and lands in the commit carrying this
-handoff. Product implementation has not started. Validation is green: frozen
-r5 hash exact; 453 passed + 4 skipped; Ruff clean; mypy clean across 98 source
-files; schemas current; Markdown fences balanced; diff check clean. Zero live
-calls were spent. The pre-existing untracked `.codex/` remains untouched.
+Nothing after the confirmation record. Product implementation has not
+started. Zero live calls were spent. The pre-existing untracked `.codex/`
+remains untouched.
 
 ## Next steps (a NEW approval scope — nothing starts automatically)
 
-1. Treat the commit carrying this handoff as the proposed r6 revision. Either
-   commission a frozen-SHA confirmation pass or approve G0 via a DECISIONS
-   entry naming
-   `docs/plans/m1b-team-foundation.md` and that commit SHA.
+1. **Owner G0** — DECISIONS entry naming
+   `docs/plans/m1b-team-foundation.md` and
+   `760a8ae8c7021b0427bf29c84f005bebdd453bf6`; status flip in the
+   following commit. Carry the glossary CoordinationSubstrate `stop`
+   amendment listed in plan §20.
 2. Only after G0: execute plan gates G1–G7 and §16 commit boundaries.
-3. At G0, carry the glossary CoordinationSubstrate `stop` amendment listed
-   in plan §20.
-4. Push only on a separate explicit owner approval.
+3. Push only on a separate explicit owner approval.
 
 ## Blockers
 
@@ -62,10 +47,11 @@ evidence boundary.
 
 ## Key files
 
-- `docs/plans/m1b-team-foundation.md` — **draft r6, the current approval
-  target**.
-- `docs/reviews/2026-08-24-m1b-plan-review-at-12ca6c7.md` — immutable fifth
-  review record (`a140829`); the prior four records remain unchanged.
+- `docs/plans/m1b-team-foundation.md` — **draft r6 at `760a8ae`, G0-eligible,
+  not approved**.
+- `docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md` — immutable sixth
+  review (confirmation). Prior records through
+  `docs/reviews/2026-08-24-m1b-plan-review-at-12ca6c7.md` remain unchanged.
 - `.project-steward/DECISIONS.md` ADR 0043 — r6 design decisions.
 - `.project-steward/RISKS.md` R36/R37 — adapter-enforcement and terminal-
   pairing boundaries.
