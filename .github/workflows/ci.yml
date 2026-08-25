@@ -82,11 +82,15 @@ jobs:
       - name: CLI deterministic smoke (validate + render-only, fakes only)
         run: |
           uv run --no-sync atm assistant validate examples/assistants/code-reviewer --strict-content
+          uv run --no-sync atm team validate examples/teams/development.yaml --json
           uv run --no-sync atm run --assistant examples/assistants/code-reviewer \
             --workspace fixtures/fake-harness --task-file README.md \
             --config examples/profiles/ci-fake.yaml \
             --harness claude-code --harness codex --harness grok \
             --render-only --output-dir "$RUNNER_TEMP/render-smoke"
+          uv run --no-sync atm run examples/run-requests/team-review.yaml \
+            --config examples/profiles/ci-fake.yaml \
+            --render-only --output-dir "$RUNNER_TEMP/team-render-smoke"
       - name: Example-package hash identity (cross-OS pin, section 16)
         run: |
           uv run --no-sync python -c "
@@ -97,7 +101,7 @@ jobs:
           assert digest.package_hash == pinned, digest.package_hash
           print('example-package hash identity holds:', pinned)
           "
-      - name: Deterministic acceptance (full fake ensemble via the CLI, section 14)
+      - name: Deterministic direct + team acceptance via the CLI (sections 13-14)
         env:
           AGENTTEAM_HOME: ${{ runner.temp }}/agentteam-home
           FAKE_MODE: ok
@@ -111,8 +115,11 @@ jobs:
           uv run --no-sync atm run examples/run-requests/direct-review.yaml \
             --config examples/profiles/ci-fake.yaml \
             --output-dir "$RUNNER_TEMP/acceptance-run"
+          uv run --no-sync atm run examples/run-requests/team-review.yaml \
+            --config examples/profiles/ci-fake.yaml \
+            --output-dir "$RUNNER_TEMP/team-acceptance-run"
           uv run --no-sync python -c "
-          import json, os, pathlib
+          import hashlib, json, os, pathlib
           root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'acceptance-run'
           run = json.loads((root / 'run.json').read_text(encoding='utf-8'))
           assert run['status'] == 'succeeded', run
@@ -120,6 +127,20 @@ jobs:
           assert ensemble['acceptance']['mechanical']['passed'] is True, ensemble
           assert ensemble['acceptance']['semantic']['passed'] is True, ensemble
           print('deterministic acceptance: both tiers PASS')
+          team_root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'team-acceptance-run'
+          team = json.loads((team_root / 'run.json').read_text(encoding='utf-8'))
+          assert team['status'] == 'succeeded', team
+          assert [row['status'] for row in team['tasks']] == ['completed'] * 3, team
+          assert [row['workspace_access'] for row in team['tasks']] == [
+              'read-only', 'workspace-write', 'read-only'
+          ], team
+          assert any(row['selection']['decided_by'] == 'team' for row in team['members']), team
+          snapshot = team_root / team['substrate']['snapshot']['path']
+          assert hashlib.sha256(snapshot.read_bytes()).hexdigest() == team['substrate']['snapshot']['sha256']
+          deliverable = team_root / 'legs/inv-implementer/deliverables/implementation.txt'
+          assert hashlib.sha256(deliverable.read_bytes()).hexdigest() == 'd3b0ba50d3d0f0029e079a1aa9adc0014535236933f80050c0e6a0acf5b903fd'
+          assert len((team_root / 'coordination/messages.jsonl').read_text(encoding='utf-8').splitlines()) == 1
+          print('deterministic team lifecycle: tasks, grants, snapshot, deliverable, and ledger PASS')
           "
 
   # Optional provider matrix (plan sections 10 and 16): the exactly pinned

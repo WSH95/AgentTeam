@@ -232,8 +232,10 @@ def member_result_body(mode):
                 fh.write("reserved\n")
             body["deliverables"] = ["handoff/value.txt"]
         else:
-            with open("implementation.txt", "w", encoding="utf-8") as fh:
-                fh.write("deterministic team implementation\n")
+            # Bytes are pinned so the declared deliverable has one digest on
+            # POSIX and Windows (text mode would translate LF on Windows).
+            with open("implementation.txt", "wb") as fh:
+                fh.write(b"deterministic team implementation\n")
             body["deliverables"] = ["implementation.txt"]
     if mode == "schema-invalid":
         body["summary"] = ""

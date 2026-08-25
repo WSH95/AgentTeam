@@ -154,6 +154,16 @@ def _clean_managed(channel_root: Path) -> None:
 
 
 def write_skills(ctx: RenderContext, channel_root: Path, channel: str) -> list[FileWriteV1]:
+    skill_artifacts = [
+        artifact
+        for artifact in ctx.definition.artifacts
+        if artifact.kind is ArtifactKind.AGENT_SKILL
+    ]
+    # A Skill-free Assistant has nothing to publish into this discovery
+    # channel. Avoid creating an ownership marker that would otherwise become
+    # an undeclared renderer write inside a member's target workspace.
+    if not skill_artifacts:
+        return []
     if channel_root.is_symlink():
         raise RenderError(f"refusing symlinked Skill directory: {channel_root}")
     _require_managed_or_empty(channel_root)
@@ -162,9 +172,7 @@ def write_skills(ctx: RenderContext, channel_root: Path, channel: str) -> list[F
 
     writes: list[FileWriteV1] = []
     undeliverable: list[DegradedPartV1] = []
-    for artifact in ctx.definition.artifacts:
-        if artifact.kind is not ArtifactKind.AGENT_SKILL:
-            continue
+    for artifact in skill_artifacts:
         source = ctx.package_root / artifact.source.vendored
         part = f"skill:{artifact.ref}"
         if not (source / "SKILL.md").is_file():

@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T04:31:52Z — codex
+**M1b G4 is locally green; hosted core evidence pending.** A dedicated public-CLI acceptance pins all 12 section-13 lifecycle conditions plus pre-provider outsider rejection. It found and fixed a Skill-free Codex marker polluting the target baseline; the fake deliverable is now byte-stable across Windows/POSIX with pinned SHA-256. New acceptance 2; targeted acceptance/render/hash block 59; exact CI shell path PASS; full 594+4; Ruff/format, strict mypy/117, schemas, lock, build, workflow parse, and diff clean. Zero live calls. Next: semantic candidate commit, standing-approved fast-forward push, then six hosted core legs.
+
 ### 2026-08-25T04:14:48Z — codex
 **M1b G3 closed locally.** Team-request dispatch/preflight, exact scope-aware harness rendering, state-free render-only, the provider-neutral lifecycle scheduler, durable bindings, member-result/deliverable/handoff/ledger/snapshot pipelines, truthful terminal finalization, archive binding verification, and the complete injected-fault matrix are green. Focused 54; full 592+4; Ruff/format, strict mypy/116, schemas, lock, build, and diff clean. Direct rendering remains covered; zero live calls/push; G4 begins with a fresh gate plan after the semantic commit.
 
