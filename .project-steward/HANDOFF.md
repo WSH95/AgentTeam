@@ -1,41 +1,42 @@
 ---
-updated_at: 2026-08-25T04:31:52Z
+updated_at: 2026-08-25T04:52:58Z
 updated_by: codex
 session_status: active
 branch: main
-last_commit: 8d3f998
+last_commit: 8d3b3ae
 ---
 # Handoff
 
 ## Now
 
-**M1b G3 is committed and M1b G4 is locally green, pending hosted core
-evidence.** The approved r6 source remains
-`760a8ae8c7021b0427bf29c84f005bebdd453bf6` (ADR 0044); G3 is committed at
-`8d3f998`. G4 adds the dedicated public-CLI lifecycle acceptance and extends
-the named scaffold acceptance step to execute both direct and three-member
-team requests on all six core legs.
+**M1b G4's first hosted run failed on two cross-platform test-fixture defects;
+the fix is locally green and ready to commit/rerun.** The approved r6 source
+remains `760a8ae8c7021b0427bf29c84f005bebdd453bf6` (ADR 0044); G4's candidate
+is pushed at `8d3b3ae`. Run 32810234923 had all ten non-Windows jobs green;
+both Windows scaffold legs failed in G3 fault fixtures that forced Linux
+launcher semantics and crossed the runner's `C:`/`D:` drives for relative
+Assistant refs. The new lifecycle acceptance itself passed on both Windows
+legs.
 
 The G4 local block passed: new acceptance 2; targeted acceptance/render/hash
 59; exact CI shell path; full 594 passed + 4 expected skips; Ruff lint/format,
 strict mypy over 117 source files, schemas, lock, workflow parse, build, and
-diff check clean. Acceptance found and fixed an undeclared Skill-free Codex
-workspace marker and made the fake deliverable byte-stable across platforms.
-Zero live calls were spent.
+diff check clean. The hosted fix uses the real host platform, a Claude/Codex-
+only parallel fault fixture, and same-drive copied Assistant packages; focused
+44 and the full 594+4 suite pass after the fix. Zero live calls were spent.
 
 ## In flight
 
-G4 is prepared for its semantic CI-candidate commit from parent `8d3f998`.
-The pre-existing untracked `.codex/` remains untouched. G4 stays open until a
-fast-forward push proves all six hosted scaffold legs green.
+The Windows-fixture fix is uncommitted on top of `8d3b3ae`; the pre-existing
+untracked `.codex/` remains untouched. G4 stays open until the fix is pushed
+and all six hosted scaffold legs are green.
 
 ## Next steps
 
-1. Commit the locally green G4 candidate as
-   `test(poc): add deterministic team-lifecycle acceptance`, including this
-   steward state and excluding `.codex/`.
-2. Fast-forward push `main` under the owner's standing approval and monitor the
-   hosted workflow, requiring all six scaffold OS/Python legs green.
+1. Commit the cross-platform fixture fix with this steward state, excluding
+   `.codex/`.
+2. Fast-forward push `main` under the owner's standing approval and monitor a
+   fresh hosted workflow, requiring all six scaffold OS/Python legs green.
 3. Record the run id/results, mark G4 complete, commit its hosted-evidence
    checkpoint, then begin G5 with a fresh gate-specific plan.
 

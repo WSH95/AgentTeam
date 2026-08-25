@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
+import shutil
 import sys
 from pathlib import Path
 from typing import Any
@@ -238,12 +238,12 @@ def test_forward_reference_declaration_registers_in_stable_topological_order(
     tmp_path: Path,
 ) -> None:
     template_path = tmp_path / "forward.yaml"
-    reviewer = os.path.relpath(
-        REPO_ROOT / "examples/assistants/code-reviewer", template_path.parent
-    )
-    implementer = os.path.relpath(
-        REPO_ROOT / "examples/assistants/implementer", template_path.parent
-    )
+    reviewer_root = tmp_path / "assistants" / "code-reviewer"
+    implementer_root = tmp_path / "assistants" / "implementer"
+    shutil.copytree(REPO_ROOT / "examples/assistants/code-reviewer", reviewer_root)
+    shutil.copytree(REPO_ROOT / "examples/assistants/implementer", implementer_root)
+    reviewer = reviewer_root.relative_to(template_path.parent).as_posix()
+    implementer = implementer_root.relative_to(template_path.parent).as_posix()
     source = yaml.safe_load(
         (REPO_ROOT / "examples/teams/development.yaml").read_text(encoding="utf-8")
     )

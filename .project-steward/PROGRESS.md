@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T04:52:58Z — codex
+**M1b G4 hosted attempt 1 diagnosed and fixed locally.** Run 32810234923 at `8d3b3ae`: all ten non-Windows jobs green; both Windows scaffold legs failed only in G3 fault fixtures that forced Linux launcher semantics and built relative Assistant refs across `C:` temp / `D:` checkout drives. The new section-13 acceptance itself passed on both Windows legs. Fix: real host platform, no Grok in the Windows-parallel fault shape, and same-drive copied Assistant packages. Focused 44; full 594+4; Ruff/format/mypy clean. Next: fix commit and standing-approved rerun; zero live calls.
+
 ### 2026-08-25T04:31:52Z — codex
 **M1b G4 is locally green; hosted core evidence pending.** A dedicated public-CLI acceptance pins all 12 section-13 lifecycle conditions plus pre-provider outsider rejection. It found and fixed a Skill-free Codex marker polluting the target baseline; the fake deliverable is now byte-stable across Windows/POSIX with pinned SHA-256. New acceptance 2; targeted acceptance/render/hash block 59; exact CI shell path PASS; full 594+4; Ruff/format, strict mypy/117, schemas, lock, build, workflow parse, and diff clean. Zero live calls. Next: semantic candidate commit, standing-approved fast-forward push, then six hosted core legs.
 

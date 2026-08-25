@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import shutil
+import sys
 from pathlib import Path
 from typing import Any, cast
 
@@ -71,7 +73,7 @@ def _resolved(out: Path, env: dict[str, str] | None = None) -> Any:
         profile_path=CI_FAKE,
         live=True,
         environ=parent,
-        platform="linux",
+        platform=sys.platform,
     )
 
 
@@ -88,7 +90,7 @@ def _run(
 
     def factory(root: Path) -> CoordinationSubstrate:
         provider = FaultInjectingProvider(
-            LocalCoordinationProvider(root, platform="linux"),
+            LocalCoordinationProvider(root, platform=sys.platform),
             method=method,
             occurrence=occurrence,
             after=after,
@@ -100,7 +102,7 @@ def _run(
         execute_team_run(
             resolved,
             environ={**os.environ, "FAKE_MODE": "ok", **(env or {})},
-            platform="linux",
+            platform=sys.platform,
             provider_factory=factory,
         )
     )
@@ -228,7 +230,7 @@ def test_wait_helper_timeout_fault_aborts_without_launch(
         execute_team_run(
             resolved,
             environ={**os.environ, "FAKE_MODE": "ok"},
-            platform="linux",
+            platform=sys.platform,
         )
     )
     assert outcome.exit_code == 1
@@ -261,7 +263,7 @@ def _plain_run(out: Path, env: dict[str, str] | None = None) -> Any:
         execute_team_run(
             resolved,
             environ={**os.environ, "FAKE_MODE": "ok", **(env or {})},
-            platform="linux",
+            platform=sys.platform,
         )
     )
 
@@ -396,7 +398,7 @@ def test_cancellation_terminalizes_allocated_work_and_abandons_the_rest(
             execute_team_run(
                 resolved,
                 environ={**os.environ, "FAKE_MODE": "ok"},
-                platform="linux",
+                platform=sys.platform,
             )
         )
         await asyncio.wait_for(entered.wait(), timeout=3)
@@ -419,12 +421,12 @@ def test_parallel_failure_cascade_lets_inflight_sibling_finish(
     tmp_path: Path,
 ) -> None:
     template_path = tmp_path / "parallel-team.yaml"
-    reviewer = os.path.relpath(
-        REPO_ROOT / "examples/assistants/code-reviewer", template_path.parent
-    )
-    implementer = os.path.relpath(
-        REPO_ROOT / "examples/assistants/implementer", template_path.parent
-    )
+    reviewer_root = tmp_path / "assistants" / "code-reviewer"
+    implementer_root = tmp_path / "assistants" / "implementer"
+    shutil.copytree(REPO_ROOT / "examples/assistants/code-reviewer", reviewer_root)
+    shutil.copytree(REPO_ROOT / "examples/assistants/implementer", implementer_root)
+    reviewer = reviewer_root.relative_to(template_path.parent).as_posix()
+    implementer = implementer_root.relative_to(template_path.parent).as_posix()
     template = {
         "schema_version": 1,
         "kind": "team-template",
@@ -500,9 +502,9 @@ def test_parallel_failure_cascade_lets_inflight_sibling_finish(
         "members": {
             "root": {"harness": "claude-code"},
             "failing": {"harness": "codex"},
-            "survivor": {"harness": "grok"},
+            "survivor": {"harness": "claude-code"},
             "dependent": {"harness": "claude-code"},
-            "survivor-child": {"harness": "grok"},
+            "survivor-child": {"harness": "claude-code"},
         },
         "output_dir": str(out),
     }
@@ -515,9 +517,9 @@ def test_parallel_failure_cascade_lets_inflight_sibling_finish(
         profile_path=CI_FAKE,
         live=True,
         environ=env,
-        platform="linux",
+        platform=sys.platform,
     )
-    outcome = asyncio.run(execute_team_run(resolved, environ=env, platform="linux"))
+    outcome = asyncio.run(execute_team_run(resolved, environ=env, platform=sys.platform))
     assert outcome.exit_code == 1
     run = _assert_closed(out, space_minted=True)
     assert {row["id"]: row["status"] for row in run["tasks"]} == {
