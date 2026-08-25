@@ -4,6 +4,30 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T22:07:49Z — cli
+M1c r2 remains locally review-ready after final validation; no runtime install, model call, commit, or push
+
+### 2026-08-25T22:03:23Z — codex
+[auto-checkpoint] M1c r2 is locally review-ready: G5 deterministic/adversarial audit green at 76 focused and 735+4 full regression, G6 fail-closed qualification machinery complete, hosted evidence/runtime install/live calls/commit/push still separately gated
+
+### 2026-08-25T22:03:22Z — codex
+M1c G5 local audit completed and late lifecycle, control, permission, archive/library, runtime-integrity, and direct-ACP close-retry findings hardened; final test/static/schema/lock/build block green, with G5 hosted and G6 installed-runtime evidence deliberately left open
+
+### 2026-08-25T21:03:33Z — codex
+M1c G3–G4 locally closed: retained/recoverable sessions, serialized shared-workspace observation, fail-closed permissions, completion/control lifecycle, TTY + correlated NDJSON, catalog chat, manifest/export/run CLI, and real owned-process-tree cleanup are green in the full 709+4 regression/static/schema/build block; named three-OS CI evidence remains G5, no runtime install or model call
+
+### 2026-08-25T19:54:44Z — codex
+M1c G2 locally closed: provider ownership SPI, owned/external fakes, exact pinned thin acpx/runtime bridge, explicit installer/no-call doctor, strict continuity/cleanup, shipped wheel/sdist resources, and full 685+4 regression/static/build block green; no runtime install or model call
+
+### 2026-08-25T19:06:25Z — codex
+M1c G1 locally closed: 25 kind/version schemas, exact-ref immutable library, faithful/explicit V1→V2 migration, 12 legacy schema hashes unchanged, full 672+4 regression and static/build block green; no dependency or live call
+
+### 2026-08-25T18:49:37Z — codex
+[auto-checkpoint] Owner approved exact M1c/M1d r2; ADR 0045 freezes both SHA-256s, hybrid provider ownership, conditional 18/23 M1c ceiling, zero-call M1d, and starts M1c G1 without any live call
+
+### 2026-08-25T17:55:08Z — cli
+Drafted unapproved M1c/M1d r1 plans for later owner review; no product code, dependency, live call, commit, or push
+
 ### 2026-08-25T05:49:18Z — cli
 M1b G0-G7 complete: parity-green, final local and hosted matrices green, zero live calls; M1c r0 proposed-not-approved
 

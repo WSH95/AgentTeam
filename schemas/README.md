@@ -1,10 +1,11 @@
-# AgentTeam V1 JSON Schemas
+# AgentTeam versioned JSON Schemas
 
-Twelve closed JSON Schema (draft 2020-12) documents, generated deterministically
+Closed JSON Schema (draft 2020-12) documents, generated deterministically
 from the Pydantic models in `src/agentteam/domain/` and verified by
 `python -m agentteam.schema check` (regenerate with `... export`). Every
 record is a closed object (`additionalProperties: false`) carrying
-`schema_version: 1` and a fixed `kind`. External consumers can read and
+an exact `(kind, schema_version)` identity. V1 direct/batch schemas retain
+their original bytes; M1c adds V2 Team and V1 interactive records. External consumers can read and
 validate instances with any JSON Schema validator — no pattern uses
 look-around, so RE2-based validators work too.
 
@@ -39,10 +40,16 @@ A JSON Schema validator alone does not check these; AgentTeam's models do:
   forbidden and preferred/allowed.
 - `team-template`: roster names, relationship targets, preference keys,
   independence pairs, handoff vocabulary, task ids, owners, blockers, and the
-  acyclic one-task-per-member skeleton agree; placeholders are limited to
-  `{goal}`; mechanical independence and non-empty reserved fields fail closed.
+  acyclic workflow agree. V1 additionally requires one task per Member; V2
+  permits an empty blueprint or multiple tasks per Member and uses exact
+  Assistant catalog refs. Placeholders are limited to `{goal}`; mechanical
+  independence and non-empty reserved constraints fail closed.
 - `team-run-request`: `model` or `effort` requires a same-object `harness`;
   override keys are checked against the resolved template roster.
 - `member-result`: `summary` is non-empty (kept model-level so the delivered
   vendor schema stays within the live-proven structured-output keyword set).
+- Interactive run/session/turn records enforce terminal timestamps, exact
+  roster/session correspondence, separate phase/outcome, and cleanup facts.
+  Control requests enforce action-specific closed payload combinations;
+  completion decisions enforce timestamps; catalog coordinates are unique.
 - All timestamps are timezone-aware.

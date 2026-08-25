@@ -1,5 +1,11 @@
 # AgentTeam M1c dynamic-member PoC B plan — draft r0
 
+> **Historical planning input for the candidate r1 split.** The proposed,
+> unapproved review drafts are
+> `m1c-interactive-teamrun-foundation.md` and
+> `m1d-dynamic-member-poc.md`. Neither draft authorizes implementation or a
+> live call. This r0 remains unchanged below this banner for comparison.
+
 - Status: **PROPOSED — NOT APPROVED.** This r0 is the M1b G7 naming
   deliverable only. It does not authorize product implementation, dependency
   changes, live model calls, or a push. M1c needs its own expanded plan,

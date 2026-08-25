@@ -1,6 +1,6 @@
-"""Checked-in JSON Schema generation and verification (plan sections 6-7).
+"""Checked-in JSON Schema registry, generation, and verification.
 
-The twelve V1 schemas under `schemas/` are generated from the Pydantic models,
+Schemas under `schemas/` are generated from the Pydantic models,
 written with `\\n` newlines, and compared after LF normalisation so the files
 reproduce identically on every operating system. External consumers need
 neither Python nor AgentTeam to read or validate them; invariants a JSON
@@ -26,16 +26,29 @@ from pydantic import BaseModel
 from agentteam.domain import (
     AssistantDefinitionV1,
     BundleManifestV1,
+    CatalogIndexV1,
+    CompletionProposalV1,
+    ControlReceiptV1,
+    ControlRequestV1,
     EnsembleRecordV1,
     HarnessInvocationV1,
     HarnessProfileSetV1,
+    InteractiveRunRecordV1,
+    InteractiveRunRequestV1,
     MemberResultV1,
+    MemberSessionV1,
     NormalizedReviewV1,
+    ProviderCapabilitiesV1,
+    ProviderDoctorV1,
+    RunEventV1,
     RunRecordV1,
     RunRequestV1,
     SynthesisReportV1,
     TeamRunRequestV1,
     TeamTemplateV1,
+    TeamTemplateV2,
+    TurnRecordV1,
+    WorkItemV1,
 )
 from agentteam.domain.run import run_record_json_schema
 
@@ -45,22 +58,62 @@ JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
 # the maintainer tooling runs from the repository root (CI does).
 DEFAULT_SCHEMA_DIR = Path("schemas")
 
-# file name -> (kind, model); the kind is the file stem without "-v1".
+# file name -> (kind, schema version, model). The separate registry is the
+# runtime authority; filenames are an export concern only.
+SCHEMA_ENTRIES: dict[str, tuple[str, int, type[BaseModel]]] = {
+    "assistant-definition-v1.schema.json": ("assistant-definition", 1, AssistantDefinitionV1),
+    "harness-profile-set-v1.schema.json": ("harness-profile-set", 1, HarnessProfileSetV1),
+    "run-request-v1.schema.json": ("run-request", 1, RunRequestV1),
+    "run-record-v1.schema.json": ("run-record", 1, RunRecordV1),
+    "bundle-manifest-v1.schema.json": ("bundle-manifest", 1, BundleManifestV1),
+    "harness-invocation-v1.schema.json": ("harness-invocation", 1, HarnessInvocationV1),
+    "ensemble-record-v1.schema.json": ("ensemble-record", 1, EnsembleRecordV1),
+    "normalized-review-v1.schema.json": ("normalized-review", 1, NormalizedReviewV1),
+    "synthesis-report-v1.schema.json": ("synthesis-report", 1, SynthesisReportV1),
+    "team-template-v1.schema.json": ("team-template", 1, TeamTemplateV1),
+    "team-run-request-v1.schema.json": ("team-run-request", 1, TeamRunRequestV1),
+    "member-result-v1.schema.json": ("member-result", 1, MemberResultV1),
+    "team-template-v2.schema.json": ("team-template", 2, TeamTemplateV2),
+    "interactive-run-request-v1.schema.json": (
+        "interactive-run-request",
+        1,
+        InteractiveRunRequestV1,
+    ),
+    "interactive-run-record-v1.schema.json": (
+        "interactive-run-record",
+        1,
+        InteractiveRunRecordV1,
+    ),
+    "member-session-v1.schema.json": ("member-session", 1, MemberSessionV1),
+    "turn-record-v1.schema.json": ("turn-record", 1, TurnRecordV1),
+    "work-item-v1.schema.json": ("work-item", 1, WorkItemV1),
+    "control-request-v1.schema.json": ("control-request", 1, ControlRequestV1),
+    "control-receipt-v1.schema.json": ("control-receipt", 1, ControlReceiptV1),
+    "completion-proposal-v1.schema.json": (
+        "completion-proposal",
+        1,
+        CompletionProposalV1,
+    ),
+    "run-event-v1.schema.json": ("run-event", 1, RunEventV1),
+    "provider-capabilities-v1.schema.json": (
+        "provider-capabilities",
+        1,
+        ProviderCapabilitiesV1,
+    ),
+    "provider-doctor-v1.schema.json": ("provider-doctor", 1, ProviderDoctorV1),
+    "catalog-index-v1.schema.json": ("catalog-index", 1, CatalogIndexV1),
+}
+
+# Kept as a public compatibility view used by existing schema tooling/tests.
 SCHEMA_MODELS: dict[str, tuple[str, type[BaseModel]]] = {
-    "assistant-definition-v1.schema.json": ("assistant-definition", AssistantDefinitionV1),
-    "harness-profile-set-v1.schema.json": ("harness-profile-set", HarnessProfileSetV1),
-    "run-request-v1.schema.json": ("run-request", RunRequestV1),
-    "run-record-v1.schema.json": ("run-record", RunRecordV1),
-    "bundle-manifest-v1.schema.json": ("bundle-manifest", BundleManifestV1),
-    "harness-invocation-v1.schema.json": ("harness-invocation", HarnessInvocationV1),
-    "ensemble-record-v1.schema.json": ("ensemble-record", EnsembleRecordV1),
-    "normalized-review-v1.schema.json": ("normalized-review", NormalizedReviewV1),
-    "synthesis-report-v1.schema.json": ("synthesis-report", SynthesisReportV1),
-    "team-template-v1.schema.json": ("team-template", TeamTemplateV1),
-    "team-run-request-v1.schema.json": ("team-run-request", TeamRunRequestV1),
-    "member-result-v1.schema.json": ("member-result", MemberResultV1),
+    name: (kind, model) for name, (kind, _version, model) in SCHEMA_ENTRIES.items()
 }
 SCHEMA_FILES: dict[str, type[BaseModel]] = {n: m for n, (_, m) in SCHEMA_MODELS.items()}
+SCHEMA_REGISTRY: dict[tuple[str, int], type[BaseModel]] = {
+    (kind, version): model for kind, version, model in SCHEMA_ENTRIES.values()
+}
+if len(SCHEMA_REGISTRY) != len(SCHEMA_ENTRIES):
+    raise RuntimeError("duplicate (kind, schema_version) registration")
 
 # The three files consumed directly by vendor structured-output flags.
 VENDOR_FACING = {
@@ -121,7 +174,7 @@ def _inline_refs(node: Any, defs: dict[str, Any]) -> Any:
 
 def generate(name: str) -> dict[str, Any]:
     """The JSON Schema document for one checked-in file name."""
-    kind, model = SCHEMA_MODELS[name]
+    kind, version, model = SCHEMA_ENTRIES[name]
     body: dict[str, Any] = (
         run_record_json_schema()
         if name == "run-record-v1.schema.json"
@@ -135,7 +188,7 @@ def generate(name: str) -> dict[str, Any]:
         body = _rewrite_const_as_enum(body)
     document: dict[str, Any] = {
         "$schema": JSON_SCHEMA_DIALECT,
-        "$id": f"urn:agentteam:schema:{kind}:v1",
+        "$id": f"urn:agentteam:schema:{kind}:v{version}",
     }
     document.update(body)
     return document
@@ -148,6 +201,27 @@ def render(name: str) -> str:
 
 def export_all() -> dict[str, str]:
     return {name: render(name) for name in SCHEMA_MODELS}
+
+
+def record_model(kind: str, schema_version: int) -> type[BaseModel]:
+    """Resolve a persistent record model by its full schema identity."""
+    try:
+        return SCHEMA_REGISTRY[(kind, schema_version)]
+    except KeyError:
+        raise ValueError(
+            f"unsupported schema identity: kind={kind!r}, schema_version={schema_version!r}"
+        ) from None
+
+
+def validate_record(payload: Any) -> BaseModel:
+    """Validate an untrusted mapping after closed kind/version dispatch."""
+    if not isinstance(payload, dict):
+        raise ValueError("record must be an object")
+    kind = payload.get("kind")
+    version = payload.get("schema_version")
+    if not isinstance(kind, str) or not isinstance(version, int) or isinstance(version, bool):
+        raise ValueError("record requires string kind and integer schema_version")
+    return record_model(kind, version).model_validate(payload)
 
 
 def write_all(directory: Path) -> list[Path]:
@@ -235,14 +309,18 @@ def vendor_schema_text(name: str) -> str:
 
 __all__ = [
     "DEFAULT_SCHEMA_DIR",
+    "SCHEMA_ENTRIES",
     "SCHEMA_FILES",
     "SCHEMA_MODELS",
+    "SCHEMA_REGISTRY",
     "VENDOR_FACING",
     "VENDOR_STRIP_KEYS",
     "check_all",
     "export_all",
     "generate",
+    "record_model",
     "render",
+    "validate_record",
     "vendor_projection",
     "vendor_schema",
     "vendor_schema_min",

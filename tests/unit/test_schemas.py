@@ -1,6 +1,6 @@
-"""Checked-in JSON Schema contract (M1a plan sections 6-7, 15).
+"""Checked-in versioned JSON Schema contract.
 
-The twelve V1 schemas under `schemas/` are generated from the Pydantic models in
+The schemas under `schemas/` are generated from the Pydantic models in
 `agentteam.domain` and must reproduce byte-for-byte (after LF normalisation),
 stay consumable by non-Python validators, and — for the three vendor-facing
 files — stay inside the vendors' structured-output dialect intersection.
@@ -41,6 +41,19 @@ PLANNED_FILES = {
     "team-template-v1.schema.json": "team-template",
     "team-run-request-v1.schema.json": "team-run-request",
     "member-result-v1.schema.json": "member-result",
+    "team-template-v2.schema.json": "team-template",
+    "interactive-run-request-v1.schema.json": "interactive-run-request",
+    "interactive-run-record-v1.schema.json": "interactive-run-record",
+    "member-session-v1.schema.json": "member-session",
+    "turn-record-v1.schema.json": "turn-record",
+    "work-item-v1.schema.json": "work-item",
+    "control-request-v1.schema.json": "control-request",
+    "control-receipt-v1.schema.json": "control-receipt",
+    "completion-proposal-v1.schema.json": "completion-proposal",
+    "run-event-v1.schema.json": "run-event",
+    "provider-capabilities-v1.schema.json": "provider-capabilities",
+    "provider-doctor-v1.schema.json": "provider-doctor",
+    "catalog-index-v1.schema.json": "catalog-index",
 }
 VENDOR_FACING = {
     "normalized-review-v1.schema.json",
@@ -208,7 +221,8 @@ def test_schema_module_cli_check_and_export(tmp_path: Path) -> None:
 def test_every_schema_is_a_closed_object_with_envelope(name: str) -> None:
     schema = _load(name)
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
-    assert schema["$id"] == f"urn:agentteam:schema:{PLANNED_FILES[name]}:v1"
+    version = 2 if name.endswith("-v2.schema.json") else 1
+    assert schema["$id"] == f"urn:agentteam:schema:{PLANNED_FILES[name]}:v{version}"
     roots = (
         [_run_variant(schema, "direct"), _run_variant(schema, "team")]
         if name == "run-record-v1.schema.json"
@@ -217,7 +231,7 @@ def test_every_schema_is_a_closed_object_with_envelope(name: str) -> None:
     for root in roots:
         assert root["type"] == "object"
         props = root["properties"]
-        assert _single_value(props["schema_version"]) == 1
+        assert _single_value(props["schema_version"]) == version
         assert _single_value(props["kind"]) == PLANNED_FILES[name]
         assert {"schema_version", "kind"} <= set(root["required"])
     for obj in _objects(schema):

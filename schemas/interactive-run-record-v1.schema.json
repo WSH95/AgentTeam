@@ -1,0 +1,404 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:interactive-run-record:v1",
+  "$defs": {
+    "AssistantCatalogRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "content_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "content_hash"
+      ],
+      "title": "AssistantCatalogRefV1",
+      "type": "object"
+    },
+    "CatalogKind": {
+      "enum": [
+        "assistant-definition",
+        "team-template"
+      ],
+      "title": "CatalogKind",
+      "type": "string"
+    },
+    "CatalogRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/CatalogKind"
+        },
+        "id": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "content_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "version",
+        "content_hash"
+      ],
+      "title": "CatalogRefV1",
+      "type": "object"
+    },
+    "CleanupFact": {
+      "enum": [
+        "confirmed",
+        "not-applicable",
+        "unsupported",
+        "unknown",
+        "failed"
+      ],
+      "title": "CleanupFact",
+      "type": "string"
+    },
+    "CloseFactsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "logical_session": {
+          "$ref": "#/$defs/CleanupFact"
+        },
+        "process": {
+          "$ref": "#/$defs/CleanupFact"
+        },
+        "local_state": {
+          "$ref": "#/$defs/CleanupFact"
+        },
+        "provider_history": {
+          "$ref": "#/$defs/CleanupFact"
+        }
+      },
+      "required": [
+        "logical_session",
+        "process",
+        "local_state",
+        "provider_history"
+      ],
+      "title": "CloseFactsV1",
+      "type": "object"
+    },
+    "InteractiveMemberRecordV1": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Name",
+          "type": "string"
+        },
+        "assistant": {
+          "$ref": "#/$defs/AssistantCatalogRefV1"
+        },
+        "origin": {
+          "enum": [
+            "persistent",
+            "synthetic"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "visibility": {
+          "enum": [
+            "visible",
+            "hidden"
+          ],
+          "title": "Visibility",
+          "type": "string"
+        },
+        "session_id": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Session Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "assistant",
+        "origin",
+        "visibility",
+        "session_id"
+      ],
+      "title": "InteractiveMemberRecordV1",
+      "type": "object"
+    },
+    "InteractiveRunOutcome": {
+      "enum": [
+        "succeeded",
+        "cancelled",
+        "failed",
+        "timed-out",
+        "abandoned"
+      ],
+      "title": "InteractiveRunOutcome",
+      "type": "string"
+    },
+    "InteractiveRunPhase": {
+      "enum": [
+        "initializing",
+        "open",
+        "completion-pending",
+        "interrupted",
+        "recovery-required",
+        "closing",
+        "close-failed",
+        "closed"
+      ],
+      "title": "InteractiveRunPhase",
+      "type": "string"
+    },
+    "WorkspaceCheckpointV1": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_path": {
+          "minLength": 1,
+          "title": "Canonical Path",
+          "type": "string"
+        },
+        "git_head": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Git Head"
+        },
+        "git_status_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Git Status Sha256",
+          "type": "string"
+        },
+        "tree_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Tree Sha256",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "canonical_path",
+        "git_status_sha256",
+        "tree_sha256",
+        "observed_at"
+      ],
+      "title": "WorkspaceCheckpointV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "interactive-run-record",
+      "title": "Kind",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "target": {
+      "$ref": "#/$defs/CatalogRefV1"
+    },
+    "goal": {
+      "minLength": 1,
+      "title": "Goal",
+      "type": "string"
+    },
+    "done_when": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Done When",
+      "type": "array"
+    },
+    "workspace": {
+      "minLength": 1,
+      "title": "Workspace",
+      "type": "string"
+    },
+    "workspace_layout": {
+      "const": "shared-supplied",
+      "title": "Workspace Layout",
+      "type": "string"
+    },
+    "phase": {
+      "$ref": "#/$defs/InteractiveRunPhase"
+    },
+    "outcome": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/InteractiveRunOutcome"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "members": {
+      "items": {
+        "$ref": "#/$defs/InteractiveMemberRecordV1"
+      },
+      "minItems": 1,
+      "title": "Members",
+      "type": "array"
+    },
+    "work_items": {
+      "items": {
+        "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+        "type": "string"
+      },
+      "title": "Work Items",
+      "type": "array"
+    },
+    "sessions": {
+      "items": {
+        "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Sessions",
+      "type": "array"
+    },
+    "turns": {
+      "items": {
+        "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+        "type": "string"
+      },
+      "title": "Turns",
+      "type": "array"
+    },
+    "completion_proposals": {
+      "items": {
+        "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+        "type": "string"
+      },
+      "title": "Completion Proposals",
+      "type": "array"
+    },
+    "workspace_reservation": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+      "title": "Workspace Reservation",
+      "type": "string"
+    },
+    "events": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+      "title": "Events",
+      "type": "string"
+    },
+    "initial_checkpoint": {
+      "$ref": "#/$defs/WorkspaceCheckpointV1"
+    },
+    "final_checkpoint": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/WorkspaceCheckpointV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "cleanup": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CloseFactsV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "updated_at": {
+      "format": "date-time",
+      "title": "Updated At",
+      "type": "string"
+    },
+    "failure_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Failure Reason"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "run_id",
+    "target",
+    "goal",
+    "done_when",
+    "workspace",
+    "workspace_layout",
+    "phase",
+    "members",
+    "work_items",
+    "sessions",
+    "turns",
+    "completion_proposals",
+    "workspace_reservation",
+    "events",
+    "initial_checkpoint",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "InteractiveRunRecordV1",
+  "type": "object"
+}

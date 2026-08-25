@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:completion-proposal:v1",
+  "$defs": {
+    "CompletionCriterionV1": {
+      "additionalProperties": false,
+      "properties": {
+        "criterion": {
+          "minLength": 1,
+          "title": "Criterion",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "criterion"
+      ],
+      "title": "CompletionCriterionV1",
+      "type": "object"
+    },
+    "CompletionProposalStatus": {
+      "enum": [
+        "pending",
+        "accepted",
+        "rejected"
+      ],
+      "title": "CompletionProposalStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "completion-proposal",
+      "title": "Kind",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "proposal_id": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Proposal Id",
+      "type": "string"
+    },
+    "proposed_by": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Proposed By",
+      "type": "string"
+    },
+    "source_turn_id": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Source Turn Id",
+      "type": "string"
+    },
+    "summary": {
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "criteria": {
+      "items": {
+        "$ref": "#/$defs/CompletionCriterionV1"
+      },
+      "title": "Criteria",
+      "type": "array"
+    },
+    "work_items": {
+      "items": {
+        "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+        "type": "string"
+      },
+      "title": "Work Items",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/CompletionProposalStatus",
+      "default": "pending"
+    },
+    "proposed_at": {
+      "format": "date-time",
+      "title": "Proposed At",
+      "type": "string"
+    },
+    "decided_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Decided At"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "run_id",
+    "proposal_id",
+    "proposed_by",
+    "source_turn_id",
+    "summary",
+    "criteria",
+    "work_items",
+    "proposed_at"
+  ],
+  "title": "CompletionProposalV1",
+  "type": "object"
+}

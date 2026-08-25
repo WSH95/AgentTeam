@@ -4,6 +4,70 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1c G5 local audit and G6 qualification machinery — 2026-08-25
+
+| Check | Result |
+| --- | --- |
+| Adversarial lifecycle audit | PASS locally — provider-returned identity and strict continuity are verified; unverifiable generations remain durably recoverable; cancellation, reset, recovery, event sequencing, duplicate/conflicting control ids, completion evidence, manifest finalization, workspace reservation, lease release, and close-retry faults preserve truthful terminal and cleanup facts |
+| Library/archive integrity | PASS locally — staged Assistant/Team publication revalidates exact bytes under the library lock; symlinks are never followed or chmodded through; migration is exclusive-create; archive hashing is streamed/non-following; owner-only mode and audit-export failures fail closed |
+| Permissions and controls | PASS locally — provider path classifications require structured paths entirely inside the supplied workspace; missing/escaping paths are unknown/outside; M1c has no full-access run grant; committed control batches remain terminal and completion controls apply last |
+| Direct-ACP qualification machinery | PASS locally — the installed runtime marker binds the pinned lock and a streamed `node_modules` tree digest; qualification binds the runtime tree, sanitized child-environment value hash, config home, native version, platform, and command; unsafe cache modes and stale/tampered inputs fail closed. Bridge close failures preserve exact state for strict resume and retry. Packaged bridge SHA-256: `dfb75049910424486588409f9dd0fc29466ea8fa56d9f3547f9ec3a5da367b12` |
+| Deterministic matrix | PASS — final named M1c selection **76 passed**; full core tree **735 passed + 4 expected skips** (optional ClawTeam absent and three Linux-skipped Windows launcher tests) in 75.25s |
+| Static/package block | PASS — Ruff lint and format clean over 153 files; strict mypy clean over 149 source files; 25 schemas current; lock current; wheel/sdist build clean and contain the exact direct-ACP lock/package/bridge resources; Node syntax and `git diff --check` clean |
+| Residual scope | REVIEWED — interactive projection embeds each portable Skill's `SKILL.md` but does not expose supporting scripts/assets as workspace paths. Full artifact projection belongs to M3; RISKS R38 records the boundary so M1c does not overclaim it |
+| Gate/boundary | **G5/G6 remain open honestly** — local G5 evidence is green, but hosted Ubuntu/Windows/macOS evidence needs a semantic commit and explicit push approval. G6 machinery is ready, but the direct-ACP runtime is not installed and no install/download was authorized. No credential read, model/live call, commit, push, AGENTS/CLAUDE edit, or `.codex/` touch occurred |
+
+Last verified: 2026-08-25 by Codex. The implementation is locally
+review-ready. Do not close G5 until hosted evidence passes, or G6 until the
+fresh installed-runtime, per-harness no-call qualification is recorded.
+
+## M1c G3–G4 local deterministic close — 2026-08-25
+
+| Check | Result |
+| --- | --- |
+| Retained lifecycle and recovery | PASS — fresh provider-owned sessions retain multi-turn context; same-run attach refuses prompts before strict continuity; reset closes/disposes the old generation and starts isolated context from an immutable snapshot plus deterministic `RunStateSummary`; provider crash, start failure, Ctrl-C cancellation, detach/EOF interruption, partial recovery, initialization failure, close failure, and exact close facts are durable and truthful |
+| Shared workspace | PASS — one active turn per run; separate projects run concurrently while a durable canonical-path reservation rejects a second run on the same workspace; before/after tree + Git HEAD/status checkpoints are observational; dirty tracked/untracked bytes and HEAD are unchanged; shared latest code and unknown-attribution external drift are covered |
+| Permissions and process ownership | PASS — Assistant/Member/run/provider ceilings intersect fail-closed; inside reads, attended one-time writes, machine-client denial, network/native-spawn/unknown denial, and outside/symlink escape denial are covered. The owned fake now launches a real parent/descendant tree and proves cross-platform tree termination; the external fake reports its limitations without fabricating deletion |
+| Completion and controls | PASS — normalized multi-item work graph, transition/unblock/assignment validation, Lead-origin-only proposals, exact `done_when` evidence, reject/continue, attended accept/close, and provider-structured control application are green; queued control/event sequence is mechanically after the source turn terminal commit |
+| TTY and NDJSON | PASS — Lead-default routing and the documented command shell are green; protocol negotiation, schema identity, contiguous client/server sequences, correlation, fragmented/malformed/oversized/partial-EOF frames, duplicate/out-of-order ids, permission round trips, terminal commands, machine-attendance denial, unsupported commands, and M1d dynamic-control denial remain synchronized |
+| Catalog and archive | PASS — exact managed/unmanaged Assistant and Team resolution, one-Member synthetic Team, immutable definition/launch snapshots, archived launch recovery matching, owner-only local records, raw turn-event retention, manifest tamper/symlink detection, sanitized export without prompts/runtime/raw streams, list/status/export/cleanup CLI, and closed-only destructive cleanup are covered |
+| Full local block | PASS — focused post-format matrix **37 passed**; full core tree **709 passed + 4 expected skips**; Ruff lint + format clean over 153 files; strict mypy clean over 149 files; 25 schemas current; wheel/sdist built offline from existing cached build requirements and include all direct-ACP resources plus interactive modules/schemas; `git diff --check` clean |
+| CI and boundary | PASS locally — the six-leg Ubuntu/Windows/macOS scaffold now has a named M1c deterministic acceptance step in addition to the full suite. Hosted evidence remains G5. No direct-ACP runtime install, dependency/pin change, credential read, model/live call, commit, push, AGENTS/CLAUDE edit, or `.codex/` touch occurred |
+
+Last verified: 2026-08-25 by Codex. G3 and G4 are locally complete; G5 now
+owns the deterministic fault-matrix audit and hosted cross-platform evidence.
+
+## M1c G2 local deterministic close — 2026-08-25
+
+| Check | Result |
+| --- | --- |
+| Provider ownership seam | PASS — `MemberExecutionProvider` covers describe/doctor, open, correlated turn/events/result, queued/running/terminal cancellation, strict continuity, four-fact close, and exact run disposal; one provider owns each Member session/process/queue/cancel path |
+| Deterministic ownership models | PASS — the owned-process fake launches and terminates a real child process tree and reports observable deletion; the external-host fake retains the same functional contract while truthfully reporting process/history limitations; multi-turn, cancellation, lost-context, strict-resume, and cleanup conformance are green |
+| Direct ACP boundary | PASS — checked-in exact pins are `acpx@0.13.1`, `@agentclientprotocol/codex-acp@1.6.2`, and `@agentclientprotocol/claude-agent-acp@0.69.0`, each with lockfile SHA-512 integrity; the bridge imports only `acpx/runtime`, uses its session/turn/cancel/close primitives, defaults permissions to deny, and contains no ACP JSON-RPC/wire reimplementation, PTY, global-package, or `npx` fallback |
+| Install/doctor boundary | PASS — installation is explicit, `npm ci`-only, content-addressed, atomically published, and package/resource/version verified; chat never installs. The zero-call doctor fails/marks unsupported honestly for a missing runtime and records `model_calls: 0`; the strict initialize/open/load identity/turn/close path is covered through the correlated fake bridge without a model call |
+| Distribution | PASS — `bridge.mjs`, `package.json`, and the complete `package-lock.json` are present in both the built wheel and sdist; Node syntax check passed |
+| Local matrix | PASS — focused G2 suite **13 passed**; full tree **685 passed + 4 expected skips**; Ruff clean; strict mypy clean over 138 files; 25 schemas current; wheel/sdist build and `git diff --check` clean |
+| Boundary | PASS — temporary npm registry metadata/source inspection was owner-approved and used only to freeze/verify the candidate API and lock; no runtime was installed in AgentTeam or owner state, no provider/model prompt or credential read occurred, no live call/push/AGENTS/CLAUDE/`.codex/` change occurred |
+
+Last verified: 2026-08-25 by Codex. G2 is locally complete. The optional
+runtime remains uninstalled; fresh current-profile no-call qualification stays
+at G6, and G7 remains separately owner-attended.
+
+## M1c G1 local deterministic close — 2026-08-25
+
+| Check | Result |
+| --- | --- |
+| Schema identity | PASS — 25 checked-in schemas dispatch through a registry keyed by `(kind, schema_version)`; TeamTemplate v1 and v2 coexist and `interactive-run-record` is a distinct kind |
+| V1 compatibility | PASS — all 12 original V1 schema files are pinned to their pre-M1c SHA-256 and remained byte-identical; existing `atm run`, TeamRun, Assistant/team validation, archive, and optional-provider tests stayed green |
+| Interactive contracts | PASS — TeamTemplateV2, request/run, session, turn, work, control request/receipt, completion, event, provider capability/doctor, and catalog records are closed; model-only lifecycle/action/graph invariants have negative tests |
+| Library/migration | PASS — owner-home-selectable locked catalog, content-addressed immutable objects, hard coordinate collision, idempotent import, all-or-nothing exact Team references, active revisions, and CLI import/list/show; V1 migration defaults to faithful per-Member layout, requires an explicit shared-layout flag, writes a new candidate/diff, and refuses overwrite |
+| Local matrix | PASS — full core tree **672 passed + 4 expected skips**; Ruff clean; strict mypy clean over 127 files; 25 schema reproduction/meta-schema/parity tests green; wheel and sdist built from the existing local build cache; `git diff --check` clean |
+| Boundary | PASS — no new Python/Node dependency, network download, provider process, credential read, model/live call, push, AGENTS/CLAUDE edit, or `.codex/` touch |
+
+Last verified: 2026-08-25 by Codex. G1 is locally complete; the semantic commit
+is proposed under the configured ask-before-commit policy. G2 may proceed
+without installing the optional direct-ACP runtime.
+
 ## M1b G7 milestone close — 2026-08-25
 
 `CLAWTEAM_DISPOSITION=parity-green`

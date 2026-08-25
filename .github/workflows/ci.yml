@@ -68,6 +68,18 @@ jobs:
         run: uv run --no-sync mypy
       - name: Tests
         run: uv run --no-sync pytest
+      - name: M1c interactive deterministic acceptance
+        run: |
+          uv run --no-sync pytest \
+            tests/unit/test_interactive_contracts.py \
+            tests/unit/test_library_migration.py \
+            tests/integration/test_cli_library.py \
+            tests/unit/test_direct_acp_runtime.py \
+            tests/integration/test_cli_runtime.py \
+            tests/integration/test_interactive_controller.py \
+            tests/integration/test_execution_providers.py \
+            tests/integration/test_direct_acp_bridge.py \
+            tests/unit/test_interactive_workspace_permissions.py
       - name: Build
         run: uv build
       - name: Schema reproduction check

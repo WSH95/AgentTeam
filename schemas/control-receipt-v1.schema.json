@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:control-receipt:v1",
+  "$defs": {
+    "ReceiptStatus": {
+      "enum": [
+        "queued",
+        "applied",
+        "denied",
+        "failed"
+      ],
+      "title": "ReceiptStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "control-receipt",
+      "title": "Kind",
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ReceiptStatus"
+    },
+    "queued_at": {
+      "format": "date-time",
+      "title": "Queued At",
+      "type": "string"
+    },
+    "committed_source_sequence": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Committed Source Sequence"
+    },
+    "applied_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Applied At"
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reason"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "request_id",
+    "run_id",
+    "status",
+    "queued_at"
+  ],
+  "title": "ControlReceiptV1",
+  "type": "object"
+}

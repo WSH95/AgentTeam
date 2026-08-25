@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:catalog-index:v1",
+  "$defs": {
+    "CatalogEntryV1": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/CatalogKind"
+        },
+        "id": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "content_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "object_path": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+          "title": "Object Path",
+          "type": "string"
+        },
+        "active": {
+          "default": true,
+          "title": "Active",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "version",
+        "content_hash",
+        "object_path"
+      ],
+      "title": "CatalogEntryV1",
+      "type": "object"
+    },
+    "CatalogKind": {
+      "enum": [
+        "assistant-definition",
+        "team-template"
+      ],
+      "title": "CatalogKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "catalog-index",
+      "title": "Kind",
+      "type": "string"
+    },
+    "generation": {
+      "minimum": 0,
+      "title": "Generation",
+      "type": "integer"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/CatalogEntryV1"
+      },
+      "title": "Entries",
+      "type": "array"
+    },
+    "updated_at": {
+      "format": "date-time",
+      "title": "Updated At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "generation",
+    "entries",
+    "updated_at"
+  ],
+  "title": "CatalogIndexV1",
+  "type": "object"
+}

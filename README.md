@@ -1,9 +1,11 @@
 # AgentTeam
 
-**Status: alpha.** AgentTeam is being built gate by gate from an approved
-plan. The deterministic direct runner and G5 native-auth preflight/probes are
-complete; the owner-attended G6 live PoC is the next gate.
-There is no released package and interfaces and records are not stable yet.
+**Status: alpha.** AgentTeam is being built gate by gate from approved plans.
+The direct runner and batch TeamRun milestones are complete. The M1c
+interactive TeamRun foundation is locally green through its deterministic
+lifecycle and client-protocol gates; cross-platform and current-runtime
+qualification remain before any interactive live-support claim. There is no
+released package and interfaces and records are not stable yet.
 
 AgentTeam provides portable, harness-independent **Assistant definitions**
 (reusable specialised colleagues) and reusable **Team templates**, executed as
@@ -20,9 +22,10 @@ which remains a source of requirements, experiments, and evidence only.
 | Independent review of the discovery baseline | [`docs/reviews/`](docs/reviews/2026-08-23-m0-review-at-3407ec9.md) | dated record |
 | M1a direct-harness PoC plan, revision r3 | [`docs/plans/m1a-direct-harness-poc.md`](docs/plans/m1a-direct-harness-poc.md) | approved for implementation (DECISIONS 0021) |
 | Project state: charter, plan, decisions, questions, risks, verification, handoff | [`.project-steward/`](.project-steward/) | current |
-| Product CLI, packaging, tests, CI | `pyproject.toml`, [`src/agentteam/`](src/agentteam/), [`tests/`](tests/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | alpha (M1a G5 closed); validation, profile lifecycle, render-only, and direct runs |
-| V1 domain records + checked-in JSON Schemas | [`src/agentteam/domain/`](src/agentteam/domain/), [`schemas/`](schemas/README.md) | alpha (M1a G2); closed records, vendor-facing review/synthesis contracts |
-| Claude/Codex/Grok adapters and direct runner | [`src/agentteam/harness/`](src/agentteam/harness/), [`src/agentteam/run/`](src/agentteam/run/) | deterministic qualification and G5 native-auth/channel probes complete; G6 live PoC pending |
+| Product CLI, packaging, tests, CI | `pyproject.toml`, [`src/agentteam/`](src/agentteam/), [`tests/`](tests/), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | alpha; validation, libraries, profiles, direct/batch runs, and interactive lifecycle |
+| Versioned domain records + checked-in JSON Schemas | [`src/agentteam/domain/`](src/agentteam/domain/), [`schemas/`](schemas/README.md) | original V1 bytes preserved; V2 Team and closed interactive records added |
+| Claude/Codex/Grok adapters and direct/batch runner | [`src/agentteam/harness/`](src/agentteam/harness/), [`src/agentteam/run/`](src/agentteam/run/) | M1a/M1b complete with deterministic, hosted, and bounded live evidence |
+| Interactive TeamRun foundation | [`src/agentteam/interactive/`](src/agentteam/interactive/), [`src/agentteam/execution/`](src/agentteam/execution/), [`docs/interactive-teamruns.md`](docs/interactive-teamruns.md) | deterministic G3/G4 locally green; current-runtime and live qualification pending |
 
 ## Planned stack
 
@@ -61,9 +64,44 @@ uv run python -m agentteam.schema check   # checked-in schemas reproduce
 uv run atm --version
 ```
 
-The twelve V1 JSON Schemas under [`schemas/`](schemas/README.md) are generated
-from the Pydantic models; regenerate with
+The versioned JSON Schemas under [`schemas/`](schemas/README.md) are generated
+from the Pydantic models; the original V1 direct/batch files remain
+byte-stable. Regenerate with
 `uv run python -m agentteam.schema export`.
+
+## Interactive TeamRuns
+
+Interactive chat resolves an exact immutable Assistant or Team revision,
+creates fresh provider-owned Member sessions, and serializes all turns over
+one user-supplied worktree. AgentTeam observes Git/tree state but never
+commits, resets, stashes, checks out, or cleans user files.
+
+```text
+uv run atm assistant import examples/assistants/implementer
+uv run atm runtime install direct-acp      # explicit pinned npm download, only when wanted
+uv run atm runtime doctor direct-acp --harness codex  # zero model calls
+
+uv run atm assistant chat implementer --version 1 \
+  --workspace /path/to/project --goal "Fix the bounded issue" \
+  --done-when "the focused tests pass"
+
+uv run atm runs list
+uv run atm runs status RUN_ID
+uv run atm runs attach RUN_ID
+uv run atm runs export RUN_ID /empty/audit-directory
+uv run atm runs cleanup RUN_ID
+```
+
+`assistant chat` synthesizes a one-Member Team; `team chat` uses an exact
+TeamTemplateV2 catalog revision. Add `--stream-json` for negotiated,
+correlated bidirectional NDJSON instead of the attended TTY. Runtime
+installation is never implicit, raw provider turn streams remain local, and
+sanitized export omits those streams and run-scoped runtime state. Chat also
+requires a current owner-only per-harness qualification bound to the exact
+runtime tree, native version, profile environment, and platform; stale or
+missing evidence claims no support. See
+[`docs/interactive-teamruns.md`](docs/interactive-teamruns.md) for lifecycle,
+permission, recovery, protocol, and provider-integration details.
 
 Native subscription setup is deliberately owner-attended:
 

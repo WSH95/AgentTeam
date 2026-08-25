@@ -122,14 +122,36 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
 - [x] G6 — pinned ClawTeam exit-criterion measurement and owner decision packet (closed 2026-08-25 in `24c6079`; 516/486 = 1.061728395x, decision remains owner-owned before M1c)
 - [x] G7 — M1b evidence/CI close and proposed-not-approved M1c PoC B draft (closed 2026-08-25 in the semantic commit carrying this row; final product-tree hosted run 32812856864 green 12/12; zero M1b live calls; draft at `docs/plans/m1c-dynamic-member-poc.md`)
 
-## M1c Dynamic-member PoC B (committed roadmap)
+## M1c Interactive TeamRun foundation (r2 approved 2026-08-25; ADR 0045)
 
-Status: draft r0 is **proposed-not-approved** at
-`docs/plans/m1c-dynamic-member-poc.md`; no implementation or live call is
-authorized. Its 18-call ceiling is an unapproved budget ask, not an allowance.
+Normative plan: `docs/plans/m1c-interactive-teamrun-foundation.md` r2,
+SHA-256 `51dfebd98dd17063f99cc33a97b2813adb887c6eaea63903ef9be27351de0155`.
+Implementation is approved. No live call, dependency download, commit, or
+push follows from G0 alone; each retains the plan's separate gate.
 
-- [ ] Implement the product-owned dynamic-member policy gate and hidden/archive roster projections
-- [ ] Prove the PoC B workflow with mechanical enforcement for every AgentTeam-mediated creation; record provider-bypass limits explicitly
+- [x] G0 — owner approved the exact frozen r2 bytes, conditional 18/23-call ceiling, hybrid provider ownership, and M1d zero-call boundary (ADR 0045)
+- [x] G1 — V2 interactive contracts/schemas, immutable catalog, V1 compatibility, and non-destructive team migration (local deterministic close 2026-08-25; 672 passed + 4 expected skips; semantic commit pending owner approval)
+- [x] G2 — provider-neutral session seam, pinned run-scoped ACP sidecar, installer/doctor, and fake conformance (local deterministic close 2026-08-25; 685 passed + 4 expected skips; exact npm resources present in wheel/sdist; no runtime install or model call)
+- [x] G3 — retained sessions, shared supplied-workspace scheduler/checkpoints, reset, completion, close, interruption, and recovery (local deterministic close 2026-08-25; included in the 709 passed + 4 expected skips full regression)
+- [x] G4 — catalog-addressed Assistant/Team chat, TTY commands, structured NDJSON, work-item controls, events, and archive export (local deterministic close 2026-08-25; named cross-platform CI acceptance added, hosted evidence remains G5)
+- [ ] G5 — deterministic acceptance/fault matrix plus full V1 and cross-platform regression (**local deterministic/fault audit green 2026-08-25: 76 focused and 735 full-suite tests passed with 4 expected skips; hosted Ubuntu/Windows/macOS evidence awaits a semantic commit and explicit push approval**)
+- [ ] G6 — current-version no-call capability probes and honest support disposition (**qualification machinery is implemented and fail-closed; the pinned runtime is absent, so actual per-harness current-version qualification awaits a separately approved install/download action**)
+- [ ] G7 — separately approved attended live matrix within the 18-call ceiling
+- [ ] G8 — evidence, CI, risk, and milestone close
+
+## M1d Dynamic-member PoC B (r2 approved deterministic successor; ADR 0045)
+
+Normative plan: `docs/plans/m1d-dynamic-member-poc.md` r2, SHA-256
+`bcffbc65e9dba1a6cc04ae08b11597b0403d87c4d15fd26d54097bcafad6144d`.
+Its implementation approval is subject to D0 after M1c G8; its live budget is
+zero.
+
+- [ ] D0 — begin after the M1c deterministic foundation and current control-capability record are green
+- [ ] D1 — dynamic policy/request/decision, ephemeral definition, delegation, projection, and proposal contracts
+- [ ] D2 — manual/Lead creation, policy-first journal, session/work-item integration, result return, and failure recovery
+- [ ] D3 — visible/audit projections and exact promotion proposal accept/reject into the immutable catalog
+- [ ] D4 — deterministic hidden-specialist PoC B and full cleanup/fault acceptance
+- [ ] D5 — deterministic milestone close with live dynamic support explicitly unqualified
 
 ## M2 Nested TeamRun PoC C + MCP (committed roadmap)
 

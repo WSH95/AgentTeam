@@ -10,8 +10,13 @@ must not guess. Answered items remain here for traceability.
 - [ ] Timing and target for any deferred API-test canary. No provider,
   endpoint, or model is selected; no key is needed unless a canary is
   separately approved.
-- [ ] **ClawTeam exit-criterion owner decision — required before M1c PoC B,
-  not required to close M1b.** G6 measured **516 / 486 = 86/81 =
+- [ ] **M1c direct-ACP runtime installation timing.** G6's explicit installer
+  and no-call qualification machinery are implemented, but the pinned runtime
+  remains absent. Installing/downloading it is a separate owner-approved
+  dependency action; implementation approval did not authorize it. Until
+  then, direct-ACP support remains unqualified rather than inferred.
+- [ ] **ClawTeam exit-criterion owner decision — required at M1d D0,
+  not required for M1c.** G6 measured **516 / 486 = 86/81 =
   1.061728395×**, below the approved `1.5×` ceiling (729 LOC; 213 LOC
   headroom). Current disposition is `parity-green`; hosted G5 run 32812856864
   passed all three optional OS legs. Choose exactly one:
@@ -22,23 +27,23 @@ must not guess. Answered items remain here for traceability.
   - **Drop:** remove ClawTeam support without replacement; the local
     deterministic provider remains the product path.
   M1b G0 finalized this criterion; G6 prepared the packet and made no owner
-  decision.
-- [ ] **M1c live-call ceiling — decide only during M1c plan review.** Draft r0
-  proposes a new 18-call maximum (three capability probes, two six-call
-  cycles, and three individually approved diagnostic calls). This is an ask,
-  not an allowance: no call is authorized until the M1c plan, exact ceiling,
-  deterministic gate, and fresh owner go are all approved. M1a's five
-  remaining calls do not transfer.
+  decision. ADR 0045 moves the final ruling to M1d D0 so M1c can establish
+  the provider boundary first.
+- [x] **M1c live-call ceiling.** ADR 0045 approves a conditional hard ceiling:
+  18 Claude/Codex attempted prompts, or 23 only if Grok first passes G6's
+  strict ACP no-call gate. This is not a call go: G7 still requires a green
+  deterministic/no-call gate and fresh attended owner approval. M1d has zero
+  calls. M1a's five remaining calls do not transfer.
 
 ## Current gate
 
-M1a is complete as a semantic PASS (ADR 0038). **M1b is complete** under Plan
-R6/ADR 0044: G0–G7 are closed, `CLAWTEAM_DISPOSITION=parity-green`, hosted
-run 32812856864 is green 12/12 at the final product SHA, and the pinned ratio
-passes at 1.061728395×. M1b spent zero live calls; five of M1a's 30 remain and
-are not an allowance. M1c draft r0 is proposed-not-approved and implementation
-must not begin. Before PoC B, the owner must decide the ClawTeam accept/drop
-packet and, during M1c review, the separate live ceiling.
+M1a and M1b are complete. M1c and M1d Plan R2 are frozen and approved by ADR
+0045. M1c G0–G4 are locally closed; the G5 deterministic/fault audit is green
+while hosted evidence awaits a semantic commit and explicit push approval.
+G6 qualification machinery is implemented, but the absent runtime keeps its
+current-version evidence open. No live call is authorized; G7 needs a separate
+attended go. M1d source work waits for M1c G8 plus D0's ClawTeam/native-spawn
+ruling. HB-03 remains deferred.
 
 ## Answered during G5 owner setup
 

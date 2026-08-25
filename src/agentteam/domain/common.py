@@ -1,7 +1,7 @@
-"""Shared building blocks for the V1 records (M1a plan section 7).
+"""Shared building blocks for versioned AgentTeam records.
 
 Every persistent record is a closed object (`additionalProperties: false`),
-carries `schema_version: 1` and a fixed `kind`, and serialises to snake_case
+carries a fixed `(kind, schema_version)` identity, and serialises to snake_case
 JSON. Unknown fields fail validation.
 """
 
@@ -14,6 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 SCHEMA_VERSION = 1
 SchemaVersion = Literal[1]
+SchemaVersionV2 = Literal[2]
 
 
 class RecordModel(BaseModel):

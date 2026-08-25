@@ -12,8 +12,10 @@ import typer
 
 from agentteam import __version__
 from agentteam.commands.assistant import assistant_app
+from agentteam.commands.interactive import runs_app
 from agentteam.commands.profile import profile_app
 from agentteam.commands.run import register_run
+from agentteam.commands.runtime import runtime_app
 from agentteam.commands.team import team_app
 
 HELP = (
@@ -55,6 +57,8 @@ def root(
 
 app.add_typer(assistant_app)
 app.add_typer(profile_app)
+app.add_typer(runtime_app)
+app.add_typer(runs_app)
 app.add_typer(team_app)
 register_run(app)
 

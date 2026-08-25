@@ -1053,3 +1053,35 @@ carrying this decision. M1b makes no live model calls and does not spend the
 five calls remaining from M1a. Push approval is limited to the requested
 fast-forward CI workflow; no force-push or unrelated remote mutation is
 authorized. M1c remains separately planned and unapproved.
+
+## 0045 — 2026-08-25 — M1c/M1d r2 architecture and implementation approval
+
+**Context**: Review split the original dynamic-member draft into an
+interactive TeamRun foundation and a deterministic dynamic-member successor.
+The resolved r2 addresses ownership conflicts with ClawTeam, OpenClaw,
+Hermes, DSH, and similar native hosts by separating AgentTeam's portable
+product contracts from a single provider-owned execution session. The owner
+then instructed AgentTeam to implement the reviewed plan.
+
+**Decision**: (1) Approve
+`docs/plans/m1c-interactive-teamrun-foundation.md` r2 at SHA-256
+`51dfebd98dd17063f99cc33a97b2813adb887c6eaea63903ef9be27351de0155`
+and `docs/plans/m1d-dynamic-member-poc.md` r2 at SHA-256
+`bcffbc65e9dba1a6cc04ae08b11597b0403d87c4d15fd26d54097bcafad6144d`.
+(2) AgentTeam owns definitions, policy, work/workspace/completion/audit while
+exactly one `MemberExecutionProvider` owns a Member's session/process/queue,
+cancel, and provider cleanup. Direct ACP is a thin standalone/reference
+provider around pinned runtime packages, not an ACP reimplementation or a
+wrapper around a native team host. (3) Preserve every V1 contract and the
+existing batch `atm run` leaf; introduce kind-and-version-dispatched
+interactive contracts. (4) Approve a conditional M1c ceiling of 18 attempted
+Claude/Codex prompts, rising to 23 only after Grok passes G6's strict ACP
+no-call gate. No G7 call occurs without a separate attended owner go. M1d's
+budget is zero. (5) Defer the optional ClawTeam accept/drop ruling to M1d D0;
+M1b's batch behavior stays unchanged until then. HB-03 remains deferred.
+
+**Consequences**: M1c implementation may start at G1. M1d is approved in
+principle but its source work begins only after exact M1c G8 evidence and D0.
+New dependency pins/downloads, contract changes, live calls, commits, and
+pushes retain their explicit plan/Project Steward gates. The pre-existing
+untracked `.codex/` remains outside scope.

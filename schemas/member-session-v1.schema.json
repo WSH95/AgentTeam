@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:member-session:v1",
+  "$defs": {
+    "CleanupFact": {
+      "enum": [
+        "confirmed",
+        "not-applicable",
+        "unsupported",
+        "unknown",
+        "failed"
+      ],
+      "title": "CleanupFact",
+      "type": "string"
+    },
+    "CloseFactsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "logical_session": {
+          "$ref": "#/$defs/CleanupFact"
+        },
+        "process": {
+          "$ref": "#/$defs/CleanupFact"
+        },
+        "local_state": {
+          "$ref": "#/$defs/CleanupFact"
+        },
+        "provider_history": {
+          "$ref": "#/$defs/CleanupFact"
+        }
+      },
+      "required": [
+        "logical_session",
+        "process",
+        "local_state",
+        "provider_history"
+      ],
+      "title": "CloseFactsV1",
+      "type": "object"
+    },
+    "SessionStatus": {
+      "enum": [
+        "opening",
+        "open",
+        "turn-running",
+        "continuity-unverified",
+        "closing",
+        "closed",
+        "close-failed"
+      ],
+      "title": "SessionStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "member-session",
+      "title": "Kind",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "session_id": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Session Id",
+      "type": "string"
+    },
+    "member": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Member",
+      "type": "string"
+    },
+    "generation": {
+      "minimum": 1,
+      "title": "Generation",
+      "type": "integer"
+    },
+    "provider": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Provider",
+      "type": "string"
+    },
+    "provider_session_ref": {
+      "minLength": 1,
+      "title": "Provider Session Ref",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/SessionStatus"
+    },
+    "continuity_verified": {
+      "title": "Continuity Verified",
+      "type": "boolean"
+    },
+    "opened_at": {
+      "format": "date-time",
+      "title": "Opened At",
+      "type": "string"
+    },
+    "closed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Closed At"
+    },
+    "close": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CloseFactsV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "run_id",
+    "session_id",
+    "member",
+    "generation",
+    "provider",
+    "provider_session_ref",
+    "status",
+    "continuity_verified",
+    "opened_at"
+  ],
+  "title": "MemberSessionV1",
+  "type": "object"
+}

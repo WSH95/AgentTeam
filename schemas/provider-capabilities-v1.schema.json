@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:provider-capabilities:v1",
+  "$defs": {
+    "CapabilityLevel": {
+      "enum": [
+        "supported",
+        "unsupported",
+        "unknown"
+      ],
+      "title": "CapabilityLevel",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "provider-capabilities",
+      "title": "Kind",
+      "type": "string"
+    },
+    "provider": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Provider",
+      "type": "string"
+    },
+    "version": {
+      "minLength": 1,
+      "title": "Version",
+      "type": "string"
+    },
+    "persistent_turns": {
+      "$ref": "#/$defs/CapabilityLevel"
+    },
+    "recovery": {
+      "$ref": "#/$defs/CapabilityLevel"
+    },
+    "permission_events": {
+      "$ref": "#/$defs/CapabilityLevel"
+    },
+    "workspace_enforcement": {
+      "$ref": "#/$defs/CapabilityLevel"
+    },
+    "tool_filtering": {
+      "$ref": "#/$defs/CapabilityLevel"
+    },
+    "native_spawn_control": {
+      "$ref": "#/$defs/CapabilityLevel"
+    },
+    "process_stop_observability": {
+      "$ref": "#/$defs/CapabilityLevel"
+    },
+    "local_state_deletion": {
+      "$ref": "#/$defs/CapabilityLevel"
+    },
+    "provider_history_deletion": {
+      "$ref": "#/$defs/CapabilityLevel"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "provider",
+    "version",
+    "persistent_turns",
+    "recovery",
+    "permission_events",
+    "workspace_enforcement",
+    "tool_filtering",
+    "native_spawn_control",
+    "process_stop_observability",
+    "local_state_deletion",
+    "provider_history_deletion"
+  ],
+  "title": "ProviderCapabilitiesV1",
+  "type": "object"
+}

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:work-item:v1",
+  "$defs": {
+    "TeamTaskStatus": {
+      "enum": [
+        "blocked",
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
+        "abandoned"
+      ],
+      "title": "TeamTaskStatus",
+      "type": "string"
+    },
+    "WorkspaceAccess": {
+      "enum": [
+        "read-only",
+        "workspace-write"
+      ],
+      "title": "WorkspaceAccess",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "work-item",
+      "title": "Kind",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "id": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Id",
+      "type": "string"
+    },
+    "subject": {
+      "minLength": 1,
+      "title": "Subject",
+      "type": "string"
+    },
+    "owner": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Owner",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/TeamTaskStatus"
+    },
+    "blocked_by": {
+      "items": {
+        "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+        "type": "string"
+      },
+      "title": "Blocked By",
+      "type": "array"
+    },
+    "workspace_access": {
+      "$ref": "#/$defs/WorkspaceAccess",
+      "default": "read-only"
+    },
+    "result_ref": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Result Ref"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "run_id",
+    "id",
+    "subject",
+    "owner",
+    "status"
+  ],
+  "title": "WorkItemV1",
+  "type": "object"
+}
