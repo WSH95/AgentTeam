@@ -313,7 +313,7 @@ class InteractiveArchive:
         entries = []
         for path in self._record_files():
             relative = path.relative_to(self.root).as_posix()
-            if relative == "manifest.sha256.json":
+            if relative in {"controller.lock", "manifest.sha256.json"}:
                 continue
             entries.append(
                 ExportManifestEntry(

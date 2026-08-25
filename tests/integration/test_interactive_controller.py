@@ -249,6 +249,10 @@ async def test_multiturn_reset_workspace_reservation_and_exact_close(tmp_path: P
     assert record.cleanup.provider_history.value == "unsupported"
     assert not any((controller.archive.root / "runtime").rglob("session.txt"))
     assert controller.archive.verify_manifest() == []
+    manifest = json.loads(
+        (controller.archive.root / "manifest.sha256.json").read_text(encoding="utf-8")
+    )
+    assert "controller.lock" not in {entry["path"] for entry in manifest["files"]}
     assert (Path(record.workspace) / "tracked.txt").read_text(encoding="utf-8") == "owner bytes\n"
     assert (Path(record.workspace) / "latest.txt").read_text(encoding="utf-8") == (
         "latest shared code\n"

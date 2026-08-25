@@ -4,15 +4,16 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
-## M1c G5 hosted attempt 1 and Windows liveness fix — 2026-08-25
+## M1c G5 hosted attempts and Windows portability fixes — 2026-08-25
 
 | Check | Result |
 | --- | --- |
-| Hosted attempt | Run [32905220326](https://github.com/WSH95/AgentTeam/actions/runs/32905220326) at `43eaea9` was **10/12 green**: all Ubuntu/macOS scaffold, all optional ClawTeam, and all credential-free vendor-smoke jobs passed. Both Windows scaffold jobs failed in the full test step before the named M1c acceptance |
-| Root cause | CONFIRMED — the owned-process fake used POSIX `os.kill(pid, 0)` to inspect a descendant. On Windows that is not a safe liveness query and raised `WinError 87`; cleanup became truthfully non-terminal and cascaded into 13 controller close failures on each Python leg |
-| Fix | PASS locally — Windows liveness now uses `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)` plus `GetExitCodeProcess`; inaccessible/unknown inspection remains conservatively “possibly running.” Reconstructed process handles use the same shared probe, and a regression proves the Windows route never invokes `os.kill` |
-| Local validation | PASS — provider/controller focus **35 passed**; full tree **737 passed + 4 expected skips** in 77.02s; targeted Ruff/format and mypy clean |
-| Gate | G5 remains open until the fix commit's replacement Ubuntu/Windows/macOS run is fully green |
+| Hosted attempt 1 | Run [32905220326](https://github.com/WSH95/AgentTeam/actions/runs/32905220326) at `43eaea9` was **10/12 green**: all Ubuntu/macOS scaffold, all optional ClawTeam, and all credential-free vendor-smoke jobs passed. Both Windows scaffold jobs failed in the full test step before the named M1c acceptance |
+| Root cause/fix 1 | CONFIRMED — the owned-process fake used POSIX `os.kill(pid, 0)` to inspect a descendant. On Windows that raised `WinError 87`. Commit `55b04fd` uses `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)` plus `GetExitCodeProcess`; inaccessible/unknown inspection remains conservatively “possibly running,” reconstructed handles use the shared probe, and a regression proves the Windows route never invokes `os.kill` |
+| Hosted attempt 2 | Run [32906060190](https://github.com/WSH95/AgentTeam/actions/runs/32906060190) at `55b04fd` was **10/12 green**. Both Windows legs passed provider conformance, confirming fix 1, then failed in controller close tests before named M1c acceptance. The other ten jobs passed |
+| Root cause/fix 2 | CONFIRMED locally — Windows holds `controller.lock` with an exclusive `msvcrt.locking` lease, so manifest finalization could not read the active lease and raised `PermissionError`. The lease is ephemeral OS coordination state, was already excluded from audit export, and is now excluded from the durable manifest; a successful-close regression asserts that contract |
+| Local validation after fix 2 | PASS — provider/controller focus **35 passed**; full tree **737 passed + 4 expected skips** in 77.68s; targeted Ruff/format and mypy clean |
+| Gate | G5 remains open until the archive-lease fix commit's third Ubuntu/Windows/macOS run is fully green |
 
 ## M1c G5 local audit and G6 qualification machinery — 2026-08-25
 

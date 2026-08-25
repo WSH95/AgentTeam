@@ -1,27 +1,31 @@
 ---
-updated_at: 2026-08-25T22:23:53Z
+updated_at: 2026-08-25T22:32:09Z
 updated_by: codex
 session_status: active
 branch: main
-last_commit: 43eaea9
+last_commit: 55b04fd
 ---
 # Handoff
 
 ## Now
 
 M1a and M1b remain complete. The approved M1c implementation commit `43eaea9`
-is pushed. Hosted G5 run 32905220326 was 10/12 green and exposed one Windows
-owned-process liveness defect: POSIX-style `os.kill(pid, 0)` is unsafe on
-Windows and raised `WinError 87`, cascading into 13 close failures on both
-Windows scaffold legs. The source fix uses `OpenProcess` and
-`GetExitCodeProcess`; 35 focused tests and the full 737 passed + 4 expected
-skips are green locally. G5 remains open for the replacement hosted run. No
-runtime install, credential read, or model/live call has occurred.
+and first Windows correction `55b04fd` are pushed. Hosted G5 attempt
+32905220326 was 10/12 green and exposed unsafe POSIX-style process liveness on
+Windows. Replacement run 32906060190 was also 10/12 green: the provider suite
+now passed on Windows, proving that fix, before both Windows scaffold legs
+found a second portability defect at archive close. The manifest tried to read
+the still-held exclusive `controller.lock` and received `PermissionError`.
+Excluding that ephemeral lease file from the durable manifest is locally green
+at 35 focused tests and the full 737 passed + 4 expected skips. G5 remains open
+for a third hosted run. No runtime install, credential read, or model/live call
+has occurred.
 
 ## In flight
 
-- The Windows process-liveness fix and its regression are locally validated
-  and awaiting the follow-up semantic commit/push.
+- The second Windows correction excludes the ephemeral controller lease from
+  the archive manifest, consistently with audit export. It is locally
+  validated and awaiting its semantic commit/push and replacement hosted run.
 - G6's installer, installed-tree integrity, exact-profile qualification cache,
   no-call bridge lifecycle, and fail-closed capability resolution are complete.
   The owner approved the exact pinned runtime install and no-call qualification
@@ -33,8 +37,8 @@ runtime install, credential read, or model/live call has occurred.
 
 ## Next steps
 
-1. Commit/push the locally green Windows liveness fix, then watch the complete
-   replacement hosted matrix and close G5 only if all jobs pass.
+1. Commit/push the locally green archive-lease fix, then watch the complete
+   third hosted matrix and close G5 only if all jobs pass.
 2. Install the exact pinned direct-ACP runtime under the owner-approved action,
    then run fresh per-harness no-call qualification and record the honest
    supported/excluded capability result for G6.
@@ -45,7 +49,7 @@ runtime install, credential read, or model/live call has occurred.
 
 ## Blockers
 
-G5 needs a green replacement hosted run after the Windows fix. G6 follows the
+G5 needs a green third hosted run after the archive-lease fix. G6 follows the
 now-approved exact runtime installation. G7 remains blocked by design on a
 fresh attended owner go. M1d remains blocked on M1c G8 and its D0 decisions.
 HB-03 remains deferred.
