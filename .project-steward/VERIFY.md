@@ -4,6 +4,22 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1b G1 team contracts and schemas — 2026-08-24
+
+| Check | Result |
+| --- | --- |
+| Contract models | PASS — `TeamTemplateV1`, `TeamRunRequestV1`, and vendor-facing `MemberResultV1` are closed and registered; template roster/relationship/preference/independence/DAG/owner-bijection/placeholder/reserved rules and request goal/override rules have model negatives |
+| Run-record extension | PASS — checked-in schema is a mode-discriminated `oneOf`; direct and team variants reject cross-fields at JSON-Schema level; direct variant body and serialized field order mechanically equal the pre-M1b contract; team lifecycle nullability, invocation-only/unique bindings, and success requirements have model negatives |
+| Schema delta | PASS — exactly 12 checked-in schema files; exactly three additions (`team-template`, `team-run-request`, `member-result`) and only two pre-existing files regenerated (`run-record`, `harness-invocation`); `DecidedBy` adds `team`; shared `SubstrateKind` is defined in `domain/team.py` and imported by `domain/run.py` |
+| Vendor dialect | PASS — `member-result-v1` is required-all, closed, ref-free/default-free/const-free/pattern-free/format-free and uses only the pinned structured-output keyword set; non-empty summary is enforced after extraction by the model |
+| Reference CLI and fixtures | PASS — `atm team validate examples/teams/development.yaml --json` reports valid, 3 members, 3 tasks, hash `f49da7444910…`; all Assistant references hash and pass strict content checks; committed Skill-free implementer, three-member template, and team request match §13 |
+| Focused tests | PASS — 154 tests covering schemas, vendor projection, domain rules, template/request validation, and `atm team validate` |
+| Full local block | PASS — `uv lock --check`; Ruff lint clean and format clean over 108 files; strict mypy clean over 104 source files; schema check current; pytest **509 passed + 4 expected skips**; wheel and sdist built; `git diff --check` clean |
+| Boundary | PASS — zero live/model calls, credential reads, dependency changes, CI changes, pushes, AGENTS/CLAUDE edits, or M1c work; pre-existing `.codex/` remains untracked and untouched |
+
+Last verified: 2026-08-25 by Codex. Gate commit is the semantic G1 commit
+carrying this entry; its SHA is indexed with later-gate evidence and at G7.
+
 ## M1b G0 approval — 2026-08-24
 
 | Check | Result |

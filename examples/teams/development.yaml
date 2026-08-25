@@ -1,0 +1,48 @@
+# Portable three-member development TeamTemplate used by deterministic M1b tests.
+schema_version: 1
+kind: team-template
+id: development
+version: 1
+summary: Plans, implements, and independently reviews a bounded development goal.
+members:
+  - name: lead
+    assistant: ../assistants/code-reviewer
+    relationships:
+      coordinates: [implementer, reviewer]
+  - name: implementer
+    assistant: ../assistants/implementer
+  - name: reviewer
+    assistant: ../assistants/code-reviewer
+    relationships:
+      reviews: [implementer]
+lead: lead
+handoff:
+  required_fields: [task_id, summary, deliverables, risks, done_when]
+  acks: [ACK, DONE, BLOCKED]
+independence:
+  - between: [reviewer, implementer]
+    declared: advisory
+    means: [separate-invocation, no-shared-workspace, no-message-edge, blinded-inputs]
+preferences:
+  harness_preferences:
+    implementer: [codex]
+  run_defaults:
+    fresh_instances: true
+    archive: always
+    worktree_per_member: true
+workflow_skeleton:
+  - id: plan
+    subject: Plan {goal}
+    owner: lead
+    blocked_by: []
+    workspace_access: read-only
+  - id: implement
+    subject: Implement {goal}
+    owner: implementer
+    blocked_by: [plan]
+    workspace_access: workspace-write
+  - id: review
+    subject: Review {goal}
+    owner: reviewer
+    blocked_by: [implement]
+    workspace_access: read-only

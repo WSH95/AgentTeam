@@ -114,7 +114,7 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
   - [x] Draft r6 resolves all fifth-review findings (`760a8ae`; plan §21 r5→r6 table; ADR 0043 — explicit team-member rendering, collision-safe project-local Grok profiles, launch-time target baselines, shared substrate typing, truthful failed/cancelled/abandoned terminal pairings, and Windows refusal)
   - [x] Sixth independent review (confirmation of r6 at `760a8ae`, plan SHA-256 `1776305f7bb0cca614efc13621b31d870a340444a70e06af168b5e7a86e356f6`) delivered 2026-08-25 — G0-eligible, no remaining implementation blockers; recorded at `docs/reviews/2026-08-24-m1b-plan-review-at-760a8ae.md`
   - [x] G0 — owner approved frozen r6 at `760a8ae8c7021b0427bf29c84f005bebdd453bf6`; finalize-at-approval choices and glossary amendment recorded in ADR 0044
-- [ ] G1 — team contracts, schemas, `atm team validate`, and committed examples
+- [x] G1 — team contracts, schemas, `atm team validate`, and committed examples
 - [ ] G2 — CoordinationSubstrate protocol, local deterministic provider, conformance suite, and containment scan
 - [ ] G3 — team runner, member-result/deliverable/handoff pipeline, lifecycle finalization, and fault matrix
 - [ ] G4 — deterministic three-Member lifecycle acceptance through the CLI and hosted core evidence

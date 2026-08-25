@@ -61,7 +61,7 @@ uv run python -m agentteam.schema check   # checked-in schemas reproduce
 uv run atm --version
 ```
 
-The nine V1 JSON Schemas under [`schemas/`](schemas/README.md) are generated
+The twelve V1 JSON Schemas under [`schemas/`](schemas/README.md) are generated
 from the Pydantic models; regenerate with
 `uv run python -m agentteam.schema export`.
 

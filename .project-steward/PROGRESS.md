@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-25T03:14:42Z — codex
+**M1b G1 closed locally.** TeamTemplate/TeamRunRequest/MemberResult contracts, the schema-level direct/team run-record union, shared substrate/task types, reference-aware `atm team validate`, and the committed implementer/development/team-request fixtures are green. Exact schema delta: three new + only two regenerated; direct body/order unchanged. Focused 154; full 509+4; Ruff/format, strict mypy/104, schemas, lock, build, and diff clean. Zero live calls/push; G2 follows after the semantic commit.
+
 ### 2026-08-25T02:48:29Z — codex
 **M1b G0 approved and prepared for commit.** ADR 0044 names frozen r6 at `760a8ae8c7021b0427bf29c84f005bebdd453bf6` / plan SHA-256 `1776305f…e356f6`, finalizes every §20 choice, and carries the glossary stop-before-cleanup amendment. Baseline is green (453 passed + 4 skipped, Ruff, mypy/98, schemas, build); zero live calls, no product source, no push. G1 follows after this docs-only boundary commits.
 

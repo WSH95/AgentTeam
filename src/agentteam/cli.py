@@ -14,6 +14,7 @@ from agentteam import __version__
 from agentteam.commands.assistant import assistant_app
 from agentteam.commands.profile import profile_app
 from agentteam.commands.run import register_run
+from agentteam.commands.team import team_app
 
 HELP = (
     "AgentTeam - portable, harness-independent Assistant definitions executed as "
@@ -54,6 +55,7 @@ def root(
 
 app.add_typer(assistant_app)
 app.add_typer(profile_app)
+app.add_typer(team_app)
 register_run(app)
 
 

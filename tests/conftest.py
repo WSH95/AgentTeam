@@ -89,6 +89,46 @@ def minimal_payloads() -> dict[str, dict[str, Any]]:
             "task_file": "task.md",
             "mode": "direct",
         },
+        "team-template-v1.schema.json": {
+            "schema_version": 1,
+            "kind": "team-template",
+            "id": "development",
+            "version": 1,
+            "summary": "Plans and implements a bounded goal.",
+            "members": [
+                {"name": "lead", "assistant": "../assistants/code-reviewer"},
+                {"name": "implementer", "assistant": "../assistants/implementer"},
+            ],
+            "lead": "lead",
+            "handoff": {"required_fields": [], "acks": []},
+            "independence": [],
+            "preferences": {},
+            "workflow_skeleton": [
+                {"id": "plan", "subject": "Plan {goal}", "owner": "lead"},
+                {
+                    "id": "implement",
+                    "subject": "Implement {goal}",
+                    "owner": "implementer",
+                    "blocked_by": ["plan"],
+                    "workspace_access": "workspace-write",
+                },
+            ],
+        },
+        "team-run-request-v1.schema.json": {
+            "schema_version": 1,
+            "kind": "team-run-request",
+            "template": "../teams/development.yaml",
+            "workspace": "../../fixtures/review-target",
+            "task_file": "review-task.md",
+            "goal": "improve the review target safely",
+        },
+        "member-result-v1.schema.json": {
+            "schema_version": 1,
+            "kind": "member-result",
+            "summary": "Implemented the requested change.",
+            "deliverables": ["src/change.py"],
+            "risks": [],
+        },
         "bundle-manifest-v1.schema.json": {
             "schema_version": 1,
             "kind": "bundle-manifest",
@@ -178,9 +218,67 @@ def minimal_payloads() -> dict[str, dict[str, Any]]:
     }
 
 
+def run_record_variant_payloads() -> dict[str, dict[str, Any]]:
+    """Valid direct and team variants for union and lifecycle tests."""
+    direct = minimal_payloads()["run-record-v1.schema.json"]
+    team = {
+        "schema_version": 1,
+        "kind": "run-record",
+        "run_id": "run-team-1",
+        "mode": "team",
+        "template": {"ref": "examples/teams/development.yaml", "hash": H64},
+        "members": [
+            {
+                "name": name,
+                "assistant": {"id": assistant, "version": 1, "package_hash": H64},
+                "effective_definition_hash": H64,
+                "execution": execution,
+                "origin": "persistent",
+                "visibility": "visible",
+                "selection": {"decided_by": decided_by, "candidates": ["codex"]},
+            }
+            for name, assistant, execution, decided_by in (
+                ("lead", "code-reviewer", {"kind": "invocation", "ref": "inv-lead"}, "assistant"),
+                ("implementer", "implementer", None, "team"),
+            )
+        ],
+        "substrate": {"kind": "local", "namespace": None, "snapshot": None},
+        "tasks": [
+            {
+                "id": "plan",
+                "subject": "Plan the change",
+                "status": "pending",
+                "owner": "lead",
+                "blocked_by": [],
+                "workspace_access": "read-only",
+                "substrate_id": None,
+            },
+            {
+                "id": "implement",
+                "subject": "Implement the change",
+                "status": "blocked",
+                "owner": "implementer",
+                "blocked_by": ["plan"],
+                "workspace_access": "workspace-write",
+                "substrate_id": None,
+            },
+        ],
+        "independence": {"declared": "advisory", "achieved": None},
+        "events": "events.jsonl",
+        "timing": {"started_at": "2026-08-23T12:00:00Z"},
+        "status": "pending",
+    }
+    return {"direct": direct, "team": team}
+
+
 @pytest.fixture()
 def payloads() -> dict[str, dict[str, Any]]:
     return minimal_payloads()
+
+
+@pytest.fixture()
+def run_record_variants() -> dict[str, dict[str, Any]]:
+    return run_record_variant_payloads()
 
 
 # --- render-context builder for adapter tests -------------------------------

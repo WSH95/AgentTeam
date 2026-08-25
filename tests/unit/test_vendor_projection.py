@@ -123,7 +123,9 @@ def test_delivered_construct_set_is_probe_proven_plus_documented_residue(name: s
     for sub in _subschemas(vendor_schema(name)):
         keywords.update(sub)
     probe_proven = {"type", "properties", "items", "required", "additionalProperties"}
-    residue = {"enum", "anyOf", "description"}
+    residue = {"enum", "description"}
+    if name != "member-result-v1.schema.json":
+        residue.add("anyOf")
     assert keywords == probe_proven | residue, sorted(keywords)
     assert not (keywords & VENDOR_STRIP_KEYS)
 

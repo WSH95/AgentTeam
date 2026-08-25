@@ -11,6 +11,7 @@ problems (the CLI exits 2 in strict mode); they never modify the package.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -83,6 +84,24 @@ _HEURISTICS: dict[ProhibitedContentCheck, re.Pattern[str]] = {
 }
 
 
+def check_prohibited_text(
+    source: str,
+    text: str,
+    *,
+    enabled: Iterable[ProhibitedContentCheck] = ProhibitedContentCheck,
+) -> list[str]:
+    """Run the shared advisory content checks over one labelled text value."""
+    selected = set(enabled)
+    problems: list[str] = []
+    for check, pattern in _HEURISTICS.items():
+        if check not in selected:
+            continue
+        for match in pattern.finditer(text):
+            line = text.count("\n", 0, match.start()) + 1
+            problems.append(f"{source}:{line}: {check.value}: {match.group(0)[:60]!r}")
+    return problems
+
+
 def _instruction_files(loaded: LoadedPackage) -> list[str]:
     definition = loaded.definition
     files = [definition.persona, definition.principles]
@@ -119,16 +138,10 @@ def check_package(loaded: LoadedPackage, *, strict_content: bool) -> list[str]:
             problems.append(f"{artifact.source.vendored}: agent-skill has no SKILL.md")
 
     if strict_content:
-        enabled = set(definition.prohibited_content)
         for rel in _instruction_files(loaded):
             path = root / rel
             if not path.is_file():
                 continue
             text = path.read_text(encoding="utf-8")
-            for check, pattern in _HEURISTICS.items():
-                if check not in enabled:
-                    continue
-                for match in pattern.finditer(text):
-                    line = text.count("\n", 0, match.start()) + 1
-                    problems.append(f"{rel}:{line}: {check.value}: {match.group(0)[:60]!r}")
+            problems.extend(check_prohibited_text(rel, text, enabled=definition.prohibited_content))
     return problems

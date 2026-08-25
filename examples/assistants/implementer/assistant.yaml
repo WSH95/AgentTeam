@@ -1,0 +1,16 @@
+# Minimal Skill-free Assistant used to prove the Team preference layer.
+schema_version: 1
+kind: assistant-definition
+id: implementer
+version: 1
+summary: Implements a bounded task and reports its work products.
+persona: persona.md
+purpose:
+  - implement the assigned task within the granted workspace access
+  - report a concise summary, declared deliverables, and risks
+principles: principles.md
+harness_policy:
+  preferred: []
+  allowed: []
+  forbidden: []
+  required_capabilities: []

@@ -6,7 +6,13 @@ from agentteam.domain.common import SCHEMA_VERSION, HarnessId, RecordModel, RunS
 from agentteam.domain.profile import HarnessProfileSetV1
 from agentteam.domain.request import RunRequestV1
 from agentteam.domain.review import NormalizedReviewV1, SynthesisReportV1
-from agentteam.domain.run import EnsembleRecordV1, HarnessInvocationV1, RunRecordV1
+from agentteam.domain.run import (
+    EnsembleRecordV1,
+    HarnessInvocationV1,
+    RunRecordV1,
+    TeamRunRecordV1,
+)
+from agentteam.domain.team import MemberResultV1, TeamRunRequestV1, TeamTemplateV1
 
 __all__ = [
     "SCHEMA_VERSION",
@@ -16,10 +22,14 @@ __all__ = [
     "HarnessId",
     "HarnessInvocationV1",
     "HarnessProfileSetV1",
+    "MemberResultV1",
     "NormalizedReviewV1",
     "RecordModel",
     "RunRecordV1",
     "RunRequestV1",
     "RunStatus",
     "SynthesisReportV1",
+    "TeamRunRecordV1",
+    "TeamRunRequestV1",
+    "TeamTemplateV1",
 ]

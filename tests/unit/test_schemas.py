@@ -1,8 +1,8 @@
 """Checked-in JSON Schema contract (M1a plan sections 6-7, 15).
 
-The nine V1 schemas under `schemas/` are generated from the Pydantic models in
+The twelve V1 schemas under `schemas/` are generated from the Pydantic models in
 `agentteam.domain` and must reproduce byte-for-byte (after LF normalisation),
-stay consumable by non-Python validators, and — for the two vendor-facing
+stay consumable by non-Python validators, and — for the three vendor-facing
 files — stay inside the vendors' structured-output dialect intersection.
 """
 
@@ -14,6 +14,7 @@ import re
 import subprocess
 import sys
 from collections.abc import Iterator
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -37,8 +38,15 @@ PLANNED_FILES = {
     "ensemble-record-v1.schema.json": "ensemble-record",
     "normalized-review-v1.schema.json": "normalized-review",
     "synthesis-report-v1.schema.json": "synthesis-report",
+    "team-template-v1.schema.json": "team-template",
+    "team-run-request-v1.schema.json": "team-run-request",
+    "member-result-v1.schema.json": "member-result",
 }
-VENDOR_FACING = {"normalized-review-v1.schema.json", "synthesis-report-v1.schema.json"}
+VENDOR_FACING = {
+    "normalized-review-v1.schema.json",
+    "synthesis-report-v1.schema.json",
+    "member-result-v1.schema.json",
+}
 
 
 def _scrubbed_env() -> dict[str, str]:
@@ -97,6 +105,12 @@ def _single_value(prop: dict[str, Any]) -> Any:
         return prop["const"]
     assert prop.get("enum") and len(prop["enum"]) == 1, prop
     return prop["enum"][0]
+
+
+def _run_variant(schema: dict[str, Any], mode: str) -> dict[str, Any]:
+    ref: str = schema["discriminator"]["mapping"][mode]
+    variant: dict[str, Any] = schema["$defs"][ref.rsplit("/", 1)[-1]]
+    return variant
 
 
 # --- file set and reproduction -------------------------------------------------
@@ -195,13 +209,22 @@ def test_every_schema_is_a_closed_object_with_envelope(name: str) -> None:
     schema = _load(name)
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["$id"] == f"urn:agentteam:schema:{PLANNED_FILES[name]}:v1"
-    assert schema["type"] == "object"
-    props = schema["properties"]
-    assert _single_value(props["schema_version"]) == 1
-    assert _single_value(props["kind"]) == PLANNED_FILES[name]
-    assert {"schema_version", "kind"} <= set(schema["required"])
+    roots = (
+        [_run_variant(schema, "direct"), _run_variant(schema, "team")]
+        if name == "run-record-v1.schema.json"
+        else [schema]
+    )
+    for root in roots:
+        assert root["type"] == "object"
+        props = root["properties"]
+        assert _single_value(props["schema_version"]) == 1
+        assert _single_value(props["kind"]) == PLANNED_FILES[name]
+        assert {"schema_version", "kind"} <= set(root["required"])
     for obj in _objects(schema):
-        assert obj.get("additionalProperties") is False, f"{name}: open object {obj.get('title')}"
+        if "properties" in obj:
+            assert obj.get("additionalProperties") is False, (
+                f"{name}: open record object {obj.get('title')}"
+            )
 
 
 @pytest.mark.parametrize("name", sorted(PLANNED_FILES))
@@ -264,6 +287,156 @@ def test_minimal_instance_validates_and_unknown_field_fails(
         model.model_validate(poisoned)
 
 
+def test_run_record_schema_is_a_closed_mode_discriminated_union(
+    run_record_variants: dict[str, dict[str, Any]],
+) -> None:
+    schema = _load("run-record-v1.schema.json")
+    assert schema["discriminator"]["propertyName"] == "mode"
+    assert len(schema["oneOf"]) == 2
+    direct = _run_variant(schema, "direct")
+    team = _run_variant(schema, "team")
+    direct_fields = [
+        "schema_version",
+        "kind",
+        "run_id",
+        "mode",
+        "member",
+        "timing",
+        "status",
+        "failure_reason",
+    ]
+    assert list(direct["properties"]) == direct_fields
+    direct_record = domain.RunRecordV1.model_validate(run_record_variants["direct"])
+    assert list(direct_record.model_dump()) == direct_fields
+    assert "member" not in team["properties"]
+    assert {"template", "members", "substrate", "tasks", "independence", "events"} <= set(
+        team["properties"]
+    )
+    validator = jsonschema.Draft202012Validator(schema)
+    for payload in run_record_variants.values():
+        validator.validate(payload)
+    team_json = json.dumps(run_record_variants["team"])
+    parsed_team: object = domain.RunRecordV1.model_validate_json(team_json)
+    assert isinstance(parsed_team, domain.TeamRunRecordV1)
+
+
+def test_run_record_schema_rejects_cross_variant_and_team_shape_negatives(
+    run_record_variants: dict[str, dict[str, Any]],
+) -> None:
+    schema = _load("run-record-v1.schema.json")
+    validator = jsonschema.Draft202012Validator(schema)
+    direct = run_record_variants["direct"]
+    team = run_record_variants["team"]
+    invalid = [
+        {**direct, "template": {"ref": "x", "hash": "a" * 64}},
+        {**team, "member": direct["member"]},
+    ]
+    one_member = deepcopy(team)
+    one_member["members"] = one_member["members"][:1]
+    invalid.append(one_member)
+    bad_access = deepcopy(team)
+    bad_access["tasks"][0]["workspace_access"] = "write-everywhere"
+    invalid.append(bad_access)
+    missing_access = deepcopy(team)
+    del missing_access["tasks"][0]["workspace_access"]
+    invalid.append(missing_access)
+    bad_status = deepcopy(team)
+    bad_status["tasks"][0]["status"] = "timed-out"
+    invalid.append(bad_status)
+    bad_decider = deepcopy(team)
+    bad_decider["members"][0]["selection"]["decided_by"] = "forced"
+    invalid.append(bad_decider)
+    for payload in invalid:
+        with pytest.raises(jsonschema.ValidationError):
+            validator.validate(payload)
+
+
+@pytest.mark.parametrize("status", ["failed", "cancelled", "abandoned"])
+def test_run_record_schema_accepts_each_run_only_task_terminal(
+    status: str, run_record_variants: dict[str, dict[str, Any]]
+) -> None:
+    payload = deepcopy(run_record_variants["team"])
+    payload["tasks"][0]["status"] = status
+    jsonschema.Draft202012Validator(_load("run-record-v1.schema.json")).validate(payload)
+
+
+def test_reserved_arrays_fail_closed_at_schema_level(payloads: dict[str, dict[str, Any]]) -> None:
+    cases = [
+        ("team-template-v1.schema.json", "dynamic_members", [{"name": "later"}]),
+        ("team-template-v1.schema.json", "constraints", ["must-use-codex"]),
+        ("team-run-request-v1.schema.json", "overlay_refs", ["overlay-1"]),
+    ]
+    for name, field, value in cases:
+        payload = {**payloads[name], field: value}
+        with pytest.raises(jsonschema.ValidationError):
+            jsonschema.Draft202012Validator(_load(name)).validate(payload)
+
+
+def test_team_run_lifecycle_and_execution_binding_model_rules(
+    run_record_variants: dict[str, dict[str, Any]],
+) -> None:
+    pending = run_record_variants["team"]
+    record: object = domain.RunRecordV1.model_validate(pending)
+    assert isinstance(record, domain.TeamRunRecordV1)
+
+    terminal_time = {
+        "started_at": "2026-08-23T12:00:00Z",
+        "finished_at": "2026-08-23T12:01:00Z",
+    }
+    failed = deepcopy(pending)
+    failed.update(status="failed", timing=terminal_time)
+    domain.RunRecordV1.model_validate(failed)
+    timed_out = deepcopy(failed)
+    timed_out["status"] = "timed-out"
+    domain.RunRecordV1.model_validate(timed_out)
+
+    cancelled = deepcopy(failed)
+    cancelled["status"] = "cancelled"
+    cancelled["substrate"]["namespace"] = "space-1"
+    cancelled["independence"]["achieved"] = "data-dir"
+    domain.RunRecordV1.model_validate(cancelled)
+
+    succeeded = deepcopy(cancelled)
+    succeeded["status"] = "succeeded"
+    succeeded["substrate"]["snapshot"] = {
+        "id": "snapshot-1",
+        "path": "coordination/snapshot.json",
+        "sha256": "a" * 64,
+    }
+    succeeded["members"][1]["execution"] = {
+        "kind": "invocation",
+        "ref": "inv-implementer",
+    }
+    domain.RunRecordV1.model_validate(succeeded)
+
+    for field in ("namespace", "snapshot"):
+        invalid = deepcopy(succeeded)
+        invalid["substrate"][field] = None
+        if field == "namespace":
+            invalid["independence"]["achieved"] = None
+        with pytest.raises(ValidationError):
+            domain.RunRecordV1.model_validate(invalid)
+    null_achieved = deepcopy(succeeded)
+    null_achieved["independence"]["achieved"] = None
+    with pytest.raises(ValidationError):
+        domain.RunRecordV1.model_validate(null_achieved)
+
+    null_execution = deepcopy(succeeded)
+    null_execution["members"][0]["execution"] = None
+    with pytest.raises(ValidationError, match="every member"):
+        domain.RunRecordV1.model_validate(null_execution)
+
+    ensemble = deepcopy(pending)
+    ensemble["members"][0]["execution"] = {"kind": "ensemble", "ref": "ens-1"}
+    with pytest.raises(ValidationError, match="invocation"):
+        domain.RunRecordV1.model_validate(ensemble)
+
+    duplicate = deepcopy(succeeded)
+    duplicate["members"][1]["execution"] = duplicate["members"][0]["execution"]
+    with pytest.raises(ValidationError, match="unique"):
+        domain.RunRecordV1.model_validate(duplicate)
+
+
 def test_model_and_schema_agree_on_path_slug_and_id_patterns() -> None:
     schema = _load("bundle-manifest-v1.schema.json")
     file_entry = schema["$defs"]["FileEntryV1"]["properties"]
@@ -312,12 +485,26 @@ def test_models_reject_unknown_fields(payloads: dict[str, dict[str, Any]]) -> No
         domain.NormalizedReviewV1.model_validate({**payload, "extra": True})
 
 
+def test_member_result_requires_summary_and_explicit_result_lists(
+    payloads: dict[str, dict[str, Any]],
+) -> None:
+    payload = payloads["member-result-v1.schema.json"]
+    with pytest.raises(ValidationError, match="non-empty"):
+        domain.MemberResultV1.model_validate({**payload, "summary": ""})
+    for field in ("deliverables", "risks"):
+        missing = dict(payload)
+        del missing[field]
+        with pytest.raises(ValidationError):
+            domain.MemberResultV1.model_validate(missing)
+
+
 def test_effective_definition_hash_is_computed_state_not_request_input() -> None:
     assert "effective_definition_hash" not in _load("run-request-v1.schema.json")["properties"]
     assert "effective_definition_hash" in _load("bundle-manifest-v1.schema.json")["properties"]
     assert "effective_definition_hash" in _load("harness-invocation-v1.schema.json")["properties"]
     run_record = _load("run-record-v1.schema.json")
-    assert "effective_definition_hash" not in run_record["properties"]  # lives on the Member
+    direct = _run_variant(run_record, "direct")
+    assert "effective_definition_hash" not in direct["properties"]  # lives on the Member
     assert "effective_definition_hash" in run_record["$defs"]["MemberRecordV1"]["properties"]
 
 
@@ -332,7 +519,7 @@ def test_run_record_member_is_bound_to_exactly_one_execution() -> None:
     member = schema["$defs"]["MemberRecordV1"]["properties"]
     execution = _deref(schema, member["execution"])["properties"]
     assert _enum(schema, execution["kind"]) == ["invocation", "ensemble"]
-    assert _single_value(schema["properties"]["mode"]) == "direct"
+    assert _single_value(_run_variant(schema, "direct")["properties"]["mode"]) == "direct"
 
 
 def test_harness_invocation_records_what_section_7_lists() -> None:
@@ -348,6 +535,7 @@ def test_harness_invocation_records_what_section_7_lists() -> None:
     assert _enum(schema, defs["SelectionV1"]["properties"]["decided_by"]) == [
         "user",
         "assistant",
+        "team",
         "default",
     ]
     assert _enum(schema, props["attendance"]) == ["attended", "unattended"]

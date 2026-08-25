@@ -87,10 +87,11 @@
       "type": "string"
     },
     "DecidedBy": {
-      "description": "Who decided the harness; `team` and forced variants are reserved for M1b.",
+      "description": "Which preference layer selected the harness.",
       "enum": [
         "user",
         "assistant",
+        "team",
         "default"
       ],
       "title": "DecidedBy",

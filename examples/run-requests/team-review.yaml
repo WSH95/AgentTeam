@@ -1,0 +1,8 @@
+# Deterministic M1b team request; pair with examples/profiles/ci-fake.yaml.
+schema_version: 1
+kind: team-run-request
+template: ../teams/development.yaml
+workspace: ../../fixtures/review-target
+task_file: review-task.md
+goal: improve the review target safely
+substrate: local

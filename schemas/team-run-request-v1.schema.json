@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:team-run-request:v1",
+  "$defs": {
+    "EvidenceSettingsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "retain_raw_streams": {
+          "default": true,
+          "description": "Keep raw vendor output in the local, gitignored archive.",
+          "title": "Retain Raw Streams",
+          "type": "boolean"
+        }
+      },
+      "title": "EvidenceSettingsV1",
+      "type": "object"
+    },
+    "HarnessId": {
+      "description": "Harness identifiers used in records and profiles (plan section 2).",
+      "enum": [
+        "claude-code",
+        "codex",
+        "grok"
+      ],
+      "title": "HarnessId",
+      "type": "string"
+    },
+    "LimitsV1": {
+      "additionalProperties": false,
+      "description": "May lower but never raise the section 9 caps.",
+      "properties": {
+        "attempt_seconds": {
+          "anyOf": [
+            {
+              "maximum": 900,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt Seconds"
+        },
+        "transient_retries": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transient Retries"
+        }
+      },
+      "title": "LimitsV1",
+      "type": "object"
+    },
+    "MemberOverridesV1": {
+      "additionalProperties": false,
+      "properties": {
+        "harness": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HarnessId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "model": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "effort": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Effort"
+        }
+      },
+      "title": "MemberOverridesV1",
+      "type": "object"
+    },
+    "SubstrateKind": {
+      "description": "Coordination provider selected for one team run.",
+      "enum": [
+        "local",
+        "clawteam"
+      ],
+      "title": "SubstrateKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "team-run-request",
+      "title": "Kind",
+      "type": "string"
+    },
+    "template": {
+      "minLength": 1,
+      "title": "Template",
+      "type": "string"
+    },
+    "workspace": {
+      "minLength": 1,
+      "title": "Workspace",
+      "type": "string"
+    },
+    "task_file": {
+      "minLength": 1,
+      "title": "Task File",
+      "type": "string"
+    },
+    "goal": {
+      "maxLength": 200,
+      "minLength": 1,
+      "pattern": "^[^\\x00-\\x1f\\x7f]{1,200}$",
+      "title": "Goal",
+      "type": "string"
+    },
+    "substrate": {
+      "$ref": "#/$defs/SubstrateKind",
+      "default": "local"
+    },
+    "members": {
+      "patternProperties": {
+        "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$": {
+          "$ref": "#/$defs/MemberOverridesV1"
+        }
+      },
+      "title": "Members",
+      "type": "object"
+    },
+    "output_dir": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Output Dir"
+    },
+    "evidence": {
+      "$ref": "#/$defs/EvidenceSettingsV1"
+    },
+    "limits": {
+      "$ref": "#/$defs/LimitsV1"
+    },
+    "overlay_refs": {
+      "description": "Reserved for M3 overlays; must remain empty in M1b.",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 0,
+      "title": "Overlay Refs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "template",
+    "workspace",
+    "task_file",
+    "goal"
+  ],
+  "title": "TeamRunRequestV1",
+  "type": "object"
+}

@@ -1,12 +1,12 @@
 """Checked-in JSON Schema generation and verification (plan sections 6-7).
 
-The nine V1 schemas under `schemas/` are generated from the Pydantic models,
+The twelve V1 schemas under `schemas/` are generated from the Pydantic models,
 written with `\\n` newlines, and compared after LF normalisation so the files
 reproduce identically on every operating system. External consumers need
 neither Python nor AgentTeam to read or validate them; invariants a JSON
 Schema cannot express are listed in `schemas/README.md`.
 
-The two vendor-facing schemas (normalized review, synthesis report) are
+The three vendor-facing schemas (normalized review, synthesis report, member result) are
 post-processed into the vendors' structured-output dialect intersection:
 `$defs`/`$ref` fully inlined, `const` rewritten as single-value `enum`.
 The checked-in documents keep the `$schema`/`$id` envelope; the documents
@@ -29,11 +29,15 @@ from agentteam.domain import (
     EnsembleRecordV1,
     HarnessInvocationV1,
     HarnessProfileSetV1,
+    MemberResultV1,
     NormalizedReviewV1,
     RunRecordV1,
     RunRequestV1,
     SynthesisReportV1,
+    TeamRunRequestV1,
+    TeamTemplateV1,
 )
+from agentteam.domain.run import run_record_json_schema
 
 JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
 
@@ -52,11 +56,18 @@ SCHEMA_MODELS: dict[str, tuple[str, type[BaseModel]]] = {
     "ensemble-record-v1.schema.json": ("ensemble-record", EnsembleRecordV1),
     "normalized-review-v1.schema.json": ("normalized-review", NormalizedReviewV1),
     "synthesis-report-v1.schema.json": ("synthesis-report", SynthesisReportV1),
+    "team-template-v1.schema.json": ("team-template", TeamTemplateV1),
+    "team-run-request-v1.schema.json": ("team-run-request", TeamRunRequestV1),
+    "member-result-v1.schema.json": ("member-result", MemberResultV1),
 }
 SCHEMA_FILES: dict[str, type[BaseModel]] = {n: m for n, (_, m) in SCHEMA_MODELS.items()}
 
-# The two files consumed directly by vendor structured-output flags.
-VENDOR_FACING = {"normalized-review-v1.schema.json", "synthesis-report-v1.schema.json"}
+# The three files consumed directly by vendor structured-output flags.
+VENDOR_FACING = {
+    "normalized-review-v1.schema.json",
+    "synthesis-report-v1.schema.json",
+    "member-result-v1.schema.json",
+}
 
 # JSON Schema keywords whose value is a map of *names* to subschemas, not a
 # subschema itself; schema-position traversals must not treat their keys as
@@ -111,7 +122,11 @@ def _inline_refs(node: Any, defs: dict[str, Any]) -> Any:
 def generate(name: str) -> dict[str, Any]:
     """The JSON Schema document for one checked-in file name."""
     kind, model = SCHEMA_MODELS[name]
-    body: dict[str, Any] = model.model_json_schema(mode="validation")
+    body: dict[str, Any] = (
+        run_record_json_schema()
+        if name == "run-record-v1.schema.json"
+        else model.model_json_schema(mode="validation")
+    )
     if "$schema" in body or "$id" in body:
         raise ValueError(f"{name}: model body must not supply $schema/$id")
     if name in VENDOR_FACING:

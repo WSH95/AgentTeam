@@ -1,7 +1,7 @@
 """Internal harness models (plan section 9). Never exported as checked-in schemas.
 
 These are working objects between render, invoke, and parse; the persistent
-contracts stay the nine V1 records of `agentteam.domain`.
+contracts stay the twelve V1 records of `agentteam.domain`.
 """
 
 from __future__ import annotations

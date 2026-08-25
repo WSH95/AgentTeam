@@ -30,6 +30,17 @@
       "title": "AssistantRefV1",
       "type": "object"
     },
+    "DecidedBy": {
+      "description": "Which preference layer selected the harness.",
+      "enum": [
+        "user",
+        "assistant",
+        "team",
+        "default"
+      ],
+      "title": "DecidedBy",
+      "type": "string"
+    },
     "ExecutionBindingV1": {
       "additionalProperties": false,
       "description": "A Member is bound to one execution at a time (TEM section 4, M1a r3).",
@@ -58,6 +69,57 @@
       ],
       "title": "ExecutionKind",
       "type": "string"
+    },
+    "HarnessId": {
+      "description": "Harness identifiers used in records and profiles (plan section 2).",
+      "enum": [
+        "claude-code",
+        "codex",
+        "grok"
+      ],
+      "title": "HarnessId",
+      "type": "string"
+    },
+    "IndependenceAchieved": {
+      "enum": [
+        "namespace",
+        "data-dir",
+        "mechanical"
+      ],
+      "title": "IndependenceAchieved",
+      "type": "string"
+    },
+    "IndependenceDeclared": {
+      "enum": [
+        "advisory",
+        "mechanical"
+      ],
+      "title": "IndependenceDeclared",
+      "type": "string"
+    },
+    "IndependenceRecordV1": {
+      "additionalProperties": false,
+      "properties": {
+        "declared": {
+          "$ref": "#/$defs/IndependenceDeclared"
+        },
+        "achieved": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IndependenceAchieved"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "declared",
+        "achieved"
+      ],
+      "title": "IndependenceRecordV1",
+      "type": "object"
     },
     "MemberRecordV1": {
       "additionalProperties": false,
@@ -88,6 +150,64 @@
       "title": "MemberRecordV1",
       "type": "object"
     },
+    "RunRecordV1": {
+      "additionalProperties": false,
+      "description": "The archive manifest (`run.json`); written `pending` before any side effect.\n\n`effective_definition_hash` lives on the Member (the one-Member subset of\nthe later TeamRun record; M1b members each carry their own).",
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "run-record",
+          "title": "Kind",
+          "type": "string"
+        },
+        "run_id": {
+          "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "mode": {
+          "const": "direct",
+          "title": "Mode",
+          "type": "string"
+        },
+        "member": {
+          "$ref": "#/$defs/MemberRecordV1"
+        },
+        "timing": {
+          "$ref": "#/$defs/TimingV1"
+        },
+        "status": {
+          "$ref": "#/$defs/RunStatus"
+        },
+        "failure_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Failure Reason"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "run_id",
+        "mode",
+        "member",
+        "timing",
+        "status"
+      ],
+      "title": "RunRecordV1",
+      "type": "object"
+    },
     "RunStatus": {
       "description": "Lifecycle status; a record is created `pending` before the first side effect.",
       "enum": [
@@ -100,6 +220,351 @@
       ],
       "title": "RunStatus",
       "type": "string"
+    },
+    "SelectionV1": {
+      "additionalProperties": false,
+      "properties": {
+        "decided_by": {
+          "$ref": "#/$defs/DecidedBy"
+        },
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/HarnessId"
+          },
+          "title": "Candidates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "decided_by"
+      ],
+      "title": "SelectionV1",
+      "type": "object"
+    },
+    "SubstrateKind": {
+      "description": "Coordination provider selected for one team run.",
+      "enum": [
+        "local",
+        "clawteam"
+      ],
+      "title": "SubstrateKind",
+      "type": "string"
+    },
+    "SubstrateRecordV1": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/SubstrateKind"
+        },
+        "namespace": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Namespace"
+        },
+        "snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SubstrateSnapshotRefV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "namespace",
+        "snapshot"
+      ],
+      "title": "SubstrateRecordV1",
+      "type": "object"
+    },
+    "SubstrateSnapshotRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "path",
+        "sha256"
+      ],
+      "title": "SubstrateSnapshotRefV1",
+      "type": "object"
+    },
+    "TeamMemberRecordV1": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Name",
+          "type": "string"
+        },
+        "assistant": {
+          "$ref": "#/$defs/AssistantRefV1"
+        },
+        "effective_definition_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Effective Definition Hash",
+          "type": "string"
+        },
+        "execution": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExecutionBindingV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "origin": {
+          "const": "persistent",
+          "title": "Origin",
+          "type": "string"
+        },
+        "visibility": {
+          "const": "visible",
+          "title": "Visibility",
+          "type": "string"
+        },
+        "selection": {
+          "$ref": "#/$defs/SelectionV1"
+        }
+      },
+      "required": [
+        "name",
+        "assistant",
+        "effective_definition_hash",
+        "execution",
+        "origin",
+        "visibility",
+        "selection"
+      ],
+      "title": "TeamMemberRecordV1",
+      "type": "object"
+    },
+    "TeamRunRecordV1": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "run-record",
+          "title": "Kind",
+          "type": "string"
+        },
+        "run_id": {
+          "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "mode": {
+          "const": "team",
+          "title": "Mode",
+          "type": "string"
+        },
+        "template": {
+          "$ref": "#/$defs/TemplateRefV1"
+        },
+        "members": {
+          "items": {
+            "$ref": "#/$defs/TeamMemberRecordV1"
+          },
+          "minItems": 2,
+          "title": "Members",
+          "type": "array"
+        },
+        "substrate": {
+          "$ref": "#/$defs/SubstrateRecordV1"
+        },
+        "tasks": {
+          "items": {
+            "$ref": "#/$defs/TeamTaskRecordV1"
+          },
+          "minItems": 2,
+          "title": "Tasks",
+          "type": "array"
+        },
+        "independence": {
+          "$ref": "#/$defs/IndependenceRecordV1"
+        },
+        "events": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "pattern": "^(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+)(?:/(?:[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.[^./\\\\\\x00-\\x1f\\x7f][^/\\\\\\x00-\\x1f\\x7f]*|\\.\\.[^/\\\\\\x00-\\x1f\\x7f]+))*$",
+          "title": "Events",
+          "type": "string"
+        },
+        "parent": {
+          "default": null,
+          "title": "Parent",
+          "type": "null"
+        },
+        "depth": {
+          "default": null,
+          "title": "Depth",
+          "type": "null"
+        },
+        "nested_runs": {
+          "items": {},
+          "maxItems": 0,
+          "title": "Nested Runs",
+          "type": "array"
+        },
+        "timing": {
+          "$ref": "#/$defs/TimingV1"
+        },
+        "status": {
+          "$ref": "#/$defs/RunStatus"
+        },
+        "failure_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Failure Reason"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "run_id",
+        "mode",
+        "template",
+        "members",
+        "substrate",
+        "tasks",
+        "independence",
+        "events",
+        "timing",
+        "status"
+      ],
+      "title": "TeamRunRecordV1",
+      "type": "object"
+    },
+    "TeamTaskRecordV1": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Id",
+          "type": "string"
+        },
+        "subject": {
+          "minLength": 1,
+          "title": "Subject",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/TeamTaskStatus"
+        },
+        "owner": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Owner",
+          "type": "string"
+        },
+        "blocked_by": {
+          "items": {
+            "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+            "type": "string"
+          },
+          "title": "Blocked By",
+          "type": "array"
+        },
+        "workspace_access": {
+          "$ref": "#/$defs/WorkspaceAccess"
+        },
+        "substrate_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Substrate Id"
+        }
+      },
+      "required": [
+        "id",
+        "subject",
+        "status",
+        "owner",
+        "blocked_by",
+        "workspace_access",
+        "substrate_id"
+      ],
+      "title": "TeamTaskRecordV1",
+      "type": "object"
+    },
+    "TeamTaskStatus": {
+      "enum": [
+        "blocked",
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
+        "abandoned"
+      ],
+      "title": "TeamTaskStatus",
+      "type": "string"
+    },
+    "TemplateRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "minLength": 1,
+          "title": "Ref",
+          "type": "string"
+        },
+        "hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref",
+        "hash"
+      ],
+      "title": "TemplateRefV1",
+      "type": "object"
     },
     "TimingV1": {
       "additionalProperties": false,
@@ -141,62 +606,29 @@
       ],
       "title": "TimingV1",
       "type": "object"
-    }
-  },
-  "additionalProperties": false,
-  "description": "The archive manifest (`run.json`); written `pending` before any side effect.\n\n`effective_definition_hash` lives on the Member (the one-Member subset of\nthe later TeamRun record; M1b members each carry their own).",
-  "properties": {
-    "schema_version": {
-      "const": 1,
-      "title": "Schema Version",
-      "type": "integer"
     },
-    "kind": {
-      "const": "run-record",
-      "title": "Kind",
-      "type": "string"
-    },
-    "run_id": {
-      "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
-      "title": "Run Id",
-      "type": "string"
-    },
-    "mode": {
-      "const": "direct",
-      "title": "Mode",
-      "type": "string"
-    },
-    "member": {
-      "$ref": "#/$defs/MemberRecordV1"
-    },
-    "timing": {
-      "$ref": "#/$defs/TimingV1"
-    },
-    "status": {
-      "$ref": "#/$defs/RunStatus"
-    },
-    "failure_reason": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
+    "WorkspaceAccess": {
+      "enum": [
+        "read-only",
+        "workspace-write"
       ],
-      "default": null,
-      "title": "Failure Reason"
+      "title": "WorkspaceAccess",
+      "type": "string"
     }
   },
-  "required": [
-    "schema_version",
-    "kind",
-    "run_id",
-    "mode",
-    "member",
-    "timing",
-    "status"
-  ],
-  "title": "RunRecordV1",
-  "type": "object"
+  "discriminator": {
+    "mapping": {
+      "direct": "#/$defs/RunRecordV1",
+      "team": "#/$defs/TeamRunRecordV1"
+    },
+    "propertyName": "mode"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/RunRecordV1"
+    },
+    {
+      "$ref": "#/$defs/TeamRunRecordV1"
+    }
+  ]
 }

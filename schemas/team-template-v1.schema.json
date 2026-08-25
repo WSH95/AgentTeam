@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:team-template:v1",
+  "$defs": {
+    "HandoffAck": {
+      "enum": [
+        "ACK",
+        "DONE",
+        "BLOCKED"
+      ],
+      "title": "HandoffAck",
+      "type": "string"
+    },
+    "HandoffField": {
+      "enum": [
+        "task_id",
+        "summary",
+        "deliverables",
+        "risks",
+        "done_when"
+      ],
+      "title": "HandoffField",
+      "type": "string"
+    },
+    "HandoffRulesV1": {
+      "additionalProperties": false,
+      "properties": {
+        "required_fields": {
+          "items": {
+            "$ref": "#/$defs/HandoffField"
+          },
+          "title": "Required Fields",
+          "type": "array"
+        },
+        "acks": {
+          "items": {
+            "$ref": "#/$defs/HandoffAck"
+          },
+          "title": "Acks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "required_fields",
+        "acks"
+      ],
+      "title": "HandoffRulesV1",
+      "type": "object"
+    },
+    "HarnessId": {
+      "description": "Harness identifiers used in records and profiles (plan section 2).",
+      "enum": [
+        "claude-code",
+        "codex",
+        "grok"
+      ],
+      "title": "HarnessId",
+      "type": "string"
+    },
+    "IndependenceDeclared": {
+      "enum": [
+        "advisory",
+        "mechanical"
+      ],
+      "title": "IndependenceDeclared",
+      "type": "string"
+    },
+    "IndependenceRuleV1": {
+      "additionalProperties": false,
+      "properties": {
+        "between": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+              "type": "string"
+            },
+            {
+              "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+              "type": "string"
+            }
+          ],
+          "title": "Between",
+          "type": "array"
+        },
+        "declared": {
+          "$ref": "#/$defs/IndependenceDeclared"
+        },
+        "means": {
+          "items": {
+            "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+            "type": "string"
+          },
+          "title": "Means",
+          "type": "array"
+        }
+      },
+      "required": [
+        "between",
+        "declared",
+        "means"
+      ],
+      "title": "IndependenceRuleV1",
+      "type": "object"
+    },
+    "TeamMemberV1": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Name",
+          "type": "string"
+        },
+        "assistant": {
+          "description": "Path to an Assistant package.",
+          "minLength": 1,
+          "title": "Assistant",
+          "type": "string"
+        },
+        "relationships": {
+          "patternProperties": {
+            "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$": {
+              "items": {
+                "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "title": "Relationships",
+          "type": "object"
+        },
+        "visibility": {
+          "const": "visible",
+          "default": "visible",
+          "title": "Visibility",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "assistant"
+      ],
+      "title": "TeamMemberV1",
+      "type": "object"
+    },
+    "TeamPreferencesV1": {
+      "additionalProperties": false,
+      "properties": {
+        "harness_preferences": {
+          "patternProperties": {
+            "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$": {
+              "items": {
+                "$ref": "#/$defs/HarnessId"
+              },
+              "type": "array"
+            }
+          },
+          "title": "Harness Preferences",
+          "type": "object"
+        },
+        "run_defaults": {
+          "$ref": "#/$defs/TeamRunDefaultsV1"
+        }
+      },
+      "title": "TeamPreferencesV1",
+      "type": "object"
+    },
+    "TeamRunDefaultsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "fresh_instances": {
+          "const": true,
+          "default": true,
+          "title": "Fresh Instances",
+          "type": "boolean"
+        },
+        "archive": {
+          "const": "always",
+          "default": "always",
+          "title": "Archive",
+          "type": "string"
+        },
+        "worktree_per_member": {
+          "const": true,
+          "default": true,
+          "title": "Worktree Per Member",
+          "type": "boolean"
+        }
+      },
+      "title": "TeamRunDefaultsV1",
+      "type": "object"
+    },
+    "WorkflowTaskV1": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Id",
+          "type": "string"
+        },
+        "subject": {
+          "minLength": 1,
+          "title": "Subject",
+          "type": "string"
+        },
+        "owner": {
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+          "title": "Owner",
+          "type": "string"
+        },
+        "blocked_by": {
+          "items": {
+            "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+            "type": "string"
+          },
+          "title": "Blocked By",
+          "type": "array"
+        },
+        "workspace_access": {
+          "$ref": "#/$defs/WorkspaceAccess",
+          "default": "read-only"
+        }
+      },
+      "required": [
+        "id",
+        "subject",
+        "owner"
+      ],
+      "title": "WorkflowTaskV1",
+      "type": "object"
+    },
+    "WorkspaceAccess": {
+      "enum": [
+        "read-only",
+        "workspace-write"
+      ],
+      "title": "WorkspaceAccess",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "team-template",
+      "title": "Kind",
+      "type": "string"
+    },
+    "id": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Id",
+      "type": "string"
+    },
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "summary": {
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "members": {
+      "items": {
+        "$ref": "#/$defs/TeamMemberV1"
+      },
+      "minItems": 2,
+      "title": "Members",
+      "type": "array"
+    },
+    "lead": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Lead",
+      "type": "string"
+    },
+    "handoff": {
+      "$ref": "#/$defs/HandoffRulesV1"
+    },
+    "independence": {
+      "items": {
+        "$ref": "#/$defs/IndependenceRuleV1"
+      },
+      "title": "Independence",
+      "type": "array"
+    },
+    "preferences": {
+      "$ref": "#/$defs/TeamPreferencesV1"
+    },
+    "workflow_skeleton": {
+      "items": {
+        "$ref": "#/$defs/WorkflowTaskV1"
+      },
+      "minItems": 2,
+      "title": "Workflow Skeleton",
+      "type": "array"
+    },
+    "dynamic_members": {
+      "description": "Reserved for M1c; must remain empty in M1b.",
+      "items": {},
+      "maxItems": 0,
+      "title": "Dynamic Members",
+      "type": "array"
+    },
+    "constraints": {
+      "description": "Reserved pending the HB-03 decision; must remain empty in M1b.",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 0,
+      "title": "Constraints",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "id",
+    "version",
+    "summary",
+    "members",
+    "lead",
+    "handoff",
+    "independence",
+    "preferences",
+    "workflow_skeleton"
+  ],
+  "title": "TeamTemplateV1",
+  "type": "object"
+}

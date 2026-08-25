@@ -10,9 +10,10 @@ fabricated and Codex remains `cost_source: unavailable`.
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal, Self, cast
 
-from pydantic import AwareDatetime, Field, model_validator
+from pydantic import AwareDatetime, Field, TypeAdapter, model_validator
+from pydantic.config import ExtraValues
 
 from agentteam.domain.bundle import AssistantRefV1
 from agentteam.domain.common import (
@@ -28,6 +29,13 @@ from agentteam.domain.common import (
     SchemaVersion,
     Sha256,
     Slug,
+)
+from agentteam.domain.team import (
+    IndependenceAchieved,
+    IndependenceDeclared,
+    SubstrateKind,
+    TeamTaskStatus,
+    WorkspaceAccess,
 )
 
 # --- run record ----------------------------------------------------------------
@@ -65,6 +73,20 @@ class MemberRecordV1(RecordModel):
     execution: ExecutionBindingV1
 
 
+class DecidedBy(StrEnum):
+    """Which preference layer selected the harness."""
+
+    USER = "user"
+    ASSISTANT = "assistant"
+    TEAM = "team"
+    DEFAULT = "default"
+
+
+class SelectionV1(RecordModel):
+    decided_by: DecidedBy
+    candidates: list[HarnessId] = Field(default_factory=list)
+
+
 class RunRecordV1(RecordModel):
     """The archive manifest (`run.json`); written `pending` before any side effect.
 
@@ -87,21 +109,172 @@ class RunRecordV1(RecordModel):
             raise ValueError(f"terminal status {self.status.value!r} requires timing.finished_at")
         return self
 
+    @classmethod
+    def model_validate(
+        cls,
+        obj: Any,
+        *,
+        strict: bool | None = None,
+        extra: ExtraValues | None = None,
+        from_attributes: bool | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> Self:
+        if cls is RunRecordV1:
+            return cast(
+                Self,
+                _RUN_RECORD_ADAPTER.validate_python(
+                    obj,
+                    strict=strict,
+                    extra=extra,
+                    from_attributes=from_attributes,
+                    context=context,
+                    by_alias=by_alias,
+                    by_name=by_name,
+                ),
+            )
+        return super().model_validate(
+            obj,
+            strict=strict,
+            extra=extra,
+            from_attributes=from_attributes,
+            context=context,
+            by_alias=by_alias,
+            by_name=by_name,
+        )
+
+    @classmethod
+    def model_validate_json(
+        cls,
+        json_data: str | bytes | bytearray,
+        *,
+        strict: bool | None = None,
+        extra: ExtraValues | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> Self:
+        if cls is RunRecordV1:
+            return cast(
+                Self,
+                _RUN_RECORD_ADAPTER.validate_json(
+                    json_data,
+                    strict=strict,
+                    extra=extra,
+                    context=context,
+                    by_alias=by_alias,
+                    by_name=by_name,
+                ),
+            )
+        return super().model_validate_json(
+            json_data,
+            strict=strict,
+            extra=extra,
+            context=context,
+            by_alias=by_alias,
+            by_name=by_name,
+        )
+
+
+class TemplateRefV1(RecordModel):
+    ref: str = Field(min_length=1)
+    hash: Sha256
+
+
+class TeamMemberRecordV1(RecordModel):
+    name: Slug
+    assistant: AssistantRefV1
+    effective_definition_hash: Sha256
+    execution: ExecutionBindingV1 | None
+    origin: Literal["persistent"]
+    visibility: Literal["visible"]
+    selection: SelectionV1
+
+
+class SubstrateSnapshotRefV1(RecordModel):
+    id: str = Field(min_length=1)
+    path: RelPath
+    sha256: Sha256
+
+
+class SubstrateRecordV1(RecordModel):
+    kind: SubstrateKind
+    namespace: str | None = Field(min_length=1)
+    snapshot: SubstrateSnapshotRefV1 | None
+
+
+class TeamTaskRecordV1(RecordModel):
+    id: Slug
+    subject: str = Field(min_length=1)
+    status: TeamTaskStatus
+    owner: Slug
+    blocked_by: list[Slug]
+    workspace_access: WorkspaceAccess
+    substrate_id: str | None = Field(min_length=1)
+
+
+class IndependenceRecordV1(RecordModel):
+    declared: IndependenceDeclared
+    achieved: IndependenceAchieved | None
+
+
+class TeamRunRecordV1(RecordModel):
+    schema_version: SchemaVersion
+    kind: Literal["run-record"]
+    run_id: RunId
+    mode: Literal["team"]
+    template: TemplateRefV1
+    members: list[TeamMemberRecordV1] = Field(min_length=2)
+    substrate: SubstrateRecordV1
+    tasks: list[TeamTaskRecordV1] = Field(min_length=2)
+    independence: IndependenceRecordV1
+    events: RelPath
+    parent: None = None
+    depth: None = None
+    nested_runs: list[object] = Field(default_factory=list, max_length=0)
+    timing: TimingV1
+    status: RunStatus
+    failure_reason: str | None = None
+
+    @model_validator(mode="after")
+    def _valid_team_lifecycle(self) -> TeamRunRecordV1:
+        if self.status in TERMINAL_STATUSES and self.timing.finished_at is None:
+            raise ValueError(f"terminal status {self.status.value!r} requires timing.finished_at")
+        bindings = [member.execution for member in self.members if member.execution is not None]
+        if any(binding.kind is not ExecutionKind.INVOCATION for binding in bindings):
+            raise ValueError("team member execution bindings must use kind 'invocation'")
+        refs = [binding.ref for binding in bindings]
+        if len(set(refs)) != len(refs):
+            raise ValueError("team member execution refs must be unique")
+
+        namespace_present = self.substrate.namespace is not None
+        achieved_present = self.independence.achieved is not None
+        if namespace_present != achieved_present:
+            raise ValueError(
+                "substrate namespace and independence achieved must be present together"
+            )
+        if self.substrate.snapshot is not None and not namespace_present:
+            raise ValueError("substrate snapshot requires a namespace")
+
+        if self.status is RunStatus.SUCCEEDED:
+            if not namespace_present or self.substrate.snapshot is None:
+                raise ValueError("succeeded team run requires namespace, achieved, and snapshot")
+            if len(bindings) != len(self.members):
+                raise ValueError("succeeded team run requires every member execution binding")
+        return self
+
+
+RunRecordUnionV1 = Annotated[RunRecordV1 | TeamRunRecordV1, Field(discriminator="mode")]
+_RUN_RECORD_ADAPTER: TypeAdapter[RunRecordV1 | TeamRunRecordV1] = TypeAdapter(RunRecordUnionV1)
+
+
+def run_record_json_schema() -> dict[str, Any]:
+    """The public mode-discriminated JSON Schema for `RunRecordV1`."""
+    return _RUN_RECORD_ADAPTER.json_schema(mode="validation")
+
 
 # --- harness invocation --------------------------------------------------------
-
-
-class DecidedBy(StrEnum):
-    """Who decided the harness; `team` and forced variants are reserved for M1b."""
-
-    USER = "user"
-    ASSISTANT = "assistant"
-    DEFAULT = "default"
-
-
-class SelectionV1(RecordModel):
-    decided_by: DecidedBy
-    candidates: list[HarnessId] = Field(default_factory=list)
 
 
 class RequestedV1(RecordModel):
