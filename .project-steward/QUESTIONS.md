@@ -43,11 +43,11 @@ must not guess. Answered items remain here for traceability.
 ## Current gate
 
 M1a and M1b are complete. M1c r3 and M1d r2 are frozen and approved. M1c
-G0–G5 are closed; revised G6 is locally green with all three exact current
-profiles staged at zero calls and persistent/recovery still unknown. The G6
-semantic commit and hosted evidence are pending. No live call is authorized;
-G7 needs the separate attended go above. M1d source work waits for M1c G8 plus
-D0's ClawTeam/native-spawn ruling. HB-03 remains deferred.
+G0–G5 are closed; revised G6 is locally green and committed at `416597a`, with
+all three exact current profiles staged at zero calls and persistent/recovery
+still unknown. Hosted evidence is pending under the Windows hold. No live call
+is authorized; G7 needs the separate attended go above. M1d source work waits
+for M1c G8 plus D0's ClawTeam/native-spawn ruling. HB-03 remains deferred.
 
 ## Answered during G5 owner setup
 

@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-26T00:32:58Z — codex
+[auto-checkpoint] M1c G6.R implementation committed locally at `416597a`: exact empty-session recreation, post-turn fail-closed recovery, five-call attended attestation, and evidence-integrity gates are green at 762+4; no model calls or push occurred, Windows remains paused, and G7 awaits a fresh owner go
+
 ### 2026-08-26T00:18:32Z — cli
 Claude session start: /codex:setup verified (codex-cli 0.149.1, ChatGPT auth OK, review gate off). No project files touched; prior Codex session still unwrapped — resume/reconstruction pending user go.
 

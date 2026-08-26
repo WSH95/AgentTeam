@@ -1,16 +1,16 @@
 ---
-updated_at: 2026-08-26T00:18:32Z
-updated_by: cli
-session_status: active
+updated_at: 2026-08-26T00:32:58Z
+updated_by: codex
+session_status: closed
 branch: main
-last_commit: 2d06f0c
+last_commit: 416597a
 ---
 # Handoff
 
 ## Now
 
 M1a and M1b remain complete and M1c G5 remains closed. Revised M1c G6.R is
-locally complete under ADR 0048: the implementation distinguishes empty
+implemented and committed at `416597a` under ADR 0048. It distinguishes empty
 session staging from post-turn continuity, permits only proven zero-turn
 retirement/recreation, and gates normal chat on an exact live attestation.
 All three current Linux profiles pass the new G6 probe at zero model calls.
@@ -20,7 +20,7 @@ No credential value was read or copied and no live attestation was attempted.
 
 - G5 product/fix commits and the original G6 launcher-provenance correction are
   pushed; candidate `35790ad` remains hosted-green 12/12.
-- The G6.R product/docs/steward implementation is uncommitted. Full local
+- The G6.R product/docs/steward implementation is committed locally. Full local
   validation is green: 762 passed + 4 expected skips, Ruff, strict mypy over
   151 source files, 26 schemas, lock, build, Node syntax, and diff hygiene.
 - Exact runtime `1b31b15e…12ead68` is installed with unchanged pins. Claude
@@ -36,19 +36,20 @@ No credential value was read or copied and no live attestation was attempted.
 
 ## Next steps
 
-1. Review and commit the G6.R semantic boundary with Project Steward state;
-   run hosted credential-free CI if the scoped push authorization is used.
-2. Stop for the fresh attended owner go required for G7; never infer it from
+1. Stop for the fresh attended owner go required for G7; never infer it from
    this implementation approval or invoke `runtime qualify-live` unattended.
+2. Keep the current commit local until the owner decides how to run hosted
+   evidence without resuming the paused Windows development/test legs.
 3. After G7, reconcile the bounded call ledger and sanitized evidence, then
    close M1c G8 before starting M1d D0. M1d also needs the
    ClawTeam/native-spawn owner ruling and has a zero-call budget.
 
 ## Blockers
 
-G6.R has no local blocker; its semantic commit/hosted run remain. G7 is
-blocked by design on a fresh attended owner go, despite the now-green revised
-G6. M1d remains blocked on M1c G8 and its D0 decisions. HB-03 remains deferred.
+G6.R has no local blocker. G7 is blocked by design on a fresh attended owner
+go, despite the now-green revised G6. Hosted evidence is also paused because
+the existing matrix includes Windows, which the owner put on hold. M1d remains
+blocked on M1c G8 and its D0 decisions. HB-03 remains deferred.
 
 ## Key files
 
@@ -59,7 +60,7 @@ G6. M1d remains blocked on M1c G8 and its D0 decisions. HB-03 remains deferred.
 - `docs/interactive-teamruns.md` — operator, lifecycle, permission, and
   provider-ownership guide.
 - `.project-steward/VERIFY.md` — final local audit and exact validation block.
-- `.project-steward/PLAN.md` — G5 is closed; G6.R/G7/G8 are open.
+- `.project-steward/PLAN.md` — G5/G6.R are closed; G7/G8 are open.
 - `/tmp/agentteam-m1c-g5-review/review_results.md` — local adversarial review
   synthesis (not a committed project artifact).
 

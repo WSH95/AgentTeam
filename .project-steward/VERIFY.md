@@ -16,7 +16,7 @@ owner-attended gates.
 | Codex | **STAGED, zero calls** — version `codex-cli 0.149.1` passed `initialize/new/fresh-recreate/status/close`; post-turn resume remains unproven and persistent/recovery remain `unknown` |
 | Grok | **STAGED, zero calls** — version `grok 1.0.5 (5115b46bc9)` passed `initialize/new/strict-resume/status/close`; post-turn resume remains unproven and persistent/recovery remain `unknown` |
 | Evidence safety | PASS — all three format-2 qualification files are owner-only `0600`, explicitly record the reconnect disposition and `model_calls: 0`, and no matching bridge/native process remains. No live-attestation or live-attempt file exists; no credential value was read or copied |
-| Gate | **G6.R locally closed.** G7 has not started and still requires a fresh attended owner go. The implementation approval did not authorize any model prompt. Semantic commit and hosted credential-free evidence remain before G8 |
+| Gate | **G6.R locally closed at `416597a`.** G7 has not started and still requires a fresh attended owner go. The implementation approval did not authorize any model prompt. Hosted credential-free evidence remains before G8 and is paused while Windows test/development is on hold |
 
 Last verified: 2026-08-26 by Codex. Zero model calls were made.
 
