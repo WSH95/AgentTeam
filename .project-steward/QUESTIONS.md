@@ -39,16 +39,22 @@ must not guess. Answered items remain here for traceability.
   then the four-call workflow, with no automatic diagnostics or retries.
   Each harness and the workflow still requires its own fresh default-no
   attended confirmation and the matrix stops on its first mechanical failure.
+- [ ] **M1c G7 zero-prompt remediation.** The ADR 0049 attempt stopped at
+  Claude Member initialization with `strict continuity mismatch`; both records
+  say 0 attempted prompts and Codex/Grok/workflow never started. Decide whether
+  to authorize a separate zero-model-call diagnosis/remediation cycle. Any
+  subsequent live retry still needs a new exact candidate/hosted gate and fresh
+  attended authorization.
 
 ## Current gate
 
 M1a and M1b are complete. M1c r3 and M1d r2 are frozen and approved. M1c
-G0–G5 are closed; revised G6 is locally green and committed at `416597a`, with
-all three exact current profiles staged at zero calls and persistent/recovery
-still unknown. ADR 0049 supplies the fresh attended G7 go, but no call begins
-until the deterministic driver/export candidate is locally and hosted green.
-Hosted Windows remains paused and owner-opt-in. M1d source work waits
-for M1c G8 plus D0's ClawTeam/native-spawn ruling. HB-03 remains deferred.
+G0–G6.R are closed; G7's deterministic candidate and exact eight-job hosted
+gate are green at `e007cab`/32923839910. The attended attempt stopped before
+prompt 1 at Claude initialization, so ADR 0049 now blocks diagnosis and retry
+pending the open remediation decision above. Hosted Windows remains paused
+and owner-opt-in. M1d source work waits for M1c G8 plus D0's
+ClawTeam/native-spawn ruling. HB-03 remains deferred.
 
 ## Answered during G5 owner setup
 

@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-26T03:05:28Z — codex
+[auto-checkpoint] G7 deterministic candidate `e007cab` and exact non-Windows hosted run 32923839910 are green; after a fresh zero-call doctor, the attended Claude lifecycle stopped during initialization on `strict continuity mismatch` with 0 prompts, 0 diagnostics, and no Codex/Grok/workflow attempt, so ADR 0049 forbids diagnosis or retry pending a new owner decision.
+
 ### 2026-08-26T02:43:14Z — codex
 Final iterative code-review synthesis for M1c G7 product tree `bc98735` is recorded at `docs/reviews/2026-08-26-m1c-g7-candidate-review.md`: all confirmed high/medium critique findings are closed, residual live/30-second/Windows/evidence-review boundaries are explicit, and the candidate is eligible for its exact hosted eight-job gate.
 

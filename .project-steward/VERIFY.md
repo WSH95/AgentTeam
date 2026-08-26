@@ -14,9 +14,12 @@ owner-attended gates.
 | Fixtures and CI | PASS — Assistant hash `d54e35114f56ee67d72a5dcfa560d8d13139be93e07ca27887bd0dd26a4ee29e`; Team hash `b1002f133a3d5fd9dd82456f6c375dcca49e4cc26e69fe2ea7015c068d115ada`; the wheel excludes `dev/`. Normal push/PR/default-dispatch CI contains exactly eight Ubuntu/macOS jobs; Windows is explicit manual opt-in and was not run |
 | Final review | PASS — iterative code review of product tree `bc98735` has no open high/medium finding; resolved findings and residual boundaries are pinned in `docs/reviews/2026-08-26-m1c-g7-candidate-review.md` |
 | Full local block | PASS — **774 passed + 4 expected skips** in 110.33s; Ruff lint clean and **158 files** format-clean; strict mypy clean over **152 source files**; all **26 schemas** current; lock current; wheel/sdist build; Node bridge syntax; exact fixture validation; `git diff --check` clean |
-| Gate | **Ready for the semantic candidate commit and exact hosted eight-job gate.** No live/provider call or diagnostic prompt has occurred. G7 remains open until the separate attended 15+4 live path passes and sanitized evidence is reviewed |
+| Exact candidate/hosted gate | PASS — candidate `e007cab6f8c16f1c06b0df792f23510c732caa0b` is pushed; run 32923839910 at that exact SHA completed/success with exactly the expected eight Ubuntu/macOS jobs and no Windows job |
+| Fresh no-call gate | PASS — all-three doctor exited 0 immediately before the attended attempt with `model_calls: 0`; Claude/Codex reported `fresh-recreate`, Grok `strict-resume`, and persistent/recovery remained `unknown` |
+| Attended attempt | **STOPPED before prompt 1** — after the owner accepted Claude's default-no gate, Member initialization failed with `bridge open_member failed: strict continuity mismatch`. Claude's failing attestation and the candidate-bound owner ledger both record 0 attempted prompts; workflow 0; diagnostics 0; Codex and Grok not started; owner files mode 0600 |
+| Gate | **HALTED at ADR 0049's first-failure boundary.** No model prompt was attempted and no sanitized live bundle exists. Diagnosis, remediation, and a new live attempt are not authorized by ADR 0049 and require fresh owner decisions; G7/G8 remain open |
 
-Last verified: 2026-08-26 by Codex. Zero model calls were made.
+Last verified: 2026-08-26 by Codex. Zero model prompts were attempted.
 
 ## M1c revised G6.R recovery and exact-runtime staging — 2026-08-26
 
