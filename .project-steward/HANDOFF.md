@@ -1,9 +1,9 @@
 ---
-updated_at: 2026-08-26T02:41:43Z
+updated_at: 2026-08-26T02:43:14Z
 updated_by: codex
 session_status: active
 branch: main
-last_commit: dec83e0
+last_commit: bc98735
 ---
 # Handoff
 
@@ -24,25 +24,23 @@ Ubuntu/macOS-only CI with Windows retained as manual opt-in.
   reconciles exactly 19/23 prompts with diagnostics 0.
 - The adversarial critique found and closed source-drift, hosted-run binding,
   exact-path display/correlation, partial-ledger, blocked-abort/process-group,
-  launch-binding, manifest, path-scanner, and ambiguous-run-store gaps. Its
-  immutable synthesis record is the next local artifact after the product
-  commit gives the reviewed tree a stable SHA.
-- Product commit `dec83e0` is local. The pinned bridge's 30-second pending-tool
-  deadline is now explicit in the exact-path prompt and operator guide; its
-  focused 9-test/Ruff/mypy check is green. The pre-existing `.codex/` remains
-  untouched and out of scope.
+  launch-binding, manifest, path-scanner, ambiguous-run-store, and implicit
+  permission-deadline gaps. The final synthesis for product tree `bc98735` is
+  tracked at `docs/reviews/2026-08-26-m1c-g7-candidate-review.md` with no open
+  high/medium finding.
+- Product commits `dec83e0` and `bc98735` are local. The pre-existing `.codex/`
+  remains untouched and out of scope.
 
 ## Next steps
 
-1. Commit the explicit permission-deadline correction with this checkpoint.
-2. Write the code-review synthesis against that stable candidate SHA, commit the
-   review checkpoint, and fast-forward push the resulting exact candidate.
-3. Require the candidate-bound GitHub Actions run to contain exactly eight
+1. Commit the review artifact and this checkpoint, then fast-forward push the
+   resulting exact candidate.
+2. Require the candidate-bound GitHub Actions run to contain exactly eight
    completed/success Ubuntu/macOS jobs and no Windows job.
-4. Only then start the attended Claude → Codex → Grok five-prompt lifecycles
+3. Only then start the attended Claude → Codex → Grok five-prompt lifecycles
    and Codex → Claude → Grok → Grok workflow. Every gate remains default-no;
    stop at the first failure and spend no diagnostic prompt.
-5. Review/commit sanitized evidence and close G7/G8 before beginning M1d D0.
+4. Review/commit sanitized evidence and close G7/G8 before beginning M1d D0.
 
 ## Blockers
 

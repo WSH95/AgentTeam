@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-26T02:43:14Z — codex
+Final iterative code-review synthesis for M1c G7 product tree `bc98735` is recorded at `docs/reviews/2026-08-26-m1c-g7-candidate-review.md`: all confirmed high/medium critique findings are closed, residual live/30-second/Windows/evidence-review boundaries are explicit, and the candidate is eligible for its exact hosted eight-job gate.
+
 ### 2026-08-26T02:41:43Z — codex
 Committed the locally green deterministic G7 implementation at `dec83e0`; the final operational critique then surfaced the pinned bridge's 30-second permission expiry, now explicit in the attended exact-path prompt/operator guide with 9 driver tests and Ruff/mypy green, still at zero live calls.
 
