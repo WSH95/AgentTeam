@@ -59,6 +59,22 @@ class ProviderSession:
 
 
 @dataclass(frozen=True)
+class ProviderSuspendFacts:
+    process: CleanupFact
+    local_state_retained: bool
+
+
+@dataclass(frozen=True)
+class RetireEmptyMemberSpec:
+    run_id: str
+    member: str
+    session_id: str
+    generation: int
+    provider_session_ref: str
+    state_dir: Path
+
+
+@dataclass(frozen=True)
 class TurnSpec:
     turn_id: str
     request_id: str
@@ -127,6 +143,12 @@ class MemberExecutionProvider(Protocol):
     async def cancel_turn(self, session: ProviderSession, reason: str) -> CancelDisposition: ...
 
     async def verify_continuity(self, session: ProviderSession) -> bool: ...
+
+    async def suspend_member(
+        self, session: ProviderSession, reason: str
+    ) -> ProviderSuspendFacts: ...
+
+    async def retire_empty_member(self, spec: RetireEmptyMemberSpec) -> CloseFactsV1: ...
 
     async def close_member(self, session: ProviderSession, reason: str) -> CloseFactsV1: ...
 

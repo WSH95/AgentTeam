@@ -4,6 +4,15 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-26T00:18:32Z — cli
+Claude session start: /codex:setup verified (codex-cli 0.149.1, ChatGPT auth OK, review gate off). No project files touched; prior Codex session still unwrapped — resume/reconstruction pending user go.
+
+### 2026-08-26T00:15:38Z — codex
+M1c G6.R locally closed at zero calls: guarded empty-generation recreation and exact attended live-attestation gating implemented; 762+4 regression/static/schema/build green; exact runtime `1b31b15e…12ead68` stages Claude 2.1.246 + Codex 0.149.1 as `fresh-recreate` and Grok 1.0.5 as `strict-resume`, with G7 still awaiting a fresh owner go
+
+### 2026-08-25T23:31:19Z — codex
+[auto-checkpoint] Owner approved M1c r3: G6 is reopened because empty zero-prompt persistence is not a valid proxy for post-turn recovery; implementation will add guarded zero-turn recreation and exact live attestations with unchanged pins and zero calls before the still-separate G7 go
+
 ### 2026-08-25T22:58:18Z — codex
 [auto-checkpoint] M1c final pre-G7 candidate `35790ad` is green locally and in hosted run 32908268851 (12/12, including both Windows scaffold legs); G5/G6 are closed, Grok alone is G7-eligible for five attended lifecycle calls, and work stops for the required fresh owner go
 

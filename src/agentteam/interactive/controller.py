@@ -47,8 +47,10 @@ from agentteam.execution.protocol import (
     OpenMemberSpec,
     ProviderEvent,
     ProviderSession,
+    ProviderSuspendFacts,
     ProviderTurnResult,
     ProviderTurnStatus,
+    RetireEmptyMemberSpec,
     TurnSpec,
 )
 from agentteam.interactive.archive import InteractiveArchive, InteractiveArchiveError
@@ -772,8 +774,17 @@ class InteractiveController:
                     resume_ref=session_record.provider_session_ref,
                 )
             except Exception:
-                results[member] = False
-                failed = session_record.model_copy(
+                try:
+                    recreated = await self._recreate_empty_generation(member, session_record)
+                except Exception:
+                    recreated = False
+                results[member] = recreated
+                if recreated:
+                    continue
+                current_record = self.session_records.get(member, session_record)
+                if current_record.status is SessionStatus.CLOSED:
+                    continue
+                failed = current_record.model_copy(
                     update={
                         "status": SessionStatus.CONTINUITY_UNVERIFIED,
                         "continuity_verified": False,
@@ -801,6 +812,81 @@ class InteractiveController:
             )
             self.archive.append_event(self.record.run_id, "recovery-incomplete")
         return results
+
+    def _generation_has_turn_attempt(self, session: MemberSessionV1) -> bool:
+        for turn_id in self.record.turns:
+            turn = self.archive.load_turn(turn_id)
+            if turn.session_id == session.session_id and turn.generation == session.generation:
+                return True
+        return False
+
+    async def _recreate_empty_generation(
+        self,
+        member: str,
+        old: MemberSessionV1,
+    ) -> bool:
+        if self._generation_has_turn_attempt(old):
+            return False
+        launch = self.launches[member]
+        state_dir = (
+            self.archive.root / "runtime" / launch.provider.describe().provider_id / old.session_id
+        )
+        facts = await launch.provider.retire_empty_member(
+            RetireEmptyMemberSpec(
+                run_id=self.record.run_id,
+                member=member,
+                session_id=old.session_id,
+                generation=old.generation,
+                provider_session_ref=old.provider_session_ref,
+                state_dir=state_dir,
+            )
+        )
+        if not _required_cleanup_terminal(facts):
+            return False
+        closed = old.model_copy(
+            update={
+                "status": SessionStatus.CLOSED,
+                "continuity_verified": False,
+                "closed_at": self.clock(),
+                "close": facts,
+            }
+        )
+        self.session_records[member] = closed
+        self.archive.write_session(closed)
+        generation = old.generation + 1
+        summary = self.run_state_summary(member=member, generation=generation)
+        self.archive.write_state_summary(member, generation, summary)
+        replacement_session = await self._open_member(
+            member,
+            generation=generation,
+            summary=summary,
+        )
+        current = next(item for item in self.record.members if item.name == member)
+        replacement = current.model_copy(update={"session_id": replacement_session.session_id})
+        members = [replacement if item.name == member else item for item in self.record.members]
+        self._update_run(
+            members=members,
+            sessions=[item.session_id for item in members],
+        )
+        self.archive.write_launch_record(
+            member,
+            self._launch_record_payload(
+                launch,
+                assistant_hash=replacement.assistant.content_hash,
+                generation=generation,
+            ),
+        )
+        self.archive.append_event(
+            self.record.run_id,
+            "empty-session-recreated",
+            correlation_id=replacement_session.session_id,
+            data={
+                "member": member,
+                "old-generation": old.generation,
+                "new-generation": generation,
+            },
+        )
+        return True
 
     async def dispatch(
         self,
@@ -1657,15 +1743,56 @@ class InteractiveController:
         if self.record.phase in {
             InteractiveRunPhase.CLOSED,
             InteractiveRunPhase.CLOSING,
-            InteractiveRunPhase.CLOSE_FAILED,
-            InteractiveRunPhase.RECOVERY_REQUIRED,
         }:
             self.lease.release()
             return
-        self._update_run(
-            phase=InteractiveRunPhase.INTERRUPTED,
-            failure_reason="controller detached or input ended",
-        )
+        prior_phase = self.record.phase
+        suspension_failed = False
+        for member, session in tuple(self.provider_sessions.items()):
+            try:
+                facts = await self.launches[member].provider.suspend_member(
+                    session,
+                    "controller detached or input ended",
+                )
+            except Exception:
+                facts = ProviderSuspendFacts(
+                    process=CleanupFact.FAILED,
+                    local_state_retained=False,
+                )
+            terminal_process = facts.process in {
+                CleanupFact.CONFIRMED,
+                CleanupFact.NOT_APPLICABLE,
+            }
+            suspension_failed = (
+                suspension_failed or not terminal_process or not facts.local_state_retained
+            )
+            self.archive.append_event(
+                self.record.run_id,
+                "member-suspended",
+                correlation_id=session.session_id,
+                data={
+                    "member": member,
+                    "generation": session.generation,
+                    "process": facts.process.value,
+                    "local-state-retained": facts.local_state_retained,
+                },
+            )
+            self.provider_sessions.pop(member, None)
+        phase: InteractiveRunPhase
+        failure_reason: str | None
+        if suspension_failed:
+            phase = InteractiveRunPhase.RECOVERY_REQUIRED
+            failure_reason = "provider suspension failed during detach"
+        elif prior_phase in {
+            InteractiveRunPhase.CLOSE_FAILED,
+            InteractiveRunPhase.RECOVERY_REQUIRED,
+        }:
+            phase = prior_phase
+            failure_reason = self.record.failure_reason
+        else:
+            phase = InteractiveRunPhase.INTERRUPTED
+            failure_reason = "controller detached or input ended"
+        self._update_run(phase=phase, failure_reason=failure_reason)
         self.archive.append_event(self.record.run_id, "run-interrupted")
         self.lease.release()
 

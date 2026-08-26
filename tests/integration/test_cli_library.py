@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
@@ -12,17 +13,29 @@ from typer.testing import CliRunner
 
 from agentteam.cli import app
 from agentteam.domain.common import HarnessId
-from agentteam.domain.interactive import CatalogKind
+from agentteam.domain.interactive import (
+    CapabilityLevel,
+    CatalogKind,
+    DoctorCheckV1,
+    LiveEvidenceRefV1,
+    LiveLifecycleProofsV1,
+    MemberRuntimeOverrideV1,
+    ProviderDoctorV1,
+    ProviderLiveAttestationV1,
+)
+from agentteam.execution import direct_acp
 from agentteam.execution.fakes import ExternalHostFakeProvider
 from agentteam.interactive.controller import MemberLaunch
 from agentteam.interactive.resolution import (
     InteractiveResolutionError,
+    PreparedChat,
     prepare_assistant_chat,
     prepare_team_chat,
 )
 from agentteam.library import LibraryStore, default_library_root
 from agentteam.resolution.archive import hash_package
 from agentteam.resolution.package import LoadedPackage
+from agentteam.resolution.profiles import seed_default_profiles
 
 runner = CliRunner()
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -179,3 +192,122 @@ def test_catalog_chat_resolution_is_exact_and_assistant_chat_synthesizes_team(
             environ=environ,
         )
     assert hash_package(IMPLEMENTER).package_hash == assistant_entry.content_hash
+
+
+def test_normal_chat_requires_exact_live_attestation_before_capability_overlay(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    executable = tmp_path / "codex"
+    executable.write_text("fake\n", encoding="utf-8")
+    executable.chmod(0o700)
+    config_home = tmp_path / "codex-home"
+    config_home.mkdir()
+    profile = next(
+        item
+        for item in seed_default_profiles().profiles
+        if item.harness is HarnessId.CODEX
+    ).model_copy(
+        update={"executable": str(executable), "config_home": str(config_home)}
+    )
+    profiles = seed_default_profiles().model_copy(
+        update={"profiles": [profile], "default_harness": HarnessId.CODEX}
+    )
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    target = direct_acp.DirectAcpQualificationTarget(
+        harness=HarnessId.CODEX,
+        runtime_path=runtime,
+        command=("node", "codex-acp.mjs"),
+        environment={},
+        native_version="codex-cli 1.2.3",
+        expected_version="codex-cli 1.2.3",
+        config_home_variable="CODEX_HOME",
+        config_home=config_home,
+        fingerprint="a" * 64,
+    )
+    staged = ProviderDoctorV1(
+        schema_version=1,
+        kind="provider-doctor",
+        provider=direct_acp.RUNTIME_ID,
+        checked_at=datetime(2026, 8, 25, tzinfo=UTC),
+        status="pass",
+        capabilities=direct_acp._direct_capabilities(qualified=True),
+        checks=[DoctorCheckV1(name="codex-acp-lifecycle", status="pass")],
+        model_calls=0,
+    )
+    attestation = ProviderLiveAttestationV1(
+        schema_version=1,
+        kind="provider-live-attestation",
+        provider=direct_acp.RUNTIME_ID,
+        harness=HarnessId.CODEX,
+        target_fingerprint=target.fingerprint,
+        runtime_lock_hash=direct_acp.runtime_lock_hash(),
+        native_version=target.native_version,
+        platform="linux",
+        status="pass",
+        attempted_prompts=5,
+        proofs=LiveLifecycleProofsV1(
+            context_established=True,
+            strict_post_turn_resume=True,
+            recall=True,
+            reset_isolation=True,
+            new_run_isolation=True,
+            continuity_close=True,
+        ),
+        evidence=[
+            LiveEvidenceRefV1(run_id="run-live-1", manifest_sha256="b" * 64),
+            LiveEvidenceRefV1(run_id="run-live-2", manifest_sha256="c" * 64),
+        ],
+        checked_at=datetime(2026, 8, 25, tzinfo=UTC),
+    )
+    monkeypatch.setattr("agentteam.interactive.resolution.load_profile_set", lambda _p: profiles)
+    monkeypatch.setattr(
+        "agentteam.interactive.resolution.installed_runtime_path", lambda _e: runtime
+    )
+    monkeypatch.setattr(
+        "agentteam.interactive.resolution.installed_runtime_problems", lambda _p: []
+    )
+    monkeypatch.setattr(
+        "agentteam.interactive.resolution.installed_runtime_tree_hash",
+        lambda _p: "d" * 64,
+    )
+    monkeypatch.setattr("agentteam.interactive.resolution.shutil.which", lambda *_a, **_k: "node")
+    monkeypatch.setattr(
+        "agentteam.interactive.resolution.build_direct_acp_qualification_target",
+        lambda *_a, **_k: target,
+    )
+    monkeypatch.setattr(
+        "agentteam.interactive.resolution.load_direct_acp_qualification",
+        lambda *_a, **_k: (staged, []),
+    )
+    current_attestation: list[ProviderLiveAttestationV1] = []
+    monkeypatch.setattr(
+        "agentteam.interactive.resolution.load_direct_acp_live_attestation",
+        lambda *_a, **_k: (
+            (current_attestation[0], [])
+            if current_attestation
+            else (None, ["no safe live attestation for codex"])
+        ),
+    )
+    def prepare() -> PreparedChat:
+        return prepare_assistant_chat(
+            item_id=None,
+            version=None,
+            path=IMPLEMENTER,
+            workspace=tmp_path,
+            goal="bounded chat",
+            done_when=[],
+            member_override=MemberRuntimeOverrideV1(harness=HarnessId.CODEX),
+            environ={"AGENTTEAM_HOME": str(tmp_path / "home")},
+            platform="linux",
+        )
+
+    with pytest.raises(InteractiveResolutionError, match="qualify-live"):
+        prepare()
+
+    current_attestation.append(attestation)
+    prepared = prepare()
+    capabilities = prepared.launches["assistant"].provider.describe().capabilities
+    assert capabilities.persistent_turns is CapabilityLevel.SUPPORTED
+    assert capabilities.recovery is CapabilityLevel.SUPPORTED

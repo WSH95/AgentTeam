@@ -122,10 +122,10 @@ Approved implementation plan (revision r3, approved text at `0f3e478`, DECISIONS
 - [x] G6 — pinned ClawTeam exit-criterion measurement and owner decision packet (closed 2026-08-25 in `24c6079`; 516/486 = 1.061728395x, decision remains owner-owned before M1c)
 - [x] G7 — M1b evidence/CI close and proposed-not-approved M1c PoC B draft (closed 2026-08-25 in the semantic commit carrying this row; final product-tree hosted run 32812856864 green 12/12; zero M1b live calls; draft at `docs/plans/m1c-dynamic-member-poc.md`)
 
-## M1c Interactive TeamRun foundation (r2 approved 2026-08-25; ADR 0045)
+## M1c Interactive TeamRun foundation (r3 approved 2026-08-25; ADR 0045/0048)
 
-Normative plan: `docs/plans/m1c-interactive-teamrun-foundation.md` r2,
-SHA-256 `51dfebd98dd17063f99cc33a97b2813adb887c6eaea63903ef9be27351de0155`.
+Normative plan: `docs/plans/m1c-interactive-teamrun-foundation.md` r3,
+SHA-256 `d2510e3963fcb50ab916566bd2d9435b501853eac92a279a4944ad5d66a7b03c`.
 Implementation is approved. No live call, dependency download, commit, or
 push follows from G0 alone; each retains the plan's separate gate.
 
@@ -135,8 +135,8 @@ push follows from G0 alone; each retains the plan's separate gate.
 - [x] G3 — retained sessions, shared supplied-workspace scheduler/checkpoints, reset, completion, close, interruption, and recovery (local deterministic close 2026-08-25; included in the 709 passed + 4 expected skips full regression)
 - [x] G4 — catalog-addressed Assistant/Team chat, TTY commands, structured NDJSON, work-item controls, events, and archive export (local deterministic close 2026-08-25; named cross-platform CI acceptance added, hosted evidence remains G5)
 - [x] G5 — deterministic acceptance/fault matrix plus full V1 and cross-platform regression (**closed at `f53b314`; hosted run 32906748578 green 12/12 across Ubuntu/macOS/Windows, including full tests, named M1c acceptance, ClawTeam, and vendor smoke; retained attempts 32905220326 and 32906060190 document the two corrected Windows portability defects**)
-- [x] G6 — current-version no-call capability probes and honest support disposition (**exact runtime `ecd3525e…bfb2b5` installed; Node v24.16.0; Grok 1.0.5 passed strict initialize/new/resume/status/close and is supported; Claude Code 2.1.245 `Resource not found` and Codex 0.149.1 `Internal error` are excluded fail-closed; all reports `model_calls: 0`; ADR 0047; final exact-candidate hosted run 32908268851 at `35790ad` green 12/12**)
-- [ ] G7 — separately approved attended live matrix within the conditional 23-call ceiling (**fresh go still required; only Grok's five lifecycle calls are currently eligible because Claude/Codex failed G6**)
+- [x] G6.R — **reopened and locally closed by ADR 0048 on 2026-08-26**: restart-aware no-call staging now records `fresh-recreate` for Claude Code 2.1.246 and Codex 0.149.1 and `strict-resume` for Grok 1.0.5; graceful suspension, proven empty-generation retirement/recreation, all-turn-status fallback denial, exact live-attestation loading, and the attended five-call/no-retry qualifier are implemented. Exact pins are unchanged; runtime `1b31b15e…12ead68`, all three reports `model_calls: 0`, persistent/recovery remain `unknown`, and the final local block is 762 passed + 4 expected skips with lint/mypy/26 schemas/lock/build/Node clean (semantic commit/hosted evidence pending)
+- [ ] G7 — separately approved attended live matrix within the conditional 23-call ceiling (**fresh go still required; Claude/Codex/Grok become lifecycle-eligible only after the revised no-call G6 staging pass, and normal chat remains blocked until each earns an exact live attestation**)
 - [ ] G8 — evidence, CI, risk, and milestone close
 
 ## M1d Dynamic-member PoC B (r2 approved deterministic successor; ADR 0045)

@@ -15,6 +15,7 @@ from agentteam.domain.interactive import (
     InteractiveRunRecordV1,
     InteractiveRunRequestV1,
     MemberSessionV1,
+    ProviderLiveAttestationV1,
     TeamTemplateV2,
     TurnRecordV1,
 )
@@ -128,6 +129,43 @@ def test_interactive_request_mechanically_requires_shared_supplied(
     payload["workspace_layout"] = "per-member-worktree"
     with pytest.raises(ValidationError):
         InteractiveRunRequestV1.model_validate(payload)
+
+
+def test_live_attestation_requires_exact_bounded_lifecycle_proof(
+    payloads: dict[str, dict[str, Any]],
+) -> None:
+    passing = deepcopy(payloads["provider-live-attestation-v1.schema.json"])
+    assert ProviderLiveAttestationV1.model_validate(passing).status == "pass"
+
+    four_prompts = deepcopy(passing)
+    four_prompts["attempted_prompts"] = 4
+    with pytest.raises(ValidationError, match="five prompts"):
+        ProviderLiveAttestationV1.model_validate(four_prompts)
+
+    incomplete = deepcopy(passing)
+    incomplete["proofs"]["recall"] = False
+    with pytest.raises(ValidationError, match="all proofs"):
+        ProviderLiveAttestationV1.model_validate(incomplete)
+
+    one_run = deepcopy(passing)
+    one_run["evidence"] = one_run["evidence"][:1]
+    with pytest.raises(ValidationError, match="two evidence runs"):
+        ProviderLiveAttestationV1.model_validate(one_run)
+
+    false_success = deepcopy(passing)
+    false_success["status"] = "fail"
+    with pytest.raises(ValidationError, match="must name an unproved"):
+        ProviderLiveAttestationV1.model_validate(false_success)
+
+    bounded_failure = deepcopy(false_success)
+    bounded_failure["attempted_prompts"] = 2
+    bounded_failure["proofs"]["strict_post_turn_resume"] = False
+    assert ProviderLiveAttestationV1.model_validate(bounded_failure).status == "fail"
+
+    duplicate_evidence = deepcopy(passing)
+    duplicate_evidence["evidence"][1]["run_id"] = duplicate_evidence["evidence"][0]["run_id"]
+    with pytest.raises(ValidationError, match="run ids must be unique"):
+        ProviderLiveAttestationV1.model_validate(duplicate_evidence)
 
 
 def test_interactive_run_keeps_phase_outcome_and_cleanup_distinct(

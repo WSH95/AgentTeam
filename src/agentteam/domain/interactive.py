@@ -1,4 +1,4 @@
-"""Portable contracts for interactive TeamRuns (M1c r2).
+"""Portable contracts for interactive TeamRuns (M1c r3).
 
 These records deliberately use a distinct ``interactive-run-record`` kind.
 The V1 direct/batch ``run-record`` union remains unchanged.
@@ -595,6 +595,56 @@ class ProviderDoctorV1(RecordModel):
     capabilities: ProviderCapabilitiesV1
     checks: list[DoctorCheckV1]
     model_calls: Literal[0] = 0
+
+
+class LiveLifecycleProofsV1(RecordModel):
+    context_established: bool
+    strict_post_turn_resume: bool
+    recall: bool
+    reset_isolation: bool
+    new_run_isolation: bool
+    continuity_close: bool
+
+
+class LiveEvidenceRefV1(RecordModel):
+    run_id: RunId
+    manifest_sha256: Sha256
+
+
+class ProviderLiveAttestationV1(RecordModel):
+    schema_version: SchemaVersion
+    kind: Literal["provider-live-attestation"]
+    provider: Slug
+    harness: HarnessId
+    target_fingerprint: Sha256
+    runtime_lock_hash: Sha256
+    native_version: str = Field(min_length=1)
+    platform: str = Field(min_length=1)
+    status: Literal["pass", "fail"]
+    attempted_prompts: NonNegativeInt = Field(le=5)
+    proofs: LiveLifecycleProofsV1
+    evidence: list[LiveEvidenceRefV1]
+    checked_at: AwareDatetime
+
+    @model_validator(mode="after")
+    def _proof_contract(self) -> ProviderLiveAttestationV1:
+        proof_values = tuple(self.proofs.model_dump().values())
+        if self.status == "pass":
+            if (
+                self.attempted_prompts != 5
+                or not all(proof_values)
+                or len(self.evidence) < 2
+            ):
+                raise ValueError(
+                    "passing live attestation requires five prompts, all proofs, and "
+                    "two evidence runs"
+                )
+        elif all(proof_values):
+            raise ValueError("failed live attestation must name an unproved lifecycle fact")
+        run_ids = [item.run_id for item in self.evidence]
+        if len(set(run_ids)) != len(run_ids):
+            raise ValueError("live attestation evidence run ids must be unique")
+        return self
 
 
 class CatalogEntryV1(RecordModel):

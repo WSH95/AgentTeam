@@ -1,7 +1,7 @@
-# AgentTeam M1c interactive TeamRun foundation — approved r2
+# AgentTeam M1c interactive TeamRun foundation — approved r3
 
 - Status: **APPROVED FOR IMPLEMENTATION** by the owner's 2026-08-25
-  instruction to implement the reviewed r2 plan. Approval does not authorize
+  instruction to implement the reviewed r3 recovery amendment. Approval does not authorize
   a live model call, dependency download, push, or history rewrite.
 - Predecessor: M1b Plan R6, complete through G7.
 - Successor: `m1d-dynamic-member-poc.md` r2.
@@ -28,9 +28,13 @@ A later goal always creates a new run and fresh sessions against the latest
 project state.
 
 An interrupted controller may attach to the same nonterminal run only when
-provider continuity is proved. Context loss is never repaired by silently
-opening a replacement session. The user must reset the affected Member or
-abort/close the run.
+provider continuity is proved. Once any `TurnRecordV1` references a Member
+session generation, context loss is never repaired by opening a replacement
+session: the user must reset that Member or abort/close the run. A generation
+with no archived turn attempt may be visibly retired and recreated only after
+the prior provider transport/process and local-state retirement are proved;
+the archive closes the old generation, increments the generation, and records
+the replacement rather than claiming continuity.
 
 ## 2. Architectural ownership and integration rule
 
@@ -72,7 +76,8 @@ M1c adds:
 - `control-request` and `control-receipt` version 1;
 - `completion-proposal` version 1;
 - `run-event` version 1;
-- provider capability/doctor records; and
+- provider capability/doctor records;
+- `provider-live-attestation` version 1; and
 - `catalog-index` version 1.
 
 `InteractiveRunRecordV1` has its own kind and is not an extension of the old
@@ -136,12 +141,19 @@ The provider SPI supplies:
 4. `cancel_turn()` with explicit queued/running/terminal disposition;
 5. `verify_continuity()` that proves the same session rather than replacing
    it;
-6. `close_member()` for logical/session/process cleanup facts; and
-7. `dispose_run()` for exact run-scoped local state removal.
+6. `suspend_member()` to stop an owned transport/process while retaining the
+   recovery state and opaque reference;
+7. `retire_empty_member()` to return explicit facts before an unused
+   generation may be replaced;
+8. `close_member()` for logical/session/process cleanup facts; and
+9. `dispose_run()` for exact run-scoped local state removal.
 
 Capability records separately report persistent turns, recovery, permission
 events, workspace enforcement, tool filtering, native-spawn control, process
 stop observability, local-state deletion, and provider-history deletion.
+Each capability is derived from its own evidence; one successful no-call
+probe never upgrades the entire record. Persistent turns and recovery remain
+unknown until an exact current `ProviderLiveAttestationV1` proves them.
 Unsupported or unknown is not treated as supported.
 
 Two deterministic providers are required: an owned-process fake that proves
@@ -174,11 +186,23 @@ state lives below
 authenticated home selected by the existing AgentTeam profile.
 
 `atm runtime doctor direct-acp` checks Node, installed package integrity,
-agent executable/version, ACP initialize/load/close, and declared
-capabilities without prompting a model. Resume/load must succeed before any
-prompt on attach. If the pinned API cannot prove strict same-session load,
-G2 fails: AgentTeam will not reimplement missing ACP protocol or manufacture a
-replacement conversation.
+agent executable/version, ACP initialize/new/status/close, declared
+capabilities, bridge cleanup, and the empty-session reconnect disposition
+without prompting a model. A strict empty resume and a confirmed fresh-empty
+recreation are both valid staging outcomes because neither contains an
+attempted prompt. Production chat additionally requires an exact current live
+attestation for persistent turns and recovery. AgentTeam does not reimplement
+ACP, fork an adapter, or manufacture a replacement conversation after a turn
+attempt.
+
+`atm runtime qualify-live direct-acp --harness <one>` is the only staged
+provider bypass. It is attended, requires a fresh single-harness confirmation,
+attempts at most five prompts with no retry, and writes a current attestation
+only after context establishment, full bridge restart plus exact post-turn
+resume/recall, reset isolation, new-run isolation, and continuity/close all
+pass. The record is bound to the runtime/bridge lock, installed tree, native
+CLI identity/version, profile/environment fingerprint, and platform; drift or
+a newer failed attempt invalidates it.
 
 ## 8. Interactive lifecycle
 
@@ -189,10 +213,20 @@ separate and unset until final closure, then `succeeded`, `cancelled`,
 
 The controller takes a durable canonical-workspace reservation plus an
 ephemeral controller lock. A second interactive run against the same path is
-refused while separate projects may run concurrently. On abnormal host loss
-the durable reservation remains; `atm runs attach` is the only recovery
-shell. Before provider continuity is established it offers status, reset,
-abort, and close actions only—never a prompt.
+refused while separate projects may run concurrently. Graceful detach first
+suspends every provider and records whether its transport/process stopped and
+state was retained. On abnormal host loss the durable reservation remains;
+`atm runs attach` is the only recovery shell. Before provider continuity is
+established it offers status, reset, abort, and close actions only—never a
+prompt.
+
+Recovery always attempts exact resume first. If that fails, the controller
+loads every archived turn named by the run and permits empty recreation only
+when none references the current `(session_id, generation)` and the provider
+proves safe retirement. Any queued, running, completed, failed, or cancelled
+turn blocks the fallback. Missing suspension evidence, incomplete cleanup,
+identity mismatch, or replacement-open failure leaves the run
+`recovery-required`.
 
 A Member reset first closes/disposes the old generation, then creates a new
 generation from the immutable Assistant snapshot plus a deterministic
@@ -254,8 +288,8 @@ the single future local-UI/MCP seam; M1c does not expose a public MCP server.
 | G3 | Lifecycle, retained context, shared scheduler/checkpoints, reset, permissions, completion, close, interruption, and recovery |
 | G4 | Catalog-addressed chat, TTY, negotiated NDJSON, work-item controls, events, and archive export |
 | G5 | Deterministic acceptance/fault matrix, full V1 regression, and Ubuntu/Windows/macOS evidence |
-| G6 | Fresh current-version no-call probes and an honest supported/excluded capability record |
-| G7 | Separate attended owner go, bounded live matrix, sanitized evidence, and exact ledger reconciliation |
+| G6 | Fresh current-version no-call probes, explicit strict-resume/fresh-recreate disposition, and an honest staged/excluded capability record |
+| G7 | Separate attended owner go, exact live attestations, bounded workflow matrix, sanitized evidence, and exact ledger reconciliation |
 | G8 | Evidence/CI/risk review and M1c close |
 
 ## 13. Deterministic acceptance
@@ -277,16 +311,21 @@ No call begins from plan approval. G7 requires green deterministic and no-call
 gates plus a fresh attended owner go.
 
 The base ceiling is 18 Claude/Codex attempted prompts: five lifecycle calls
-per supported provider (establish context, recall, reset-isolation, new-run
-isolation, and continuity/close); four workflow calls across providers
+per no-call-staged provider (establish context, recall after a full bridge
+restart, reset-isolation, new-run isolation, and continuity/close); four
+workflow calls across providers that earned live attestations
 (shared-worktree change, another Member review, Lead completion proposal, and
 user-reject/continue); and four individually justified diagnostics, never
-automatic retries.
+automatic retries. Lifecycle order is Claude, Codex, then conditional Grok;
+the matrix stops on the first mechanical failure and every attempted prompt
+counts.
 
 If and only if Grok passes G6's ACP no-call strict-resume, workspace,
 permission, structured-event, and close checks, its five lifecycle calls are
-added and the hard ceiling becomes 23. Failed attempted prompts count. M1d's
-live budget remains zero.
+added and the hard ceiling becomes 23. A passing lifecycle consumes five calls
+and produces its attestation; the normal three-provider path therefore uses 19
+calls and leaves four diagnostics reserved for separate decisions. Failed
+attempted prompts count. M1d's live budget remains zero.
 
 ## 15. Stop rules and boundaries
 

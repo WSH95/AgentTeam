@@ -2,18 +2,27 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
 import subprocess
+import sys
 from dataclasses import replace
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 
 from agentteam.domain.common import HarnessId
-from agentteam.domain.interactive import CapabilityLevel
+from agentteam.domain.interactive import (
+    CapabilityLevel,
+    LiveEvidenceRefV1,
+    LiveLifecycleProofsV1,
+    ProviderLiveAttestationV1,
+)
 from agentteam.execution import direct_acp
+from agentteam.interactive.archive import InteractiveArchive
 from agentteam.resolution.profiles import seed_default_profiles
 
 
@@ -80,6 +89,7 @@ async def test_doctor_qualifies_exact_target_and_rejects_stale_cache(
         return direct_acp.DirectAcpQualificationResult(
             runtime_controls=("session/status",),
             agent_capabilities=("loadSession",),
+            empty_reconnect="strict-resume",
         )
 
     monkeypatch.setattr(direct_acp, "_qualify_direct_acp_target", qualify)
@@ -96,7 +106,9 @@ async def test_doctor_qualifies_exact_target_and_rejects_stale_cache(
 
     assert report.status == "pass"
     assert report.model_calls == 0
-    assert report.capabilities.persistent_turns is CapabilityLevel.SUPPORTED
+    assert report.capabilities.persistent_turns is CapabilityLevel.UNKNOWN
+    assert report.capabilities.recovery is CapabilityLevel.UNKNOWN
+    assert report.capabilities.permission_events is CapabilityLevel.SUPPORTED
     assert report.capabilities.native_spawn_control is CapabilityLevel.UNSUPPORTED
     cached, problems = direct_acp.load_direct_acp_qualification(
         target,
@@ -104,6 +116,11 @@ async def test_doctor_qualifies_exact_target_and_rejects_stale_cache(
     )
     assert problems == []
     assert cached == report
+    persisted = json.loads(
+        direct_acp.qualification_path(HarnessId.CODEX, environ).read_text(encoding="utf-8")
+    )
+    assert persisted["format"] == direct_acp.QUALIFICATION_FORMAT
+    assert persisted["empty_reconnect"] == "strict-resume"
 
     stale, problems = direct_acp.load_direct_acp_qualification(
         replace(target, fingerprint="b" * 64),
@@ -111,6 +128,18 @@ async def test_doctor_qualifies_exact_target_and_rejects_stale_cache(
     )
     assert stale is None
     assert problems == ["qualification fingerprint is stale or mismatched"]
+
+    persisted.pop("empty_reconnect")
+    direct_acp.qualification_path(HarnessId.CODEX, environ).write_text(
+        json.dumps(persisted),
+        encoding="utf-8",
+    )
+    missing_disposition, problems = direct_acp.load_direct_acp_qualification(
+        target,
+        environ=environ,
+    )
+    assert missing_disposition is None
+    assert problems == ["qualification empty reconnect disposition is invalid"]
 
 
 def test_unqualified_provider_claims_no_runtime_capability(tmp_path: Path) -> None:
@@ -127,6 +156,128 @@ def test_unqualified_provider_claims_no_runtime_capability(tmp_path: Path) -> No
             "local_state_deletion",
         )
     )
+
+
+def test_live_attestation_cache_is_exact_owner_only_and_failure_invalidates_pass(
+    tmp_path: Path,
+) -> None:
+    target = direct_acp.DirectAcpQualificationTarget(
+        harness=HarnessId.CODEX,
+        runtime_path=tmp_path / "runtime",
+        command=("node", "agent.mjs"),
+        environment={},
+        native_version="codex 1.2.3",
+        expected_version="codex 1.2.3",
+        config_home_variable="CODEX_HOME",
+        config_home=tmp_path / "codex-home",
+        fingerprint="a" * 64,
+    )
+    environ = {"AGENTTEAM_HOME": str(tmp_path / "home")}
+    evidence: list[LiveEvidenceRefV1] = []
+    evidence_roots: dict[str, Path] = {}
+    for run_id in ("run-live-1", "run-live-2"):
+        root = tmp_path / "home" / "runs" / run_id
+        root.mkdir(parents=True)
+        (root / "evidence.txt").write_text(run_id + "\n", encoding="utf-8")
+        archive = InteractiveArchive(root)
+        archive.finalize_manifest()
+        manifest = root / "manifest.sha256.json"
+        evidence.append(
+            LiveEvidenceRefV1(
+                run_id=run_id,
+                manifest_sha256=hashlib.sha256(manifest.read_bytes()).hexdigest(),
+            )
+        )
+        evidence_roots[run_id] = root
+    proofs = LiveLifecycleProofsV1(
+        context_established=True,
+        strict_post_turn_resume=True,
+        recall=True,
+        reset_isolation=True,
+        new_run_isolation=True,
+        continuity_close=True,
+    )
+    passing = ProviderLiveAttestationV1(
+        schema_version=1,
+        kind="provider-live-attestation",
+        provider=direct_acp.RUNTIME_ID,
+        harness=target.harness,
+        target_fingerprint=target.fingerprint,
+        runtime_lock_hash=direct_acp.runtime_lock_hash(),
+        native_version=target.native_version,
+        platform=sys.platform,
+        status="pass",
+        attempted_prompts=5,
+        proofs=proofs,
+        evidence=evidence,
+        checked_at=datetime(2026, 8, 25, tzinfo=UTC),
+    )
+
+    path = direct_acp.write_direct_acp_live_attestation(
+        target,
+        passing,
+        environ=environ,
+    )
+    if os.name != "nt":
+        assert path.stat().st_mode & 0o077 == 0
+    loaded, problems = direct_acp.load_direct_acp_live_attestation(
+        target,
+        environ=environ,
+    )
+    assert problems == []
+    assert loaded == passing
+
+    (evidence_roots["run-live-1"] / "evidence.txt").write_text(
+        "tampered\n", encoding="utf-8"
+    )
+    loaded, problems = direct_acp.load_direct_acp_live_attestation(
+        target,
+        environ=environ,
+    )
+    assert loaded is None
+    assert problems == ["live evidence run-live-1 manifest does not verify"]
+
+    (evidence_roots["run-live-1"] / "manifest.sha256.json").write_text(
+        "not-json\n", encoding="utf-8"
+    )
+    loaded, problems = direct_acp.load_direct_acp_live_attestation(
+        target,
+        environ=environ,
+    )
+    assert loaded is None
+    assert problems == ["live evidence run-live-1 is invalid: InteractiveArchiveError"]
+
+    stale, problems = direct_acp.load_direct_acp_live_attestation(
+        replace(target, fingerprint="c" * 64),
+        environ=environ,
+    )
+    assert stale is None
+    assert problems == ["live attestation target_fingerprint is stale or mismatched"]
+
+    failed = passing.model_copy(
+        update={
+            "status": "fail",
+            "attempted_prompts": 2,
+            "proofs": proofs.model_copy(update={"recall": False}),
+            "evidence": [],
+        }
+    )
+    direct_acp.write_direct_acp_live_attestation(target, failed, environ=environ)
+    loaded, problems = direct_acp.load_direct_acp_live_attestation(
+        target,
+        environ=environ,
+    )
+    assert loaded is None
+    assert problems == ["live attestation status is fail"]
+
+    if os.name != "nt":
+        path.chmod(0o644)
+        loaded, problems = direct_acp.load_direct_acp_live_attestation(
+            target,
+            environ=environ,
+        )
+        assert loaded is None
+        assert problems == ["live attestation is not owner-only: codex"]
 
 
 def test_qualification_fingerprint_binds_child_environment_values(
@@ -322,7 +473,7 @@ async def test_qualification_cache_must_remain_owner_only(
         node: str,
     ) -> direct_acp.DirectAcpQualificationResult:
         assert node
-        return direct_acp.DirectAcpQualificationResult((), ())
+        return direct_acp.DirectAcpQualificationResult((), (), "fresh-recreate")
 
     monkeypatch.setattr(direct_acp, "_qualify_direct_acp_target", qualify)
     environ = {"AGENTTEAM_HOME": str(tmp_path / "home"), "PATH": str(Path(node).parent)}

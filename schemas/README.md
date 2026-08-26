@@ -5,9 +5,9 @@ from the Pydantic models in `src/agentteam/domain/` and verified by
 `python -m agentteam.schema check` (regenerate with `... export`). Every
 record is a closed object (`additionalProperties: false`) carrying
 an exact `(kind, schema_version)` identity. V1 direct/batch schemas retain
-their original bytes; M1c adds V2 Team and V1 interactive records. External consumers can read and
-validate instances with any JSON Schema validator — no pattern uses
-look-around, so RE2-based validators work too.
+their original bytes; M1c adds V2 Team and V1 interactive records. External
+consumers can read and validate instances with any JSON Schema validator — no
+pattern uses look-around, so RE2-based validators work too.
 
 `normalized-review-v1.schema.json`, `synthesis-report-v1.schema.json`, and
 `member-result-v1.schema.json` are
@@ -52,4 +52,7 @@ A JSON Schema validator alone does not check these; AgentTeam's models do:
   roster/session correspondence, separate phase/outcome, and cleanup facts.
   Control requests enforce action-specific closed payload combinations;
   completion decisions enforce timestamps; catalog coordinates are unique.
+- A passing provider live attestation requires exactly five attempted prompts,
+  every lifecycle proof, and at least two evidence-run manifests. Failed
+  records must leave at least one proof false, and evidence run ids are unique.
 - All timestamps are timezone-aware.

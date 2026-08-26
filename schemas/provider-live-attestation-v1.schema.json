@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentteam:schema:provider-live-attestation:v1",
+  "$defs": {
+    "HarnessId": {
+      "description": "Harness identifiers used in records and profiles (plan section 2).",
+      "enum": [
+        "claude-code",
+        "codex",
+        "grok"
+      ],
+      "title": "HarnessId",
+      "type": "string"
+    },
+    "LiveEvidenceRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "pattern": "^run-[0-9a-z](?:[0-9a-z-]{0,78}[0-9a-z])?$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "manifest_sha256"
+      ],
+      "title": "LiveEvidenceRefV1",
+      "type": "object"
+    },
+    "LiveLifecycleProofsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "context_established": {
+          "title": "Context Established",
+          "type": "boolean"
+        },
+        "strict_post_turn_resume": {
+          "title": "Strict Post Turn Resume",
+          "type": "boolean"
+        },
+        "recall": {
+          "title": "Recall",
+          "type": "boolean"
+        },
+        "reset_isolation": {
+          "title": "Reset Isolation",
+          "type": "boolean"
+        },
+        "new_run_isolation": {
+          "title": "New Run Isolation",
+          "type": "boolean"
+        },
+        "continuity_close": {
+          "title": "Continuity Close",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "context_established",
+        "strict_post_turn_resume",
+        "recall",
+        "reset_isolation",
+        "new_run_isolation",
+        "continuity_close"
+      ],
+      "title": "LiveLifecycleProofsV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "provider-live-attestation",
+      "title": "Kind",
+      "type": "string"
+    },
+    "provider": {
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+      "title": "Provider",
+      "type": "string"
+    },
+    "harness": {
+      "$ref": "#/$defs/HarnessId"
+    },
+    "target_fingerprint": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Target Fingerprint",
+      "type": "string"
+    },
+    "runtime_lock_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Runtime Lock Hash",
+      "type": "string"
+    },
+    "native_version": {
+      "minLength": 1,
+      "title": "Native Version",
+      "type": "string"
+    },
+    "platform": {
+      "minLength": 1,
+      "title": "Platform",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "pass",
+        "fail"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "attempted_prompts": {
+      "maximum": 5,
+      "minimum": 0,
+      "title": "Attempted Prompts",
+      "type": "integer"
+    },
+    "proofs": {
+      "$ref": "#/$defs/LiveLifecycleProofsV1"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/LiveEvidenceRefV1"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "checked_at": {
+      "format": "date-time",
+      "title": "Checked At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "provider",
+    "harness",
+    "target_fingerprint",
+    "runtime_lock_hash",
+    "native_version",
+    "platform",
+    "status",
+    "attempted_prompts",
+    "proofs",
+    "evidence",
+    "checked_at"
+  ],
+  "title": "ProviderLiveAttestationV1",
+  "type": "object"
+}

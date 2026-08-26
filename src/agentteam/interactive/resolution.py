@@ -15,6 +15,7 @@ import yaml
 from agentteam.domain.common import HarnessId
 from agentteam.domain.interactive import (
     AssistantCatalogRefV1,
+    CapabilityLevel,
     CatalogKind,
     CatalogRefV1,
     DynamicMemberPolicyDisabledV1,
@@ -34,6 +35,7 @@ from agentteam.execution.direct_acp import (
     installed_runtime_path,
     installed_runtime_problems,
     installed_runtime_tree_hash,
+    load_direct_acp_live_attestation,
     load_direct_acp_qualification,
 )
 from agentteam.interactive.archive import InteractiveArchive, InteractiveArchiveError
@@ -463,12 +465,36 @@ def _resolve_launches(
                 + "; ".join(qualification_problems)
                 + f" (run `atm runtime doctor direct-acp --harness {harness.value}`)"
             )
+        attestation, attestation_problems = load_direct_acp_live_attestation(
+            target,
+            environ=environ,
+            platform=platform,
+        )
+        if attestation is None:
+            raise InteractiveResolutionError(
+                f"{member.name}: direct-acp has no current live recovery attestation for "
+                f"{harness.value}: "
+                + "; ".join(attestation_problems)
+                + (
+                    " (run the attended `atm runtime qualify-live direct-acp "
+                    f"--harness {harness.value}` after explicit approval)"
+                )
+            )
+        effective_capabilities = qualification.capabilities.model_copy(
+            update={
+                "persistent_turns": CapabilityLevel.SUPPORTED,
+                "recovery": CapabilityLevel.SUPPORTED,
+            }
+        )
+        effective_doctor = qualification.model_copy(
+            update={"capabilities": effective_capabilities}
+        )
         provider = DirectAcpProvider(
             runtime_path=runtime_path,
             environment=target.environment,
             node=node,
-            capabilities=qualification.capabilities,
-            doctor_report=qualification,
+            capabilities=effective_capabilities,
+            doctor_report=effective_doctor,
             platform=platform,
         )
         launches[member.name] = MemberLaunch(

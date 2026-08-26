@@ -27,6 +27,7 @@ from agentteam.domain.interactive import (
     DoctorCheckV1,
     ProviderCapabilitiesV1,
     ProviderDoctorV1,
+    ProviderLiveAttestationV1,
 )
 from agentteam.domain.profile import HarnessProfileV1
 from agentteam.execution.protocol import (
@@ -37,8 +38,10 @@ from agentteam.execution.protocol import (
     ProviderDescriptor,
     ProviderEvent,
     ProviderSession,
+    ProviderSuspendFacts,
     ProviderTurnResult,
     ProviderTurnStatus,
+    RetireEmptyMemberSpec,
     TurnSpec,
 )
 from agentteam.harness.diagnostics import capture_version
@@ -66,8 +69,10 @@ ACP_AGENT_PACKAGES = {
     HarnessId.CODEX: "@agentclientprotocol/codex-acp",
     HarnessId.CLAUDE_CODE: "@agentclientprotocol/claude-agent-acp",
 }
-QUALIFICATION_FORMAT = 1
+QUALIFICATION_FORMAT = 2
+LIVE_ATTESTATION_FORMAT = 1
 QUALIFICATION_TIMEOUT_SECONDS = 60
+SUSPENSION_MARKER = ".agentteam-suspended.json"
 
 
 class DirectAcpError(RuntimeError):
@@ -91,6 +96,7 @@ class DirectAcpQualificationTarget:
 class DirectAcpQualificationResult:
     runtime_controls: tuple[str, ...]
     agent_capabilities: tuple[str, ...]
+    empty_reconnect: Literal["strict-resume", "fresh-recreate"]
 
 
 def default_runtime_base(environ: Mapping[str, str] | None = None) -> Path:
@@ -471,24 +477,32 @@ def _parse_node_version(text: str) -> tuple[int, int, int] | None:
 def _direct_capabilities(
     *,
     qualified: bool,
+    live_attested: bool = False,
     platform: str = sys.platform,
 ) -> ProviderCapabilitiesV1:
-    known = CapabilityLevel.SUPPORTED if qualified else CapabilityLevel.UNKNOWN
+    staged = CapabilityLevel.SUPPORTED if qualified else CapabilityLevel.UNKNOWN
+    persistent = (
+        CapabilityLevel.SUPPORTED
+        if qualified and live_attested
+        else CapabilityLevel.UNKNOWN
+    )
     return ProviderCapabilitiesV1(
         schema_version=1,
         kind="provider-capabilities",
         provider=RUNTIME_ID,
         version=EXPECTED_PINS["acpx"],
-        persistent_turns=known,
-        recovery=known,
-        permission_events=known,
-        workspace_enforcement=known,
+        persistent_turns=persistent,
+        recovery=persistent,
+        permission_events=staged,
+        workspace_enforcement=staged,
         tool_filtering=CapabilityLevel.UNKNOWN,
         native_spawn_control=(
             CapabilityLevel.UNSUPPORTED if qualified else CapabilityLevel.UNKNOWN
         ),
-        process_stop_observability=(known if platform != "win32" else CapabilityLevel.UNKNOWN),
-        local_state_deletion=known,
+        process_stop_observability=(
+            staged if platform != "win32" else CapabilityLevel.UNKNOWN
+        ),
+        local_state_deletion=staged,
         provider_history_deletion=CapabilityLevel.UNKNOWN,
     )
 
@@ -500,10 +514,153 @@ def qualification_path(
     return default_runtime_base(environ) / "qualifications" / f"{harness.value}.json"
 
 
+def live_attestation_path(
+    harness: HarnessId,
+    environ: Mapping[str, str] | None = None,
+) -> Path:
+    return default_runtime_base(environ) / "live-attestations" / f"{harness.value}.json"
+
+
+def write_direct_acp_live_attestation(
+    target: DirectAcpQualificationTarget,
+    attestation: ProviderLiveAttestationV1,
+    *,
+    environ: Mapping[str, str] | None = None,
+    platform: str = sys.platform,
+) -> Path:
+    expected = (
+        attestation.provider == RUNTIME_ID
+        and attestation.harness == target.harness
+        and attestation.target_fingerprint == target.fingerprint
+        and attestation.runtime_lock_hash == runtime_lock_hash()
+        and attestation.native_version == target.native_version
+        and attestation.platform == platform
+    )
+    if not expected:
+        raise DirectAcpError("live attestation does not match the exact qualification target")
+    path = live_attestation_path(target.harness, environ)
+    ensure_owner_directory(path.parent, platform=platform)
+    atomic_write_text(
+        path,
+        json.dumps(
+            {
+                "format": LIVE_ATTESTATION_FORMAT,
+                "attestation": attestation.model_dump(mode="json"),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        platform=platform,
+    )
+    return path
+
+
+def load_direct_acp_live_attestation(
+    target: DirectAcpQualificationTarget,
+    *,
+    environ: Mapping[str, str] | None = None,
+    platform: str = sys.platform,
+) -> tuple[ProviderLiveAttestationV1 | None, list[str]]:
+    path = live_attestation_path(target.harness, environ)
+    if not path.is_file() or path.is_symlink():
+        return None, [f"no safe live attestation for {target.harness.value}"]
+    if platform != "win32":
+        try:
+            unsafe_mode = bool(path.stat().st_mode & 0o077)
+        except OSError as error:
+            return None, [f"cannot inspect live attestation: {error}"]
+        if unsafe_mode:
+            return None, [f"live attestation is not owner-only: {target.harness.value}"]
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        return None, [f"invalid live attestation: {error}"]
+    problems: list[str] = []
+    if not isinstance(payload, dict) or payload.get("format") != LIVE_ATTESTATION_FORMAT:
+        problems.append("live attestation format is invalid")
+    try:
+        attestation = ProviderLiveAttestationV1.model_validate(
+            payload.get("attestation") if isinstance(payload, dict) else None
+        )
+    except ValueError as error:
+        return None, [*problems, f"invalid live attestation record: {error}"]
+    expected = {
+        "provider": RUNTIME_ID,
+        "harness": target.harness,
+        "target_fingerprint": target.fingerprint,
+        "runtime_lock_hash": runtime_lock_hash(),
+        "native_version": target.native_version,
+        "platform": platform,
+    }
+    problems.extend(
+        f"live attestation {name} is stale or mismatched"
+        for name, value in expected.items()
+        if getattr(attestation, name) != value
+    )
+    if attestation.status != "pass":
+        problems.append(f"live attestation status is {attestation.status}")
+    if not problems:
+        problems.extend(
+            _live_attestation_evidence_problems(
+                attestation,
+                environ=environ,
+                platform=platform,
+            )
+        )
+    return (attestation if not problems else None), problems
+
+
+def _live_attestation_evidence_problems(
+    attestation: ProviderLiveAttestationV1,
+    *,
+    environ: Mapping[str, str] | None,
+    platform: str,
+) -> list[str]:
+    from agentteam.interactive.archive import InteractiveArchive, InteractiveArchiveError
+
+    runs_root = default_runtime_base(environ).parents[1] / "runs"
+    problems: list[str] = []
+    for evidence in attestation.evidence:
+        root = runs_root / evidence.run_id
+        manifest = root / "manifest.sha256.json"
+        if (
+            root.is_symlink()
+            or not root.is_dir()
+            or manifest.is_symlink()
+            or not manifest.is_file()
+        ):
+            problems.append(f"live evidence {evidence.run_id} is missing or unsafe")
+            continue
+        try:
+            archive_problems = InteractiveArchive(root, platform=platform).verify_manifest()
+            manifest_hash = hashlib.sha256(manifest.read_bytes()).hexdigest()
+        except (OSError, ValueError, InteractiveArchiveError) as error:
+            problems.append(
+                f"live evidence {evidence.run_id} is invalid: {type(error).__name__}"
+            )
+            continue
+        if archive_problems:
+            problems.append(f"live evidence {evidence.run_id} manifest does not verify")
+        if manifest_hash != evidence.manifest_sha256:
+            problems.append(f"live evidence {evidence.run_id} manifest hash is mismatched")
+        if platform != "win32":
+            try:
+                unsafe_mode = bool(root.stat().st_mode & 0o077) or any(
+                    path.stat().st_mode & 0o077 for path in root.rglob("*")
+                )
+            except OSError:
+                unsafe_mode = True
+            if unsafe_mode:
+                problems.append(f"live evidence {evidence.run_id} is not owner-only")
+    return problems
+
+
 def _write_direct_acp_qualification(
     target: DirectAcpQualificationTarget,
     report: ProviderDoctorV1,
     *,
+    empty_reconnect: Literal["strict-resume", "fresh-recreate"] | None,
     environ: Mapping[str, str] | None,
     platform: str,
 ) -> None:
@@ -514,6 +671,7 @@ def _write_direct_acp_qualification(
         "runtime_lock_hash": runtime_lock_hash(),
         "platform": platform,
         "native_version": target.native_version,
+        "empty_reconnect": empty_reconnect,
         "report": report.model_dump(mode="json"),
     }
     atomic_write_text(
@@ -565,8 +723,21 @@ def load_direct_acp_qualification(
         problems.append("qualification report identity is invalid")
     if report.status != "pass":
         problems.append(f"qualification status is {report.status}")
+    disposition = payload.get("empty_reconnect")
+    if report.status == "pass" and disposition not in {
+        "strict-resume",
+        "fresh-recreate",
+    }:
+        problems.append("qualification empty reconnect disposition is invalid")
+    if report.status != "pass" and disposition is not None:
+        problems.append("failed qualification cannot claim an empty reconnect disposition")
     if report.capabilities.provider != RUNTIME_ID:
         problems.append("qualification capability identity is invalid")
+    if report.status == "pass" and report.capabilities != _direct_capabilities(
+        qualified=True,
+        platform=platform,
+    ):
+        problems.append("qualification staged capabilities are invalid")
     return (report if not problems else None), problems
 
 
@@ -583,16 +754,16 @@ async def _qualify_direct_acp_target(
     workspace = temporary_root / "workspace"
     state_dir = temporary_root / "state"
     workspace.mkdir(mode=0o700)
-    client = _BridgeClient(
-        argv=(node, str(target.runtime_path / "bridge.mjs")),
-        cwd=workspace,
-        environment=target.environment,
-    )
-    cleanup = CleanupFact.NOT_APPLICABLE
-    started = False
-    try:
+    active_clients: list[_BridgeClient] = []
+
+    async def start_client() -> _BridgeClient:
+        client = _BridgeClient(
+            argv=(node, str(target.runtime_path / "bridge.mjs")),
+            cwd=workspace,
+            environment=target.environment,
+        )
         await asyncio.wait_for(client.start(), timeout=QUALIFICATION_TIMEOUT_SECONDS)
-        started = True
+        active_clients.append(client)
         await asyncio.wait_for(
             client.request(
                 "initialize",
@@ -602,28 +773,122 @@ async def _qualify_direct_acp_target(
             ),
             timeout=QUALIFICATION_TIMEOUT_SECONDS,
         )
-        response = await asyncio.wait_for(
-            client.request(
-                "qualify",
-                agent=target.harness.value,
-                cwd=str(workspace),
+        return client
+
+    async def stop_client(client: _BridgeClient) -> None:
+        try:
+            cleanup = await client.stop()
+        finally:
+            if client in active_clients:
+                active_clients.remove(client)
+        if cleanup is not CleanupFact.CONFIRMED:
+            raise DirectAcpError("ACP qualification bridge cleanup was not confirmed")
+
+    async def open_session(
+        client: _BridgeClient,
+        *,
+        session_key: str,
+        resume_session_id: str | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, object] = {
+            "session_key": session_key,
+            "agent": target.harness.value,
+            "cwd": str(workspace),
+        }
+        if resume_session_id is not None:
+            payload["resume_session_id"] = resume_session_id
+        return await asyncio.wait_for(
+            client.request("open_member", **payload),
+            timeout=QUALIFICATION_TIMEOUT_SECONDS,
+        )
+
+    inspection: dict[str, Any]
+    disposition: Literal["strict-resume", "fresh-recreate"]
+    try:
+        first = await start_client()
+        fresh = await open_session(first, session_key="qualification-fresh")
+        expected = fresh.get("opaque_session_id")
+        if not isinstance(expected, str) or not expected:
+            raise DirectAcpError("fresh ACP session has no stable backend session id")
+        await asyncio.wait_for(
+            first.request(
+                "suspend_member",
+                session_key="qualification-fresh",
+                reason="AgentTeam no-call qualification restart",
             ),
             timeout=QUALIFICATION_TIMEOUT_SECONDS,
         )
-        lifecycle = response.get("lifecycle")
-        required = {
-            "initialize",
-            "new_session",
-            "strict_resume",
-            "status",
-            "close_session",
-        }
-        if not isinstance(lifecycle, dict) or any(
-            lifecycle.get(name) is not True for name in required
-        ):
-            raise DirectAcpError("ACP no-call lifecycle proof is incomplete")
-        controls = response.get("runtime_controls")
-        capabilities = response.get("agent_capabilities")
+        await stop_client(first)
+
+        resumed_client = await start_client()
+        try:
+            resumed = await open_session(
+                resumed_client,
+                session_key="qualification-resume",
+                resume_session_id=expected,
+            )
+        except DirectAcpError:
+            await stop_client(resumed_client)
+            if state_dir.is_symlink():
+                raise DirectAcpError("ACP qualification state directory is unsafe") from None
+            try:
+                shutil.rmtree(state_dir)
+            except FileNotFoundError:
+                pass
+            except OSError as error:
+                raise DirectAcpError(
+                    f"cannot retire empty ACP qualification state: {error}"
+                ) from None
+            replacement_client = await start_client()
+            replacement = await open_session(
+                replacement_client,
+                session_key="qualification-replacement",
+            )
+            replacement_id = replacement.get("opaque_session_id")
+            if not isinstance(replacement_id, str) or not replacement_id:
+                raise DirectAcpError(
+                    "replacement ACP session has no stable backend session id"
+                ) from None
+            inspection = await asyncio.wait_for(
+                replacement_client.request(
+                    "inspect_member", session_key="qualification-replacement"
+                ),
+                timeout=QUALIFICATION_TIMEOUT_SECONDS,
+            )
+            await asyncio.wait_for(
+                replacement_client.request(
+                    "close_member",
+                    session_key="qualification-replacement",
+                    reason="AgentTeam no-call qualification close",
+                ),
+                timeout=QUALIFICATION_TIMEOUT_SECONDS,
+            )
+            await stop_client(replacement_client)
+            disposition = "fresh-recreate"
+        else:
+            if resumed.get("opaque_session_id") != expected:
+                raise DirectAcpError(
+                    "strict ACP resume/load returned a different backend session id"
+                )
+            inspection = await asyncio.wait_for(
+                resumed_client.request("inspect_member", session_key="qualification-resume"),
+                timeout=QUALIFICATION_TIMEOUT_SECONDS,
+            )
+            await asyncio.wait_for(
+                resumed_client.request(
+                    "close_member",
+                    session_key="qualification-resume",
+                    reason="AgentTeam no-call qualification close",
+                ),
+                timeout=QUALIFICATION_TIMEOUT_SECONDS,
+            )
+            await stop_client(resumed_client)
+            disposition = "strict-resume"
+
+        if not inspection.get("status"):
+            raise DirectAcpError("ACP no-call status proof is incomplete")
+        controls = inspection.get("runtime_controls")
+        capabilities = inspection.get("agent_capabilities")
         if not isinstance(controls, list) or not all(isinstance(value, str) for value in controls):
             raise DirectAcpError("ACP runtime controls are malformed")
         if not isinstance(capabilities, list) or not all(
@@ -633,14 +898,18 @@ async def _qualify_direct_acp_target(
         return DirectAcpQualificationResult(
             runtime_controls=tuple(sorted(set(controls))),
             agent_capabilities=tuple(sorted(set(capabilities))),
+            empty_reconnect=disposition,
         )
     finally:
-        try:
-            cleanup = await client.stop()
-        except Exception:
-            cleanup = CleanupFact.FAILED
+        cleanup_failed = False
+        for client in tuple(active_clients):
+            try:
+                cleanup = await client.stop()
+            except Exception:
+                cleanup = CleanupFact.FAILED
+            cleanup_failed = cleanup_failed or cleanup is not CleanupFact.CONFIRMED
         shutil.rmtree(temporary_root, ignore_errors=True)
-        if started and cleanup is not CleanupFact.CONFIRMED:
+        if cleanup_failed:
             raise DirectAcpError("ACP qualification bridge cleanup was not confirmed")
 
 
@@ -710,6 +979,7 @@ async def doctor_direct_acp(
     target_reports: list[ProviderDoctorV1] = []
     if base_ready:
         for target in targets:
+            empty_reconnect: Literal["strict-resume", "fresh-recreate"] | None = None
             target_checks = [
                 DoctorCheckV1(
                     name=f"{target.harness.value}-agent-version",
@@ -737,6 +1007,7 @@ async def doctor_direct_acp(
                     platform=platform,
                 )
             else:
+                empty_reconnect = qualification_result.empty_reconnect
                 details = [
                     *(f"control={value}" for value in qualification_result.runtime_controls),
                     *(f"agent={value}" for value in qualification_result.agent_capabilities),
@@ -746,7 +1017,11 @@ async def doctor_direct_acp(
                         DoctorCheckV1(
                             name=f"{target.harness.value}-acp-lifecycle",
                             status="pass",
-                            detail="initialize/new/strict-resume/status/close",
+                            detail=(
+                                "initialize/new/"
+                                f"{qualification_result.empty_reconnect}/status/close; "
+                                "post-turn-resume=unproven"
+                            ),
                         ),
                         DoctorCheckV1(
                             name=f"{target.harness.value}-declared-capabilities",
@@ -773,6 +1048,7 @@ async def doctor_direct_acp(
             _write_direct_acp_qualification(
                 target,
                 target_report,
+                empty_reconnect=empty_reconnect,
                 environ=environ,
                 platform=platform,
             )
@@ -1161,6 +1437,7 @@ class DirectAcpProvider:
         )
         agent = spec.harness.value
         command = list(spec.executable)
+        backend_opened = False
         try:
             await client.start()
             await client.request(
@@ -1186,10 +1463,23 @@ class DirectAcpProvider:
                 resume_session_id=spec.resume_session_ref,
                 session_options=session_options or None,
             )
+            backend_opened = True
             opaque = response.get("opaque_session_id")
             if not isinstance(opaque, str) or not response.get("continuity_verified"):
                 raise DirectAcpError("provider did not prove a stable opaque session id")
+            if spec.resume_session_ref is not None:
+                suspension_marker = spec.state_dir / SUSPENSION_MARKER
+                if suspension_marker.is_symlink():
+                    raise DirectAcpError("suspension marker is unsafe")
+                suspension_marker.unlink(missing_ok=True)
         except BaseException:
+            if backend_opened:
+                with contextlib.suppress(Exception):
+                    await client.request(
+                        "close_member",
+                        session_key=spec.session_id,
+                        reason="AgentTeam failed Member open",
+                    )
             await client.stop()
             if spec.resume_session_ref is None:
                 shutil.rmtree(spec.state_dir, ignore_errors=True)
@@ -1248,6 +1538,119 @@ class DirectAcpProvider:
         except DirectAcpError:
             return False
         return bool(response.get("continuity_verified"))
+
+    async def suspend_member(
+        self, session: ProviderSession, reason: str
+    ) -> ProviderSuspendFacts:
+        client = self._client(session)
+        active = self.turns.get(session.session_id)
+        if active is not None and not active.terminal.done():
+            return ProviderSuspendFacts(
+                process=CleanupFact.FAILED,
+                local_state_retained=False,
+            )
+        logical = True
+        try:
+            await client.request(
+                "suspend_member",
+                session_key=session.session_id,
+                reason=reason,
+            )
+        except DirectAcpError:
+            logical = False
+        try:
+            process = await client.stop()
+        except Exception:
+            process = CleanupFact.FAILED
+        if self.background_tasks:
+            await asyncio.gather(*tuple(self.background_tasks), return_exceptions=True)
+        self.clients.pop(session.session_id, None)
+        self.sessions.pop(session.session_id, None)
+        self.turns.pop(session.session_id, None)
+        retained = (
+            logical
+            and process in {CleanupFact.CONFIRMED, CleanupFact.NOT_APPLICABLE}
+            and session.state_dir.is_dir()
+            and not session.state_dir.is_symlink()
+        )
+        if retained:
+            atomic_write_text(
+                session.state_dir / SUSPENSION_MARKER,
+                json.dumps(
+                    {
+                        "format": 1,
+                        "provider": RUNTIME_ID,
+                        "run_id": session.run_id,
+                        "member": session.member,
+                        "session_id": session.session_id,
+                        "generation": session.generation,
+                        "provider_session_ref": session.provider_session_ref,
+                        "process": process.value,
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                + "\n",
+                platform=self.platform,
+            )
+        else:
+            self.unresolved_closes.add((session.run_id, session.session_id))
+        return ProviderSuspendFacts(process=process, local_state_retained=retained)
+
+    async def retire_empty_member(self, spec: RetireEmptyMemberSpec) -> CloseFactsV1:
+        unknown = CloseFactsV1(
+            logical_session=CleanupFact.UNKNOWN,
+            process=CleanupFact.UNKNOWN,
+            local_state=CleanupFact.UNKNOWN,
+            provider_history=CleanupFact.UNKNOWN,
+        )
+        if spec.session_id in self.sessions:
+            return unknown
+        state_dir = spec.state_dir
+        marker = state_dir / SUSPENSION_MARKER
+        if state_dir.is_symlink() or not state_dir.is_dir() or marker.is_symlink():
+            return unknown
+        if self.platform != "win32":
+            try:
+                if marker.stat().st_mode & 0o077:
+                    return unknown
+            except OSError:
+                return unknown
+        try:
+            payload = json.loads(marker.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return unknown
+        expected = {
+            "format": 1,
+            "provider": RUNTIME_ID,
+            "run_id": spec.run_id,
+            "member": spec.member,
+            "session_id": spec.session_id,
+            "generation": spec.generation,
+            "provider_session_ref": spec.provider_session_ref,
+        }
+        if not isinstance(payload, dict) or any(payload.get(k) != v for k, v in expected.items()):
+            return unknown
+        try:
+            process = CleanupFact(str(payload.get("process")))
+        except ValueError:
+            return unknown
+        if process not in {CleanupFact.CONFIRMED, CleanupFact.NOT_APPLICABLE}:
+            return unknown
+        try:
+            shutil.rmtree(state_dir)
+        except OSError:
+            return unknown.model_copy(
+                update={"process": process, "local_state": CleanupFact.FAILED}
+            )
+        self.run_state_dirs.get(spec.run_id, set()).discard(state_dir.resolve(strict=False))
+        self.unresolved_closes.discard((spec.run_id, spec.session_id))
+        return CloseFactsV1(
+            logical_session=CleanupFact.NOT_APPLICABLE,
+            process=process,
+            local_state=CleanupFact.CONFIRMED,
+            provider_history=CleanupFact.UNKNOWN,
+        )
 
     async def close_member(self, session: ProviderSession, reason: str) -> CloseFactsV1:
         client = self._client(session)

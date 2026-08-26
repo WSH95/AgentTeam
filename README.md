@@ -80,6 +80,8 @@ commits, resets, stashes, checks out, or cleans user files.
 uv run atm assistant import examples/assistants/implementer
 uv run atm runtime install direct-acp      # explicit pinned npm download, only when wanted
 uv run atm runtime doctor direct-acp --harness codex  # zero model calls
+# After a separate fresh approval: attended, at most five calls, no retries
+uv run atm runtime qualify-live direct-acp --harness codex
 
 uv run atm assistant chat implementer --version 1 \
   --workspace /path/to/project --goal "Fix the bounded issue" \

@@ -53,6 +53,7 @@ PLANNED_FILES = {
     "run-event-v1.schema.json": "run-event",
     "provider-capabilities-v1.schema.json": "provider-capabilities",
     "provider-doctor-v1.schema.json": "provider-doctor",
+    "provider-live-attestation-v1.schema.json": "provider-live-attestation",
     "catalog-index-v1.schema.json": "catalog-index",
 }
 VENDOR_FACING = {

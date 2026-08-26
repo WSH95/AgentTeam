@@ -34,6 +34,7 @@ from agentteam.domain.interactive import (
     TeamMemberV2,
     TeamPreferencesV2,
     TeamTemplateV2,
+    TurnStatus,
     WorkItemV1,
     WorkspaceLayout,
 )
@@ -72,6 +73,13 @@ from agentteam.interactive.tty import run_tty
 from agentteam.interactive.workspace import WorkspaceReservationError
 from agentteam.resolution.archive import hash_package
 from agentteam.resolution.package import load_package
+
+
+class _ResumeRejectingOwnedProvider(OwnedProcessFakeProvider):
+    async def open_member(self, spec: OpenMemberSpec) -> ProviderSession:
+        if spec.resume_session_ref is not None:
+            raise FakeProviderError("injected exact resume rejection")
+        return await super().open_member(spec)
 
 
 def _assistant(tmp_path: Path, *, writable: bool = False) -> Path:
@@ -600,6 +608,157 @@ async def test_detach_attach_strict_recovery_retains_context(tmp_path: Path) -> 
     recalled = await attached.dispatch("lead", "recall")
     assert recalled.text == "turn-2:persist-me|recall"
     await attached.close(InteractiveRunOutcome.CANCELLED, reason="recovery test close")
+
+
+async def test_detach_attach_recreates_only_a_proven_empty_generation(
+    tmp_path: Path,
+) -> None:
+    controller, team, _team_source, launches = await _controller(tmp_path)
+    archive_root = controller.archive.root
+    await controller.detach()
+
+    recovered_launches = {
+        member: MemberLaunch(
+            member=member,
+            assistant=launch.assistant,
+            provider=(
+                _ResumeRejectingOwnedProvider()
+                if member == "lead"
+                else ExternalHostFakeProvider()
+            ),
+            harness=launch.harness,
+            executable=launch.executable,
+            environment={},
+        )
+        for member, launch in launches.items()
+    }
+    attached = InteractiveController.attach(
+        archive=InteractiveArchive(archive_root),
+        team=team,
+        launches=recovered_launches,
+        reservations_root=tmp_path / "home" / "workspace-reservations",
+    )
+
+    assert await attached.recover() == {"lead": True, "reviewer": True}
+    lead = attached.session_records["lead"]
+    assert lead.generation == 2
+    assert lead.session_id == "session-lead-g-2"
+    old = attached.archive.load_session("session-lead-g-1")
+    assert old.status.value == "closed"
+    assert old.continuity_verified is False
+    assert (attached.archive.root / "summaries" / "lead-g2.txt").is_file()
+    events = [
+        json.loads(line)
+        for line in (attached.archive.root / "events.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    assert any(event["event"] == "empty-session-recreated" for event in events)
+    turn = await attached.dispatch("lead", "fresh-after-empty-recreate")
+    assert turn.text == "turn-1:fresh-after-empty-recreate"
+    await attached.close(InteractiveRunOutcome.CANCELLED, reason="empty recreation test")
+
+
+async def test_resume_failure_after_a_turn_never_recreates_the_generation(
+    tmp_path: Path,
+) -> None:
+    controller, team, _team_source, launches = await _controller(tmp_path)
+    await controller.dispatch("lead", "attempted")
+    archive_root = controller.archive.root
+    await controller.detach()
+    recovered_launches = {
+        member: MemberLaunch(
+            member=member,
+            assistant=launch.assistant,
+            provider=(
+                _ResumeRejectingOwnedProvider()
+                if member == "lead"
+                else ExternalHostFakeProvider()
+            ),
+            harness=launch.harness,
+            executable=launch.executable,
+            environment={},
+        )
+        for member, launch in launches.items()
+    }
+    attached = InteractiveController.attach(
+        archive=InteractiveArchive(archive_root),
+        team=team,
+        launches=recovered_launches,
+        reservations_root=tmp_path / "home" / "workspace-reservations",
+    )
+
+    assert await attached.recover() == {"lead": False, "reviewer": True}
+    assert attached.record.phase is InteractiveRunPhase.RECOVERY_REQUIRED
+    assert attached.session_records["lead"].generation == 1
+    events = (attached.archive.root / "events.jsonl").read_text(encoding="utf-8")
+    assert "empty-session-recreated" not in events
+    await attached.detach()
+
+
+async def test_detach_suspends_live_providers_even_when_recovery_is_already_required(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller, _team, _source, launches = await _controller(tmp_path)
+    lead = launches["lead"].provider
+    assert isinstance(lead, OwnedProcessFakeProvider)
+
+    async def continuity_lost(_session: ProviderSession) -> bool:
+        return False
+
+    monkeypatch.setattr(lead, "verify_continuity", continuity_lost)
+    await controller.dispatch("lead", "lose continuity after this turn")
+    assert controller.record.phase is InteractiveRunPhase.RECOVERY_REQUIRED
+    process = lead.processes[controller.provider_sessions["lead"].session_id]
+
+    await controller.detach()
+
+    assert controller.record.phase is InteractiveRunPhase.RECOVERY_REQUIRED
+    assert controller.provider_sessions == {}
+    assert process.poll() is not None
+    events = (controller.archive.root / "events.jsonl").read_text(encoding="utf-8")
+    assert events.count('"event":"member-suspended"') == 2
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        TurnStatus.QUEUED,
+        TurnStatus.RUNNING,
+        TurnStatus.COMPLETED,
+        TurnStatus.FAILED,
+        TurnStatus.CANCELLED,
+    ],
+)
+async def test_every_turn_status_blocks_empty_generation_recreation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    status: TurnStatus,
+) -> None:
+    controller, _team, _source, launches = await _controller(tmp_path)
+    outcome = await controller.dispatch("lead", "one attempted turn")
+    payload = outcome.turn.model_dump(mode="python")
+    payload["status"] = status
+    if status is TurnStatus.QUEUED:
+        payload.update(started_at=None, finished_at=None, result_sha256=None)
+    elif status is TurnStatus.RUNNING:
+        payload.update(finished_at=None, result_sha256=None)
+    replacement = type(outcome.turn).model_validate(payload)
+    controller.archive.write_turn(replacement)
+    retired = False
+
+    async def unexpected_retirement(_spec: object) -> CloseFactsV1:
+        nonlocal retired
+        retired = True
+        raise AssertionError("attempted generation must not be retired")
+
+    monkeypatch.setattr(launches["lead"].provider, "retire_empty_member", unexpected_retirement)
+    assert not await controller._recreate_empty_generation(
+        "lead", controller.session_records["lead"]
+    )
+    assert not retired
+    await controller.close(InteractiveRunOutcome.CANCELLED, reason="turn-status test")
 
 
 async def test_permission_intersection_denies_then_allows_attended_write(tmp_path: Path) -> None:

@@ -4,7 +4,23 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
-## M1c G6 exact-runtime no-call qualification — 2026-08-25
+## M1c revised G6.R recovery and exact-runtime staging — 2026-08-26
+
+| Check | Result |
+| --- | --- |
+| Recovery contract | PASS — graceful detach proves provider/process suspension and retained state; recovery tries exact resume first; only a generation referenced by zero archived turns may use exact provider retirement plus a visible incremented replacement. Queued, running, completed, failed, and cancelled turns all block recreation |
+| Live gate | PASS deterministically — `ProviderLiveAttestationV1` binds harness, target/environment fingerprint, runtime lock/tree/bridge, native version, and platform. Normal chat requires an exact passing record. The sole bypass is attended single-harness `runtime qualify-live`: fresh default-no confirmation, at most five prompts, no retry, full restart/recall/reset/new-run/close proof, and two manifest-hashed evidence runs; failed attempts supersede passes |
+| Deterministic validation | PASS — full tree **762 passed + 4 expected skips** in 80.44s; Ruff clean; strict mypy clean over 151 source files; all **26** schemas reproduce; lock current; wheel/sdist build; Node syntax; `git diff --check` clean. The original 12 V1 schema byte hashes remain pinned; missing, tampered, malformed, or non-owner-only live-evidence archives invalidate an attestation |
+| Exact install | PASS — owner-approved unchanged pins installed at content address `1b31b15e617f6d2a7e6ad7fba5d9ec58f88765c5ec6414e3f08a4e54112ead68`: `acpx 0.13.1`, `@agentclientprotocol/claude-agent-acp 0.69.0`, and `@agentclientprotocol/codex-acp 1.6.2`; packaged bridge SHA-256 `00be336554a674f2190b9b2129afee1d1f149b4d5e33ff7fdf0e154ce723787f`; Node `v24.16.0` |
+| Claude Code | **STAGED, zero calls** — version `2.1.246 (Claude Code)` passed `initialize/new/fresh-recreate/status/close`; post-turn resume remains unproven and persistent/recovery remain `unknown` |
+| Codex | **STAGED, zero calls** — version `codex-cli 0.149.1` passed `initialize/new/fresh-recreate/status/close`; post-turn resume remains unproven and persistent/recovery remain `unknown` |
+| Grok | **STAGED, zero calls** — version `grok 1.0.5 (5115b46bc9)` passed `initialize/new/strict-resume/status/close`; post-turn resume remains unproven and persistent/recovery remain `unknown` |
+| Evidence safety | PASS — all three format-2 qualification files are owner-only `0600`, explicitly record the reconnect disposition and `model_calls: 0`, and no matching bridge/native process remains. No live-attestation or live-attempt file exists; no credential value was read or copied |
+| Gate | **G6.R locally closed.** G7 has not started and still requires a fresh attended owner go. The implementation approval did not authorize any model prompt. Semantic commit and hosted credential-free evidence remain before G8 |
+
+Last verified: 2026-08-26 by Codex. Zero model calls were made.
+
+## Original M1c G6 exact-runtime no-call qualification — 2026-08-25 (superseded by ADR 0048)
 
 | Check | Result |
 | --- | --- |

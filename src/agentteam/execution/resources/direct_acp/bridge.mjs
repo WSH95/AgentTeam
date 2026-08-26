@@ -144,93 +144,6 @@ async function openMember(command) {
   });
 }
 
-async function qualify(command) {
-  const current = requireRuntime();
-  const doctor = await current.doctor();
-  if (!doctor.ok) {
-    emit({
-      id: command.id,
-      type: "response",
-      ok: false,
-      error: "ACP initialize/close probe failed",
-    });
-    return;
-  }
-  const base = `qualification-${process.pid}-${++sessionSequence}`;
-  let fresh;
-  let resumed;
-  let freshClosed = false;
-  try {
-    fresh = await current.ensureSession({
-      sessionKey: `${base}-fresh`,
-      agent: command.agent,
-      mode: "persistent",
-      cwd: command.cwd,
-    });
-    const expected = opaqueSessionId(fresh);
-    if (typeof expected !== "string" || expected.length === 0) {
-      throw new Error("fresh ACP session has no stable backend session id");
-    }
-    await current.close({
-      handle: fresh,
-      reason: "AgentTeam no-call qualification reconnect",
-      discardPersistentState: false,
-    });
-    freshClosed = true;
-    resumed = await current.ensureSession({
-      sessionKey: `${base}-resume`,
-      agent: command.agent,
-      mode: "persistent",
-      resumeSessionId: expected,
-      cwd: command.cwd,
-    });
-    if (opaqueSessionId(resumed) !== expected) {
-      throw new Error("strict ACP resume/load returned a different backend session id");
-    }
-    const runtimeCapabilities = await current.getCapabilities({ handle: resumed });
-    const status = await current.getStatus({ handle: resumed });
-    const record = runtimeStore
-      ? await runtimeStore.load(resumed.acpxRecordId ?? resumed.sessionKey)
-      : undefined;
-    await current.close({
-      handle: resumed,
-      reason: "AgentTeam no-call qualification close",
-      discardPersistentState: true,
-    });
-    resumed = undefined;
-    emit({
-      id: command.id,
-      type: "response",
-      ok: true,
-      lifecycle: {
-        initialize: true,
-        new_session: true,
-        strict_resume: true,
-        status: Boolean(status),
-        close_session: true,
-      },
-      runtime_controls: Array.isArray(runtimeCapabilities?.controls)
-        ? runtimeCapabilities.controls.filter((value) => typeof value === "string")
-        : [],
-      agent_capabilities: capabilityPaths(record?.agentCapabilities).sort(),
-    });
-  } finally {
-    if (resumed) {
-      await current.close({
-        handle: resumed,
-        reason: "AgentTeam failed qualification cleanup",
-        discardPersistentState: true,
-      }).catch(() => {});
-    } else if (fresh && !freshClosed) {
-      await current.close({
-        handle: fresh,
-        reason: "AgentTeam failed qualification cleanup",
-        discardPersistentState: true,
-      }).catch(() => {});
-    }
-  }
-}
-
 async function startTurn(command) {
   const current = requireRuntime();
   const handle = handles.get(command.session_key);
@@ -299,9 +212,6 @@ async function dispatch(command) {
       emit({ id: command.id, type: "response", ok: report.ok, report });
       return;
     }
-    case "qualify":
-      await qualify(command);
-      return;
     case "open_member":
       await openMember(command);
       return;
@@ -317,6 +227,28 @@ async function dispatch(command) {
         type: "response",
         ok: true,
         continuity_verified: opaqueSessionId(handle) === command.opaque_session_id,
+      });
+      return;
+    }
+    case "inspect_member": {
+      const handle = handles.get(command.session_key);
+      if (!handle) {
+        throw new Error(`unknown session key: ${command.session_key}`);
+      }
+      const runtimeCapabilities = await requireRuntime().getCapabilities({ handle });
+      const status = await requireRuntime().getStatus({ handle });
+      const record = runtimeStore
+        ? await runtimeStore.load(handle.acpxRecordId ?? handle.sessionKey)
+        : undefined;
+      emit({
+        id: command.id,
+        type: "response",
+        ok: true,
+        status: Boolean(status),
+        runtime_controls: Array.isArray(runtimeCapabilities?.controls)
+          ? runtimeCapabilities.controls.filter((value) => typeof value === "string")
+          : [],
+        agent_capabilities: capabilityPaths(record?.agentCapabilities).sort(),
       });
       return;
     }
@@ -354,6 +286,21 @@ async function dispatch(command) {
         handle,
         reason: command.reason ?? "AgentTeam run close",
         discardPersistentState: true,
+      });
+      handles.delete(command.session_key);
+      emit({ id: command.id, type: "response", ok: true });
+      return;
+    }
+    case "suspend_member": {
+      const handle = handles.get(command.session_key);
+      if (!handle) {
+        throw new Error(`unknown session key: ${command.session_key}`);
+      }
+      rejectPendingPermissions(handle);
+      await requireRuntime().close({
+        handle,
+        reason: command.reason ?? "AgentTeam controller detach",
+        discardPersistentState: false,
       });
       handles.delete(command.session_key);
       emit({ id: command.id, type: "response", ok: true });

@@ -10,8 +10,9 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from typer import Abort
 
-from agentteam.commands.common import EXIT_RUNTIME, emit, fail
+from agentteam.commands.common import EXIT_CANCELLED, EXIT_RUNTIME, emit, fail
 from agentteam.domain.common import HarnessId
 from agentteam.execution.direct_acp import (
     RUNTIME_ID,
@@ -22,7 +23,9 @@ from agentteam.execution.direct_acp import (
     install_direct_acp,
     installed_runtime_path,
     installed_runtime_tree_hash,
+    load_direct_acp_qualification,
 )
+from agentteam.interactive.live_qualification import qualify_live_direct_acp
 from agentteam.resolution.profiles import (
     ProfileError,
     default_profile_path,
@@ -30,6 +33,7 @@ from agentteam.resolution.profiles import (
 )
 
 runtime_app = typer.Typer(name="runtime", help="Optional execution-provider runtimes.")
+_run_live_qualification = qualify_live_direct_acp
 
 
 def _require_direct_acp(runtime: str) -> None:
@@ -48,6 +52,22 @@ def _parse_harnesses(values: list[str]) -> tuple[HarnessId, ...]:
         if harness not in parsed:
             parsed.append(harness)
     return tuple(parsed)
+
+
+def _is_attended() -> bool:
+    return sys.stdin.isatty() and sys.stderr.isatty()
+
+
+def _confirm_live_qualification(harness: HarnessId) -> bool:
+    try:
+        return typer.confirm(
+            f"Attempt up to five native-subscription model prompts for the exact "
+            f"{harness.value} live lifecycle qualification?",
+            default=False,
+            err=True,
+        )
+    except Abort as error:
+        raise KeyboardInterrupt from error
 
 
 def _qualification_targets(
@@ -146,4 +166,100 @@ def doctor(
         ),
     )
     if report.status != "pass":
+        raise typer.Exit(code=EXIT_RUNTIME)
+
+
+@runtime_app.command("qualify-live")
+def qualify_live(
+    runtime: Annotated[str, typer.Argument(help="Runtime id (direct-acp).")],
+    harness: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--harness",
+            help="Exactly one attended target (claude-code, codex, or grok).",
+        ),
+    ] = None,
+    config: Annotated[Path | None, typer.Option("--config")] = None,
+    json_out: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Run the sole five-prompt live-attestation path after fresh confirmation."""
+    _require_direct_acp(runtime)
+    requested = harness or []
+    if len(requested) != 1:
+        raise fail("live qualification requires exactly one --harness", exit_code=2)
+    selected = _parse_harnesses(requested)
+    targets, setup_problems = _qualification_targets(config=config, selected=selected)
+    if setup_problems or len(targets) != 1:
+        details = "; ".join(
+            f"{name}: {detail}" for name, detail in sorted(setup_problems.items())
+        ) or "exact qualification target could not be resolved"
+        raise fail(details, exit_code=EXIT_RUNTIME)
+    target = targets[0]
+    qualification, qualification_problems = load_direct_acp_qualification(
+        target,
+        environ=os.environ,
+        platform=sys.platform,
+    )
+    if qualification is None:
+        raise fail(
+            "current no-call qualification is required: "
+            + "; ".join(qualification_problems)
+            + f" (run `atm runtime doctor direct-acp --harness {target.harness.value}`)",
+            exit_code=EXIT_RUNTIME,
+        )
+    if not _is_attended():
+        raise fail("live qualification requires an attended TTY", exit_code=EXIT_RUNTIME)
+    try:
+        confirmed = _confirm_live_qualification(target.harness)
+    except KeyboardInterrupt:
+        emit(
+            json_out,
+            {
+                "runtime": RUNTIME_ID,
+                "harness": target.harness.value,
+                "status": "cancelled",
+                "attempted_prompts": 0,
+            },
+            "live qualification cancelled; model prompts attempted: 0",
+        )
+        raise typer.Exit(code=EXIT_CANCELLED) from None
+    if not confirmed:
+        emit(
+            json_out,
+            {
+                "runtime": RUNTIME_ID,
+                "harness": target.harness.value,
+                "status": "cancelled",
+                "attempted_prompts": 0,
+            },
+            "live qualification cancelled; model prompts attempted: 0",
+        )
+        raise typer.Exit(code=EXIT_CANCELLED)
+    node = shutil.which("node", path=os.environ.get("PATH")) or "node"
+    try:
+        result = asyncio.run(
+            _run_live_qualification(
+                target,
+                qualification,
+                environ=os.environ,
+                platform=sys.platform,
+                node=node,
+            )
+        )
+    except DirectAcpError as error:
+        raise fail(str(error), exit_code=EXIT_RUNTIME) from None
+    payload = result.attestation.model_dump(mode="json")
+    payload["path"] = str(result.path)
+    payload["detail"] = result.detail
+    emit(
+        json_out,
+        payload,
+        f"{RUNTIME_ID} {target.harness.value} live qualification: "
+        f"{result.attestation.status}; attempted prompts: "
+        f"{result.attestation.attempted_prompts}; attestation: {result.path}"
+        + (f"\ndetail: {result.detail}" if result.detail else ""),
+    )
+    if result.interrupted:
+        raise typer.Exit(code=EXIT_CANCELLED)
+    if result.attestation.status != "pass":
         raise typer.Exit(code=EXIT_RUNTIME)

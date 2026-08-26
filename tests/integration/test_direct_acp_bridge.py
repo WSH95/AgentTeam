@@ -13,7 +13,12 @@ from agentteam.domain.common import HarnessId
 from agentteam.domain.interactive import CleanupFact
 from agentteam.execution import direct_acp
 from agentteam.execution.direct_acp import DirectAcpError, DirectAcpProvider
-from agentteam.execution.protocol import OpenMemberSpec, ProviderTurnStatus, TurnSpec
+from agentteam.execution.protocol import (
+    OpenMemberSpec,
+    ProviderTurnStatus,
+    RetireEmptyMemberSpec,
+    TurnSpec,
+)
 
 FAKE_BRIDGE = r"""
 import json
@@ -48,7 +53,7 @@ for line in sys.stdin:
         print(json.dumps({**base, "type": "turn_result",
                           "result": {"status": "completed", "stopReason": "end_turn"}}),
               flush=True)
-    elif name in {"cancel_turn", "close_member"}:
+    elif name in {"cancel_turn", "close_member", "suspend_member"}:
         if name == "close_member":
             handles.pop(command["session_key"], None)
         print(json.dumps({**base, "type": "response", "ok": True}), flush=True)
@@ -114,6 +119,78 @@ async def test_bridge_provider_fails_before_prompt_on_resume_mismatch(tmp_path: 
     with pytest.raises(DirectAcpError, match="strict continuity mismatch"):
         await provider.open_member(_spec(tmp_path, resume="opaque-other"))
     assert provider.sessions == {}
+
+
+async def test_bridge_provider_suspends_resumes_and_retires_exact_empty_state(
+    tmp_path: Path,
+) -> None:
+    bridge = tmp_path / "fake_bridge.py"
+    bridge.write_text(FAKE_BRIDGE, encoding="utf-8")
+    provider = DirectAcpProvider(
+        runtime_path=tmp_path / "installed",
+        node=sys.executable,
+        bridge_path=bridge,
+    )
+    session = await provider.open_member(_spec(tmp_path))
+    suspended = await provider.suspend_member(session, "test restart")
+    assert suspended.process is CleanupFact.CONFIRMED
+    assert suspended.local_state_retained
+    marker = session.state_dir / direct_acp.SUSPENSION_MARKER
+    assert marker.is_file()
+    if os.name != "nt":
+        assert marker.stat().st_mode & 0o077 == 0
+    assert provider.sessions == {}
+
+    resumed_provider = DirectAcpProvider(
+        runtime_path=tmp_path / "installed",
+        node=sys.executable,
+        bridge_path=bridge,
+    )
+    resumed = await resumed_provider.open_member(
+        _spec(tmp_path, resume=session.provider_session_ref)
+    )
+    assert await resumed_provider.verify_continuity(resumed)
+    assert not marker.exists()
+    await resumed_provider.suspend_member(resumed, "prepare exact retirement")
+
+    facts = await resumed_provider.retire_empty_member(
+        RetireEmptyMemberSpec(
+            run_id=resumed.run_id,
+            member=resumed.member,
+            session_id=resumed.session_id,
+            generation=resumed.generation,
+            provider_session_ref=resumed.provider_session_ref,
+            state_dir=resumed.state_dir,
+        )
+    )
+    assert facts.logical_session is CleanupFact.NOT_APPLICABLE
+    assert facts.process is CleanupFact.CONFIRMED
+    assert facts.local_state is CleanupFact.CONFIRMED
+    assert not resumed.state_dir.exists()
+
+
+async def test_bridge_provider_refuses_mismatched_empty_retirement(tmp_path: Path) -> None:
+    bridge = tmp_path / "fake_bridge.py"
+    bridge.write_text(FAKE_BRIDGE, encoding="utf-8")
+    provider = DirectAcpProvider(
+        runtime_path=tmp_path / "installed",
+        node=sys.executable,
+        bridge_path=bridge,
+    )
+    session = await provider.open_member(_spec(tmp_path))
+    await provider.suspend_member(session, "prepare mismatch")
+    facts = await provider.retire_empty_member(
+        RetireEmptyMemberSpec(
+            run_id=session.run_id,
+            member=session.member,
+            session_id=session.session_id,
+            generation=session.generation,
+            provider_session_ref="wrong-provider-ref",
+            state_dir=session.state_dir,
+        )
+    )
+    assert facts.logical_session is CleanupFact.UNKNOWN
+    assert session.state_dir.is_dir()
 
 
 async def test_bridge_close_failure_keeps_resume_state_for_exact_retry(
@@ -233,3 +310,42 @@ async def test_packaged_bridge_no_call_qualification_proves_backend_id_resume(
         "loadSession",
         "promptCapabilities.embeddedContext",
     )
+    assert result.empty_reconnect == "strict-resume"
+
+
+async def test_packaged_bridge_no_call_qualification_recreates_only_empty_session(
+    tmp_path: Path,
+) -> None:
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node is unavailable")
+    runtime = tmp_path / "runtime"
+    package = runtime / "node_modules" / "acpx"
+    package.mkdir(parents=True)
+    (runtime / "bridge.mjs").write_bytes(direct_acp._resource_bytes("bridge.mjs"))
+    (package / "package.json").write_text(
+        '{"name":"acpx","type":"module","exports":{"./runtime":"./runtime.js"}}\n',
+        encoding="utf-8",
+    )
+    rejects_resume = FAKE_ACPX_RUNTIME.replace(
+        'if (input.resumeSessionId !== undefined && input.resumeSessionId !== "backend-1") {',
+        'if (input.resumeSessionId !== undefined) {',
+    )
+    (package / "runtime.js").write_text(rejects_resume, encoding="utf-8")
+    config_home = tmp_path / "config-home"
+    config_home.mkdir()
+    target = direct_acp.DirectAcpQualificationTarget(
+        harness=HarnessId.CLAUDE_CODE,
+        runtime_path=runtime,
+        command=(node, "unused-fake-agent.mjs"),
+        environment={**os.environ, "PATH": str(Path(node).parent)},
+        native_version="fake 1.0.0",
+        expected_version="fake 1.0.0",
+        config_home_variable="CLAUDE_CONFIG_DIR",
+        config_home=config_home,
+        fingerprint="d" * 64,
+    )
+
+    result = await direct_acp._qualify_direct_acp_target(target, node=node)
+
+    assert result.empty_reconnect == "fresh-recreate"

@@ -57,6 +57,9 @@ atm runtime install direct-acp
 atm runtime doctor direct-acp --harness codex --json
 atm runtime doctor direct-acp --harness claude-code --json
 # Add --harness grok only when that current profile should be assessed.
+
+# Only after a separate, fresh owner approval to spend model calls:
+atm runtime qualify-live direct-acp --harness codex --json
 ```
 
 The install command uses `npm ci` against the packaged lock and publishes to
@@ -69,14 +72,27 @@ install and its qualification. The approved pins are `acpx@0.13.1`,
 Doctor performs no model call. For every selected current profile it checks
 the native executable/version and conflict-free child environment, then uses
 the packaged bridge to initialize ACP, create a session, disconnect, strictly
-resume the same backend session id, inspect status/capability names, close the
-session, and confirm bridge cleanup. The owner-only qualification record is
-bound to the platform, packaged lock, installed-tree digest, native version,
-ACP command, config home, and a hash of child-environment names and values.
-Changing any of those facts makes chat fail closed until doctor passes again;
-environment values themselves are not stored in the record. An installation
-without a current passing per-harness qualification claims no runtime
-capabilities and cannot be selected for chat.
+resume the same backend session id when supported, or prove that the
+unprompted empty session can be retired before creating a replacement. It
+then inspects status/capability names, closes the session, and confirms bridge
+cleanup. The owner-only qualification record explicitly records
+`strict-resume` or `fresh-recreate`. Persistent turns and recovery remain
+`unknown` at this zero-call stage.
+
+`qualify-live` is the sole bypass for proving those two capabilities. It
+requires one exact harness, an attended TTY, and a fresh default-no
+confirmation. Once confirmed, it attempts at most five prompts with no retry:
+context establishment, recall after a full provider/bridge restart, reset
+isolation, new-run isolation, and final continuity/close. Success writes an
+owner-only `ProviderLiveAttestationV1` plus manifest hashes for its evidence
+runs; a failed attempted lifecycle overwrites an older pass with a failure
+record. Windows live qualification is currently paused.
+
+Both records are bound to the platform, packaged lock, installed-tree digest,
+native version, ACP command, config home, and a hash of child-environment names
+and values. Changing any of those facts makes chat fail closed until doctor
+and the attended live qualifier pass again; environment values themselves are
+not stored. Chat never invokes either qualifier implicitly.
 
 ## Lifecycle and recovery
 
@@ -89,10 +105,13 @@ Ctrl-C requests cancellation of the queued or running turn and keeps the run
 open. EOF or `/detach` marks it interrupted and preserves the durable
 reservation. `atm runs attach RUN_ID` acquires the recovery shell, but no
 prompt is accepted until every provider proves the same durable session.
-Context loss is never repaired with a silent replacement. Reset first closes
-and disposes the old generation, then opens a fresh generation from immutable
-definition snapshots and a deterministic `RunStateSummary`; it never injects
-the old transcript.
+Context loss after any attempted turn is never repaired with a replacement.
+For a generation with no archived turn of any status, recovery may visibly
+retire and recreate it only when prior suspension and exact retirement are
+proved; the generation increments and both records remain auditable. Reset
+first closes and disposes the old generation, then opens a fresh generation
+from immutable definition snapshots and a deterministic `RunStateSummary`;
+it never injects the old transcript.
 
 The Lead may propose completion with evidence for every `done_when` entry.
 Rejection returns the run to open. Only attended user acceptance closes the

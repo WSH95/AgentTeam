@@ -31,8 +31,10 @@ from agentteam.execution.protocol import (
     ProviderDescriptor,
     ProviderEvent,
     ProviderSession,
+    ProviderSuspendFacts,
     ProviderTurnResult,
     ProviderTurnStatus,
+    RetireEmptyMemberSpec,
     TurnSpec,
 )
 
@@ -378,6 +380,7 @@ class _BaseFakeProvider:
         self.run_state_dirs.setdefault(spec.run_id, set()).add(session.state_dir)
         marker.write_text(provider_ref + "\n", encoding="utf-8")
         self._write_context(session.session_id)
+        (session.state_dir / "suspended.json").unlink(missing_ok=True)
         return session
 
     async def start_turn(self, session: ProviderSession, spec: TurnSpec) -> ActiveTurn:
@@ -459,6 +462,83 @@ class _BaseFakeProvider:
         current = self.sessions.get(session.session_id)
         return current == session and self._continuity_effect(session)
 
+    async def suspend_member(
+        self, session: ProviderSession, _reason: str
+    ) -> ProviderSuspendFacts:
+        self._require_session(session)
+        turn = self.turns.get(session.session_id)
+        if turn is not None:
+            await turn.cancel("session suspend")
+            await turn.result()
+        if self.background_tasks:
+            await asyncio.gather(*tuple(self.background_tasks), return_exceptions=True)
+        process = await self._suspend_effect(session)
+        retained = process in {CleanupFact.CONFIRMED, CleanupFact.NOT_APPLICABLE}
+        if retained:
+            marker = session.state_dir / "suspended.json"
+            marker.write_text(
+                json.dumps(
+                    {
+                        "run_id": session.run_id,
+                        "member": session.member,
+                        "session_id": session.session_id,
+                        "generation": session.generation,
+                        "provider_session_ref": session.provider_session_ref,
+                        "process": process.value,
+                    },
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        self.sessions.pop(session.session_id, None)
+        self.context.pop(session.session_id, None)
+        self.turns.pop(session.session_id, None)
+        return ProviderSuspendFacts(process=process, local_state_retained=retained)
+
+    async def retire_empty_member(self, spec: RetireEmptyMemberSpec) -> CloseFactsV1:
+        unknown = CloseFactsV1(
+            logical_session=CleanupFact.UNKNOWN,
+            process=CleanupFact.UNKNOWN,
+            local_state=CleanupFact.UNKNOWN,
+            provider_history=CleanupFact.UNKNOWN,
+        )
+        state_dir = spec.state_dir
+        marker = state_dir / "suspended.json"
+        if state_dir.is_symlink() or not state_dir.is_dir() or marker.is_symlink():
+            return unknown
+        try:
+            payload = json.loads(marker.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return unknown
+        expected = {
+            "run_id": spec.run_id,
+            "member": spec.member,
+            "session_id": spec.session_id,
+            "generation": spec.generation,
+            "provider_session_ref": spec.provider_session_ref,
+        }
+        if not isinstance(payload, dict) or any(payload.get(k) != v for k, v in expected.items()):
+            return unknown
+        try:
+            process = CleanupFact(str(payload.get("process")))
+        except ValueError:
+            return unknown
+        if process not in {CleanupFact.CONFIRMED, CleanupFact.NOT_APPLICABLE}:
+            return unknown
+        try:
+            shutil.rmtree(state_dir)
+        except OSError:
+            return unknown.model_copy(
+                update={"process": process, "local_state": CleanupFact.FAILED}
+            )
+        return CloseFactsV1(
+            logical_session=CleanupFact.NOT_APPLICABLE,
+            process=process,
+            local_state=CleanupFact.CONFIRMED,
+            provider_history=self._provider_history_fact(),
+        )
+
     async def close_member(self, session: ProviderSession, _reason: str) -> CloseFactsV1:
         self._require_session(session)
         turn = self.turns.get(session.session_id)
@@ -516,6 +596,9 @@ class _BaseFakeProvider:
         del session
         return CleanupFact.NOT_APPLICABLE
 
+    async def _suspend_effect(self, session: ProviderSession) -> CleanupFact:
+        return await self._close_effect(session)
+
     def _provider_history_fact(self) -> CleanupFact:
         return CleanupFact.NOT_APPLICABLE
 
@@ -533,7 +616,8 @@ class OwnedProcessFakeProvider(_BaseFakeProvider):
 
     def _open_effect(self, spec: OpenMemberSpec, session: ProviderSession) -> None:
         pid_path = session.state_dir / "process.pid"
-        if spec.resume_session_ref is not None:
+        suspended = (session.state_dir / "suspended.json").is_file()
+        if spec.resume_session_ref is not None and not suspended:
             try:
                 pid = int(pid_path.read_text(encoding="ascii").strip())
             except (OSError, ValueError) as error:
@@ -550,6 +634,8 @@ class OwnedProcessFakeProvider(_BaseFakeProvider):
             self.processes[session.session_id] = handle
             self.descendant_pids[session.session_id] = descendant
             return
+        if suspended:
+            (session.state_dir / "child.pid").unlink(missing_ok=True)
         creationflags = 0
         start_new_session = False
         if sys.platform == "win32":

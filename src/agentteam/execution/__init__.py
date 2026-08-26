@@ -8,7 +8,9 @@ from agentteam.execution.protocol import (
     ProviderDescriptor,
     ProviderEvent,
     ProviderSession,
+    ProviderSuspendFacts,
     ProviderTurnResult,
+    RetireEmptyMemberSpec,
     TurnSpec,
 )
 
@@ -20,6 +22,8 @@ __all__ = [
     "ProviderDescriptor",
     "ProviderEvent",
     "ProviderSession",
+    "ProviderSuspendFacts",
     "ProviderTurnResult",
+    "RetireEmptyMemberSpec",
     "TurnSpec",
 ]

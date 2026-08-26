@@ -1137,3 +1137,37 @@ because Grok passed G6, but the currently eligible lifecycle matrix contains
 only Grok's five calls; excluded harnesses cannot be live-called unless a fresh
 zero-call qualification passes. Changing an ACP pin remains a separate owner
 decision. G7 still requires a fresh attended go.
+
+## 0048 — 2026-08-25 — Reopen M1c G6 around zero-turn recreation and exact live evidence
+
+**Context**: The owner challenged the Claude/Codex G6 exclusions. Follow-up
+inspection found that the zero-call gate treated resume of a newly created,
+never-prompted session as a universal durability contract. Claude's adapter
+explicitly treats such a session as non-resumable, while Codex has no real
+empty-session restart guarantee. That probe does not represent the product's
+post-turn continuity requirement. The owner selected the proposed “reopen
+G6” correction and selected exact machine-readable live attestations rather
+than archive-only or deferred evidence.
+
+**Decision**: (1) Approve
+`docs/plans/m1c-interactive-teamrun-foundation.md` r3 at SHA-256
+`d2510e3963fcb50ab916566bd2d9435b501853eac92a279a4944ad5d66a7b03c`.
+(2) A current session generation may be retired and visibly recreated only
+when no archived `TurnRecordV1` of any status references it and provider
+suspension/retirement is proved; increment the generation and record the old
+and new facts. After any attempted turn, exact provider-session continuity
+remains mandatory and every failure stays `recovery-required`. (3) G6 may
+stage either strict empty resume or confirmed fresh-empty recreation at zero
+model calls. Persistent turns and recovery remain unknown until a passing
+`ProviderLiveAttestationV1` bound to the exact runtime, bridge, native CLI,
+profile/environment, and platform. (4) Keep `acpx 0.13.1`,
+`claude-agent-acp 0.69.0`, and `codex-acp 1.6.2`; do not fork or reimplement
+the adapters. (5) Preserve the fresh attended G7 go and 18/23-call ceilings.
+
+**Consequences**: ADR 0047 remains the factual record of the original probe
+but its Claude/Codex exclusion disposition is superseded. G6 is reopened and
+all implementation/validation before G7 remains zero-call. Normal interactive
+resolution fails closed without both a current no-call staging report and an
+exact passing live attestation; the attended qualifier is the sole staged
+bypass. Alternative native hosts remain separate `MemberExecutionProvider`
+owners rather than being wrapped inside direct ACP.

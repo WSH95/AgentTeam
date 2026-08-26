@@ -40,6 +40,7 @@ from agentteam.domain import (
     NormalizedReviewV1,
     ProviderCapabilitiesV1,
     ProviderDoctorV1,
+    ProviderLiveAttestationV1,
     RunEventV1,
     RunRecordV1,
     RunRequestV1,
@@ -101,6 +102,11 @@ SCHEMA_ENTRIES: dict[str, tuple[str, int, type[BaseModel]]] = {
         ProviderCapabilitiesV1,
     ),
     "provider-doctor-v1.schema.json": ("provider-doctor", 1, ProviderDoctorV1),
+    "provider-live-attestation-v1.schema.json": (
+        "provider-live-attestation",
+        1,
+        ProviderLiveAttestationV1,
+    ),
     "catalog-index-v1.schema.json": ("catalog-index", 1, CatalogIndexV1),
 }
 
