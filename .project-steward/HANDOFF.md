@@ -1,9 +1,9 @@
 ---
-updated_at: 2026-08-26T02:38:00Z
+updated_at: 2026-08-26T02:41:43Z
 updated_by: codex
 session_status: active
 branch: main
-last_commit: 990c162
+last_commit: dec83e0
 ---
 # Handoff
 
@@ -27,14 +27,15 @@ Ubuntu/macOS-only CI with Windows retained as manual opt-in.
   launch-binding, manifest, path-scanner, and ambiguous-run-store gaps. Its
   immutable synthesis record is the next local artifact after the product
   commit gives the reviewed tree a stable SHA.
-- Branch `main` is still at `990c162`, two commits ahead of `origin/main`, with
-  the deterministic candidate dirty. The pre-existing `.codex/` remains
+- Product commit `dec83e0` is local. The pinned bridge's 30-second pending-tool
+  deadline is now explicit in the exact-path prompt and operator guide; its
+  focused 9-test/Ruff/mypy check is green. The pre-existing `.codex/` remains
   untouched and out of scope.
 
 ## Next steps
 
-1. Commit the deterministic G7 implementation plus this Steward checkpoint.
-2. Write the code-review synthesis against that stable product SHA, commit the
+1. Commit the explicit permission-deadline correction with this checkpoint.
+2. Write the code-review synthesis against that stable candidate SHA, commit the
    review checkpoint, and fast-forward push the resulting exact candidate.
 3. Require the candidate-bound GitHub Actions run to contain exactly eight
    completed/success Ubuntu/macOS jobs and no Windows job.

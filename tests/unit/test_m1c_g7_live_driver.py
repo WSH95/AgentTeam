@@ -230,7 +230,8 @@ def test_ndjson_client_correlates_attended_exact_write(
     assert commands[-1]["approved"] is True
     assert commands[-1]["attended"] is True
     assert confirmation_prompts == [
-        "Allow once [workspace-write/write] exact path implementation.txt?"
+        "Allow once [workspace-write/write] exact path implementation.txt "
+        "(answer within 30 seconds)?"
     ]
 
 

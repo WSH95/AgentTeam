@@ -714,7 +714,7 @@ class NdjsonClient:
                     relative = contract.writable.resolve().relative_to(self.workspace.resolve())
                     approved = _confirm(
                         f"Allow once [{request.classification}/{request.kind}] exact path "
-                        f"{relative.as_posix()}?"
+                        f"{relative.as_posix()} (answer within 30 seconds)?"
                     )
                     if not approved:
                         record_violation("attended workspace mutation approval was declined")

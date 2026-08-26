@@ -4,6 +4,9 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-26T02:41:43Z — codex
+Committed the locally green deterministic G7 implementation at `dec83e0`; the final operational critique then surfaced the pinned bridge's 30-second permission expiry, now explicit in the attended exact-path prompt/operator guide with 9 driver tests and Ruff/mypy green, still at zero live calls.
+
 ### 2026-08-26T02:38:00Z — codex
 M1c G7 deterministic candidate passed its adversarial critique and full local block with zero live calls: 774 passed + 4 expected skips, Ruff/format, strict mypy over 152 source files, 26 schemas, lock, build, Node, exact fixture hashes, seven-bundle sanitizer rehearsal, wheel scope, and diff hygiene are green; candidate commit/hosted eight-job evidence are next.
 
