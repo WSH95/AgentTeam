@@ -227,9 +227,7 @@ def test_live_attestation_cache_is_exact_owner_only_and_failure_invalidates_pass
     assert problems == []
     assert loaded == passing
 
-    (evidence_roots["run-live-1"] / "evidence.txt").write_text(
-        "tampered\n", encoding="utf-8"
-    )
+    (evidence_roots["run-live-1"] / "evidence.txt").write_text("tampered\n", encoding="utf-8")
     loaded, problems = direct_acp.load_direct_acp_live_attestation(
         target,
         environ=environ,

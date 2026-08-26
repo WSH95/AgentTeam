@@ -4,6 +4,19 @@ How to check the project is healthy. The commands in `AGENTS.md` are the
 current credential-free local block; live model calls are always separate,
 owner-attended gates.
 
+## M1c G7 deterministic candidate — 2026-08-26
+
+| Check | Result |
+| --- | --- |
+| Attended driver | PASS deterministically — the internal Linux/TTY-only driver binds the exact candidate SHA and exact eight-job hosted run, refuses concurrent agent/ACP processes and nonterminal runs, rechecks source cleanliness before and after every live prompt, preserves default-no lifecycle/workflow/mutation decisions, stops on the first failure, never retries, and keeps a partial owner-only ledger with diagnostics fixed at zero |
+| Workflow contract | PASS deterministically — exact catalog hashes pin Codex implementer, Claude reviewer, and Grok Lead; every write is correlated from permission request through provider event, scoped to one exact file, and followed by byte/extraneous-entry checks. Raw launch records must prove the exact role→harness bindings, four committed turns, ordered work completion, reject/continue/accept, closed sessions, released reservation, and proven process/local-state cleanup |
+| Evidence safety | PASS deterministically — audit export is atomic; removes raw provider streams, launch/runtime/summary state, and source manifests; redacts workspace/output/provider-session values; rejects symlinks, non-UTF-8, `env_values`, POSIX/Windows/UNC/`file:` paths, unsafe source/destination containment, and ambiguous run-store identities. A seven-bundle fake rehearsal completed with scanner-clean exports and an exact 19/23 ledger |
+| Fixtures and CI | PASS — Assistant hash `d54e35114f56ee67d72a5dcfa560d8d13139be93e07ca27887bd0dd26a4ee29e`; Team hash `b1002f133a3d5fd9dd82456f6c375dcca49e4cc26e69fe2ea7015c068d115ada`; the wheel excludes `dev/`. Normal push/PR/default-dispatch CI contains exactly eight Ubuntu/macOS jobs; Windows is explicit manual opt-in and was not run |
+| Full local block | PASS — **774 passed + 4 expected skips** in 110.33s; Ruff lint clean and **158 files** format-clean; strict mypy clean over **152 source files**; all **26 schemas** current; lock current; wheel/sdist build; Node bridge syntax; exact fixture validation; `git diff --check` clean |
+| Gate | **Ready for the semantic candidate commit and exact hosted eight-job gate.** No live/provider call or diagnostic prompt has occurred. G7 remains open until the separate attended 15+4 live path passes and sanitized evidence is reviewed |
+
+Last verified: 2026-08-26 by Codex. Zero model calls were made.
+
 ## M1c revised G6.R recovery and exact-runtime staging — 2026-08-26
 
 | Check | Result |

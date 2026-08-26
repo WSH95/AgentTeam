@@ -34,19 +34,20 @@ must not guess. Answered items remain here for traceability.
   strict ACP no-call gate. This is not a call go: G7 still requires a green
   deterministic/no-call gate and fresh attended owner approval. M1d has zero
   calls. M1a's five remaining calls do not transfer.
-- [ ] **M1c G7 fresh attended go.** Revised G6 is green for Claude Code,
-  Codex, and Grok at zero calls, but this implementation approval does not
-  authorize `atm runtime qualify-live`. The owner must explicitly choose
-  whether to begin the bounded lifecycle order; each harness requires its own
-  fresh confirmation and stops on its first mechanical failure.
+- [x] **M1c G7 fresh attended go.** On 2026-08-26 the owner selected the full
+  19-call path (ADR 0049): Claude → Codex → Grok lifecycle qualification,
+  then the four-call workflow, with no automatic diagnostics or retries.
+  Each harness and the workflow still requires its own fresh default-no
+  attended confirmation and the matrix stops on its first mechanical failure.
 
 ## Current gate
 
 M1a and M1b are complete. M1c r3 and M1d r2 are frozen and approved. M1c
 G0–G5 are closed; revised G6 is locally green and committed at `416597a`, with
 all three exact current profiles staged at zero calls and persistent/recovery
-still unknown. Hosted evidence is pending under the Windows hold. No live call
-is authorized; G7 needs the separate attended go above. M1d source work waits
+still unknown. ADR 0049 supplies the fresh attended G7 go, but no call begins
+until the deterministic driver/export candidate is locally and hosted green.
+Hosted Windows remains paused and owner-opt-in. M1d source work waits
 for M1c G8 plus D0's ClawTeam/native-spawn ruling. HB-03 remains deferred.
 
 ## Answered during G5 owner setup

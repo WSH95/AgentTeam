@@ -329,7 +329,7 @@ async def test_packaged_bridge_no_call_qualification_recreates_only_empty_sessio
     )
     rejects_resume = FAKE_ACPX_RUNTIME.replace(
         'if (input.resumeSessionId !== undefined && input.resumeSessionId !== "backend-1") {',
-        'if (input.resumeSessionId !== undefined) {',
+        "if (input.resumeSessionId !== undefined) {",
     )
     (package / "runtime.js").write_text(rejects_resume, encoding="utf-8")
     config_home = tmp_path / "config-home"

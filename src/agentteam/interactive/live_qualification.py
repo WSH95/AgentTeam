@@ -144,9 +144,9 @@ def _qualification_team(
         workspace_layout=WorkspaceLayout.SHARED_SUPPLIED,
         dynamic_members=DynamicMemberPolicyDisabledV1(),
     )
-    source = (
-        json.dumps(team.model_dump(mode="json"), indent=2, sort_keys=True) + "\n"
-    ).encode("utf-8")
+    source = (json.dumps(team.model_dump(mode="json"), indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
     target = CatalogRefV1(
         kind=CatalogKind.ASSISTANT,
         id=assistant.id,
@@ -276,9 +276,7 @@ async def qualify_live_direct_acp(
             "recovery": CapabilityLevel.SUPPORTED,
         }
     )
-    effective_report = qualification.model_copy(
-        update={"capabilities": effective_capabilities}
-    )
+    effective_report = qualification.model_copy(update={"capabilities": effective_capabilities})
 
     def new_provider() -> MemberExecutionProvider:
         if _provider_factory is not None:

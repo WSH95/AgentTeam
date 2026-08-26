@@ -190,9 +190,10 @@ def qualify_live(
     selected = _parse_harnesses(requested)
     targets, setup_problems = _qualification_targets(config=config, selected=selected)
     if setup_problems or len(targets) != 1:
-        details = "; ".join(
-            f"{name}: {detail}" for name, detail in sorted(setup_problems.items())
-        ) or "exact qualification target could not be resolved"
+        details = (
+            "; ".join(f"{name}: {detail}" for name, detail in sorted(setup_problems.items()))
+            or "exact qualification target could not be resolved"
+        )
         raise fail(details, exit_code=EXIT_RUNTIME)
     target = targets[0]
     qualification, qualification_problems = load_direct_acp_qualification(

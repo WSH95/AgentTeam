@@ -462,9 +462,7 @@ class _BaseFakeProvider:
         current = self.sessions.get(session.session_id)
         return current == session and self._continuity_effect(session)
 
-    async def suspend_member(
-        self, session: ProviderSession, _reason: str
-    ) -> ProviderSuspendFacts:
+    async def suspend_member(self, session: ProviderSession, _reason: str) -> ProviderSuspendFacts:
         self._require_session(session)
         turn = self.turns.get(session.session_id)
         if turn is not None:

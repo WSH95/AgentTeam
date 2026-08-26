@@ -2,14 +2,22 @@
 # gate: G3 adds adapter tests and the Windows .cmd fake, G4 adds deterministic
 # acceptance / hash identity / optional ClawTeam jobs, G5 fills that optional
 # job with provider conformance and lifecycle coverage, and G7 runs the final
-# matrices plus vendor smoke. No vendor login, model call, API key, or secret
-# is ever used here.
+# matrices plus vendor smoke. Normal push/PR and default manual runs omit the
+# paused Windows legs; an explicit workflow_dispatch input restores them. No
+# vendor login, model call, API key, or secret is ever used here.
 name: ci
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      include_windows:
+        description: Run the paused Windows matrix legs
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -25,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: ${{ fromJSON(inputs.include_windows && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest","macos-latest"]') }}
         python: ["3.11", "3.13"]
     defaults:
       run:
@@ -95,7 +103,9 @@ jobs:
       - name: CLI deterministic smoke (validate + render-only, fakes only)
         run: |
           uv run --no-sync atm assistant validate examples/assistants/code-reviewer --strict-content
+          uv run --no-sync atm assistant validate examples/assistants/m1c-workflow-verifier --strict-content
           uv run --no-sync atm team validate examples/teams/development.yaml --json
+          uv run --no-sync atm team validate examples/teams/m1c-live-workflow.yaml --json
           uv run --no-sync atm run --assistant examples/assistants/code-reviewer \
             --workspace fixtures/fake-harness --task-file README.md \
             --config examples/profiles/ci-fake.yaml \
@@ -166,7 +176,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: ${{ fromJSON(inputs.include_windows && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest","macos-latest"]') }}
     defaults:
       run:
         shell: bash
@@ -209,7 +219,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: ${{ fromJSON(inputs.include_windows && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest","macos-latest"]') }}
     defaults:
       run:
         shell: bash

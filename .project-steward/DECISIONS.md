@@ -1171,3 +1171,35 @@ resolution fails closed without both a current no-call staging report and an
 exact passing live attestation; the attended qualifier is the sole staged
 bypass. Alternative native hosts remain separate `MemberExecutionProvider`
 owners rather than being wrapped inside direct ACP.
+
+## 0049 — 2026-08-26 — Execute bounded M1c G7 and make Windows CI owner-opt-in
+
+**Context**: Revised G6.R is locally green for Claude Code, Codex, and Grok at
+zero model calls. The owner reviewed the decision-complete G7/G8 execution
+plan and explicitly selected the full 19-call path, an internal checked-in
+workflow driver, full sanitized evidence bundles, and a continued Windows
+development/test hold.
+
+**Decision**: (1) Authorize the attended G7 normal path: five lifecycle
+prompts each in Claude → Codex → Grok order, then four workflow prompts; stop
+on the first mechanical failure, count every attempted prompt, and spend none
+of the four diagnostic reserve automatically. Each lifecycle command and the
+workflow retain a fresh default-no attended confirmation. (2) Exercise Codex
+as implementer, Claude as reviewer, and Grok as Lead; each produces one
+bounded workspace artifact so R36 receives one writable acceptance per
+supported harness. (3) Add only a dev-internal driver and exact catalog
+fixtures—no public command, schema, dependency, pin, or provider-interface
+change. (4) Harden interactive audit export before promotion and commit the
+six lifecycle plus one workflow sanitized bundles with an exact ledger.
+(5) Normal push/PR CI becomes Ubuntu/macOS-only while an explicit manual
+dispatch input restores Windows later; do not run that opt-in during the
+hold.
+
+**Consequences**: G7 may begin only after the new deterministic candidate is
+locally and hosted green and no other local coding-agent session is active.
+The successful ceiling is 19/23 with diagnostics 0. Windows G6/G7 remains
+unqualified and no current Windows claim is made; historical G5 evidence is
+retained. Any live failure, source change after calls, pin/contract change,
+or need to spend diagnostics stops for another owner decision. Scoped
+semantic commits and fast-forward pushes needed to close M1c remain
+authorized; force-push and unrelated remote mutation do not.

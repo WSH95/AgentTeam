@@ -4,6 +4,18 @@ Newest first. One short entry per semantic checkpoint — not per edit.
 
 Ordering corrected 2026-08-23 (G1 documentation hygiene, review H9): entries are sorted newest-first by their stated timestamp; two entries had been appended out of order. Early session-written stamps (through 2026-08-22) are approximate — the "Phase 0 done" entry is stamped before the init commit it reports — so git history is authoritative for event order.
 
+### 2026-08-26T02:38:00Z — codex
+M1c G7 deterministic candidate passed its adversarial critique and full local block with zero live calls: 774 passed + 4 expected skips, Ruff/format, strict mypy over 152 source files, 26 schemas, lock, build, Node, exact fixture hashes, seven-bundle sanitizer rehearsal, wheel scope, and diff hygiene are green; candidate commit/hosted eight-job evidence are next.
+
+### 2026-08-26T01:59:45Z — codex
+M1c G7 deterministic candidate implemented without live calls: exact pinned Skill-free workflow fixtures, attended no-retry 19-call driver, atomic path/session-redacting audit export, NDJSON tool-detail inspection, legacy-batch-safe interactive listing, and manual-only Windows CI; Ruff/mypy and 102 focused tests are green, with full local/review/hosted gates still pending.
+
+### 2026-08-26T01:29:02Z — codex
+Owner authorized the full attended M1c G7 path (ADR 0049): deterministic driver/export hardening and Ubuntu/macOS hosted evidence precede 15 lifecycle + 4 workflow prompts; diagnostics stay at zero, Windows is manual opt-in and remains paused, and any first mechanical failure stops the matrix.
+
+### 2026-08-26T01:11:08Z — cli
+Plugin readiness checks: /grok-build:check ready (grok 1.0.5; auth probe contradictory — loggedIn:true but detail says not authenticated, verify with 'grok models'); explained codex review gate. No project files touched; prior Codex session still unwrapped.
+
 ### 2026-08-26T00:32:58Z — codex
 [auto-checkpoint] M1c G6.R implementation committed locally at `416597a`: exact empty-session recreation, post-turn fail-closed recovery, five-call attended attestation, and evidence-integrity gates are green at 762+4; no model calls or push occurred, Windows remains paused, and G7 awaits a fresh owner go
 

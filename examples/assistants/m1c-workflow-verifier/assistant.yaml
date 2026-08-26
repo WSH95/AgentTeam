@@ -1,0 +1,20 @@
+# Skill-free Assistant used only by the attended M1c live workflow proof.
+schema_version: 1
+kind: assistant-definition
+id: m1c-workflow-verifier
+version: 1
+summary: Executes one bounded shared-workspace verification step.
+persona: persona.md
+purpose:
+  - perform only the assigned bounded verification step
+  - verify the declared artifact and return the requested exact response
+principles: principles.md
+permissions:
+  filesystem: read-write-workspace
+  network: deny
+  shell: deny
+harness_policy:
+  preferred: []
+  allowed: [claude-code, codex, grok]
+  forbidden: []
+  required_capabilities: []

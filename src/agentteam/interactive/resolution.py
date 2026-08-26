@@ -486,9 +486,7 @@ def _resolve_launches(
                 "recovery": CapabilityLevel.SUPPORTED,
             }
         )
-        effective_doctor = qualification.model_copy(
-            update={"capabilities": effective_capabilities}
-        )
+        effective_doctor = qualification.model_copy(update={"capabilities": effective_capabilities})
         provider = DirectAcpProvider(
             runtime_path=runtime_path,
             environment=target.environment,

@@ -317,6 +317,10 @@ class StreamSession:
                 permission_id=permission_id,
                 classification=decision.classification.value,
                 reasons=list(decision.reasons),
+                tool_kind=event.data.get("tool_kind"),
+                tool_name=event.data.get("tool_name"),
+                tool_title=event.data.get("tool_title"),
+                tool_input=event.data.get("tool_input"),
             )
             try:
                 return await waiter

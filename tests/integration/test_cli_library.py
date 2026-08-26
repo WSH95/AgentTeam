@@ -204,12 +204,8 @@ def test_normal_chat_requires_exact_live_attestation_before_capability_overlay(
     config_home = tmp_path / "codex-home"
     config_home.mkdir()
     profile = next(
-        item
-        for item in seed_default_profiles().profiles
-        if item.harness is HarnessId.CODEX
-    ).model_copy(
-        update={"executable": str(executable), "config_home": str(config_home)}
-    )
+        item for item in seed_default_profiles().profiles if item.harness is HarnessId.CODEX
+    ).model_copy(update={"executable": str(executable), "config_home": str(config_home)})
     profiles = seed_default_profiles().model_copy(
         update={"profiles": [profile], "default_harness": HarnessId.CODEX}
     )
@@ -290,6 +286,7 @@ def test_normal_chat_requires_exact_live_attestation_before_capability_overlay(
             else (None, ["no safe live attestation for codex"])
         ),
     )
+
     def prepare() -> PreparedChat:
         return prepare_assistant_chat(
             item_id=None,

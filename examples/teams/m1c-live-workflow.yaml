@@ -1,0 +1,55 @@
+# Exact shared-workspace Team used only by the attended M1c G7 workflow proof.
+schema_version: 2
+kind: team-template
+id: m1c-live-workflow
+version: 1
+summary: Proves a bounded implement-review-lead workflow across three local harnesses.
+members:
+  - name: implementer
+    assistant:
+      id: m1c-workflow-verifier
+      version: 1
+      content_hash: d54e35114f56ee67d72a5dcfa560d8d13139be93e07ca27887bd0dd26a4ee29e
+  - name: reviewer
+    assistant:
+      id: m1c-workflow-verifier
+      version: 1
+      content_hash: d54e35114f56ee67d72a5dcfa560d8d13139be93e07ca27887bd0dd26a4ee29e
+  - name: lead
+    assistant:
+      id: m1c-workflow-verifier
+      version: 1
+      content_hash: d54e35114f56ee67d72a5dcfa560d8d13139be93e07ca27887bd0dd26a4ee29e
+lead: lead
+handoff:
+  required_fields: []
+  acks: []
+independence: []
+preferences:
+  harness_preferences:
+    implementer: [codex]
+    reviewer: [claude-code]
+    lead: [grok]
+  run_defaults:
+    fresh_instances: true
+    archive: always
+workflow_skeleton:
+  - id: implement
+    subject: Write the bounded implementation artifact for {goal}
+    owner: implementer
+    blocked_by: []
+    workspace_access: workspace-write
+  - id: review
+    subject: Verify the implementation artifact and write the bounded review for {goal}
+    owner: reviewer
+    blocked_by: [implement]
+    workspace_access: workspace-write
+  - id: complete
+    subject: Verify both artifacts and write the bounded completion proposal for {goal}
+    owner: lead
+    blocked_by: [review]
+    workspace_access: workspace-write
+workspace_layout: shared-supplied
+dynamic_members:
+  enabled: false
+constraints: []

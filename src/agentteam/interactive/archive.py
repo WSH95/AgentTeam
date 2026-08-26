@@ -6,6 +6,7 @@ import contextlib
 import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -35,6 +36,17 @@ from agentteam.resolution.profiles import atomic_write_text, ensure_owner_direct
 
 class InteractiveArchiveError(RuntimeError):
     pass
+
+
+_WORKSPACE_PLACEHOLDER = "<WORKSPACE>"
+_OUTPUT_DIR_PLACEHOLDER = "<OUTPUT_DIR>"
+_PROVIDER_SESSION_PLACEHOLDER = "<PROVIDER_SESSION>"
+_ABSOLUTE_PATH_TEXT = re.compile(
+    r"(?<![A-Za-z0-9._:/\\-])/(?!/)[^\s\"'<>]*"
+    r"|(?<![A-Za-z0-9._-])[A-Za-z]:[\\/]+[^\s\"'<>]+"
+    r"|(?<![A-Za-z0-9._-])\\{2,}[^\s\"'<>]+"
+)
+_LOCAL_FILE_URI_TEXT = re.compile(r"(?i)(?<![A-Za-z0-9+.-])file:")
 
 
 ModelT = TypeVar("ModelT", bound=RecordModel)
@@ -276,7 +288,9 @@ class InteractiveArchive:
         return [*problems, *self._unsafe_entries()]
 
     def export_audit(self, destination: Path) -> Path:
-        """Export records/definitions, excluding raw turn streams and runtime state."""
+        """Atomically export sanitized records/definitions without local runtime facts."""
+        if self.root.is_symlink() or not self.root.is_dir():
+            raise InteractiveArchiveError(f"interactive archive root is unsafe: {self.root}")
         record = self.load_run()
         if record.phase.value != "closed":
             raise InteractiveArchiveError("only a closed interactive run can be exported")
@@ -286,28 +300,127 @@ class InteractiveArchive:
                 "interactive archive manifest is invalid: " + "; ".join(manifest_problems)
             )
         destination = Path(destination)
+        source_root = self.root.resolve()
+        resolved_destination = destination.resolve(strict=False)
+        if resolved_destination == source_root or source_root in resolved_destination.parents:
+            raise InteractiveArchiveError("audit export destination cannot be inside its source")
         if destination.exists() and (
             not destination.is_dir() or destination.is_symlink() or any(destination.iterdir())
         ):
             raise InteractiveArchiveError(
                 f"export destination is not empty and safe: {destination}"
             )
-        ensure_owner_directory(destination, platform=self.platform)
-        for source in self._record_files():
-            relative = source.relative_to(self.root)
-            if (
-                relative.parts[0] in {"runtime", "launch"}
-                or relative.name == "controller.lock"
-                or relative.name.endswith(".events.jsonl")
+        ensure_owner_directory(destination.parent, platform=self.platform)
+        staging = Path(
+            tempfile.mkdtemp(
+                prefix=f".{destination.name or 'audit-export'}-",
+                dir=destination.parent,
+            )
+        )
+        removed_empty_destination = False
+        try:
+            for source in self._record_files():
+                relative = source.relative_to(self.root)
+                if self._excluded_from_export(relative):
+                    continue
+                target = staging / relative
+                ensure_owner_directory(target.parent, platform=self.platform)
+                target.write_bytes(self._sanitized_export_bytes(relative, source))
+                self._chmod_file(target)
+            exported = InteractiveArchive(staging, platform=self.platform, clock=self.clock)
+            problems = scan_interactive_audit_export(staging)
+            if problems:
+                raise InteractiveArchiveError(
+                    "interactive audit export failed its safety scan: " + "; ".join(problems)
+                )
+            exported.finalize_manifest()
+            problems = scan_interactive_audit_export(staging)
+            if problems:
+                raise InteractiveArchiveError(
+                    "interactive audit export failed its final safety scan: " + "; ".join(problems)
+                )
+            if destination.exists():
+                if (
+                    destination.is_symlink()
+                    or not destination.is_dir()
+                    or any(destination.iterdir())
+                ):
+                    raise InteractiveArchiveError(
+                        f"export destination changed while exporting: {destination}"
+                    )
+                destination.rmdir()
+                removed_empty_destination = True
+            os.rename(staging, destination)
+            return destination
+        except BaseException:
+            shutil.rmtree(staging, ignore_errors=True)
+            if removed_empty_destination and not destination.exists():
+                ensure_owner_directory(destination, platform=self.platform)
+            raise
+
+    @staticmethod
+    def _excluded_from_export(relative: Path) -> bool:
+        return (
+            relative.parts[0] in {"runtime", "launch", "summaries"}
+            or relative.name in {"controller.lock", "manifest.sha256.json"}
+            or relative.name.endswith(".events.jsonl")
+        )
+
+    def _sanitized_export_bytes(self, relative: Path, source: Path) -> bytes:
+        name = relative.as_posix()
+        if name == "request.resolved.json":
+            request = self._load_model(name, InteractiveRunRequestV1)
+            request = request.model_copy(
+                update={
+                    "workspace": _WORKSPACE_PLACEHOLDER,
+                    "output_dir": (
+                        _OUTPUT_DIR_PLACEHOLDER if request.output_dir is not None else None
+                    ),
+                }
+            )
+            return (request.model_dump_json(indent=2) + "\n").encode()
+        if name == "run.json":
+            record = self._load_model(name, InteractiveRunRecordV1)
+            initial = record.initial_checkpoint.model_copy(
+                update={"canonical_path": _WORKSPACE_PLACEHOLDER}
+            )
+            final = (
+                None
+                if record.final_checkpoint is None
+                else record.final_checkpoint.model_copy(
+                    update={"canonical_path": _WORKSPACE_PLACEHOLDER}
+                )
+            )
+            record = record.model_copy(
+                update={
+                    "workspace": _WORKSPACE_PLACEHOLDER,
+                    "initial_checkpoint": initial,
+                    "final_checkpoint": final,
+                }
+            )
+            return (record.model_dump_json(indent=2) + "\n").encode()
+        if relative.parts[0] == "checkpoints" and relative.suffix == ".json":
+            checkpoint = self._load_model(name, WorkspaceCheckpointV1).model_copy(
+                update={"canonical_path": _WORKSPACE_PLACEHOLDER}
+            )
+            return (checkpoint.model_dump_json(indent=2) + "\n").encode()
+        if relative.parts[0] == "sessions" and relative.suffix == ".json":
+            session = self._load_model(name, MemberSessionV1).model_copy(
+                update={"provider_session_ref": _PROVIDER_SESSION_PLACEHOLDER}
+            )
+            return (session.model_dump_json(indent=2) + "\n").encode()
+        if name == "reservation.json":
+            try:
+                reservation = json.loads(source.read_bytes())
+            except (OSError, json.JSONDecodeError) as error:
+                raise InteractiveArchiveError(f"invalid reservation record: {error}") from None
+            if not isinstance(reservation, dict) or not isinstance(
+                reservation.get("workspace"), str
             ):
-                continue
-            target = destination / relative
-            ensure_owner_directory(target.parent, platform=self.platform)
-            target.write_bytes(source.read_bytes())
-            self._chmod_file(target)
-        exported = InteractiveArchive(destination, platform=self.platform, clock=self.clock)
-        exported.finalize_manifest()
-        return destination
+                raise InteractiveArchiveError("invalid reservation record shape")
+            reservation["workspace"] = _WORKSPACE_PLACEHOLDER
+            return (json.dumps(reservation, sort_keys=True, separators=(",", ":")) + "\n").encode()
+        return source.read_bytes()
 
     def _manifest(self) -> ExportManifest:
         entries = []
@@ -469,6 +582,31 @@ class InteractiveArchive:
                 ) from None
 
 
+def scan_interactive_audit_export(root: Path) -> list[str]:
+    """Return path/value-shaped leaks that make an audit export unsafe to publish."""
+    root = Path(root)
+    problems: list[str] = []
+    if root.is_symlink() or not root.is_dir():
+        return [f"unsafe export root: {root}"]
+    for path in sorted(root.rglob("*")):
+        relative = path.relative_to(root).as_posix()
+        if path.is_symlink():
+            problems.append(f"{relative}: symlink is not allowed")
+            continue
+        if not path.is_file():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as error:
+            problems.append(f"{relative}: cannot scan UTF-8 content: {error}")
+            continue
+        if "env_values" in text:
+            problems.append(f"{relative}: contains an env_values key")
+        if _ABSOLUTE_PATH_TEXT.search(text) or _LOCAL_FILE_URI_TEXT.search(text):
+            problems.append(f"{relative}: contains an absolute-path-shaped string")
+    return problems
+
+
 class InteractiveRunStore:
     def __init__(self, root: Path, *, platform: str = sys.platform) -> None:
         self.root = Path(root)
@@ -489,8 +627,24 @@ class InteractiveRunStore:
             raise InteractiveArchiveError(f"unsafe interactive runs root: {self.root}")
         records = []
         for path in sorted(self.root.iterdir()):
-            if path.is_dir() and not path.is_symlink() and path.name.startswith("run-"):
-                records.append(InteractiveArchive(path, platform=self.platform).load_run())
+            if not path.name.startswith("run-"):
+                continue
+            if path.is_symlink() or not path.is_dir():
+                raise InteractiveArchiveError(f"unsafe interactive run entry: {path.name}")
+            run_path = path / "run.json"
+            if not run_path.is_file() or run_path.is_symlink():
+                raise InteractiveArchiveError(f"run identity is missing or unsafe: {path.name}")
+            try:
+                identity = json.loads(run_path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+                raise InteractiveArchiveError(
+                    f"cannot inspect run identity for {path.name}: {error}"
+                ) from None
+            if isinstance(identity, dict) and identity.get("kind") == "run-record":
+                continue
+            if not isinstance(identity, dict) or identity.get("kind") != "interactive-run-record":
+                raise InteractiveArchiveError(f"unknown run identity for {path.name}")
+            records.append(InteractiveArchive(path, platform=self.platform).load_run())
         return records
 
     def cleanup_closed(self, run_id: str) -> None:

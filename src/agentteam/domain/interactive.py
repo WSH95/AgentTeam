@@ -630,11 +630,7 @@ class ProviderLiveAttestationV1(RecordModel):
     def _proof_contract(self) -> ProviderLiveAttestationV1:
         proof_values = tuple(self.proofs.model_dump().values())
         if self.status == "pass":
-            if (
-                self.attempted_prompts != 5
-                or not all(proof_values)
-                or len(self.evidence) < 2
-            ):
+            if self.attempted_prompts != 5 or not all(proof_values) or len(self.evidence) < 2:
                 raise ValueError(
                     "passing live attestation requires five prompts, all proofs, and "
                     "two evidence runs"

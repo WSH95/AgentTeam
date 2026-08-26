@@ -482,9 +482,7 @@ def _direct_capabilities(
 ) -> ProviderCapabilitiesV1:
     staged = CapabilityLevel.SUPPORTED if qualified else CapabilityLevel.UNKNOWN
     persistent = (
-        CapabilityLevel.SUPPORTED
-        if qualified and live_attested
-        else CapabilityLevel.UNKNOWN
+        CapabilityLevel.SUPPORTED if qualified and live_attested else CapabilityLevel.UNKNOWN
     )
     return ProviderCapabilitiesV1(
         schema_version=1,
@@ -499,9 +497,7 @@ def _direct_capabilities(
         native_spawn_control=(
             CapabilityLevel.UNSUPPORTED if qualified else CapabilityLevel.UNKNOWN
         ),
-        process_stop_observability=(
-            staged if platform != "win32" else CapabilityLevel.UNKNOWN
-        ),
+        process_stop_observability=(staged if platform != "win32" else CapabilityLevel.UNKNOWN),
         local_state_deletion=staged,
         provider_history_deletion=CapabilityLevel.UNKNOWN,
     )
@@ -636,9 +632,7 @@ def _live_attestation_evidence_problems(
             archive_problems = InteractiveArchive(root, platform=platform).verify_manifest()
             manifest_hash = hashlib.sha256(manifest.read_bytes()).hexdigest()
         except (OSError, ValueError, InteractiveArchiveError) as error:
-            problems.append(
-                f"live evidence {evidence.run_id} is invalid: {type(error).__name__}"
-            )
+            problems.append(f"live evidence {evidence.run_id} is invalid: {type(error).__name__}")
             continue
         if archive_problems:
             problems.append(f"live evidence {evidence.run_id} manifest does not verify")
@@ -1539,9 +1533,7 @@ class DirectAcpProvider:
             return False
         return bool(response.get("continuity_verified"))
 
-    async def suspend_member(
-        self, session: ProviderSession, reason: str
-    ) -> ProviderSuspendFacts:
+    async def suspend_member(self, session: ProviderSession, reason: str) -> ProviderSuspendFacts:
         client = self._client(session)
         active = self.turns.get(session.session_id)
         if active is not None and not active.terminal.done():

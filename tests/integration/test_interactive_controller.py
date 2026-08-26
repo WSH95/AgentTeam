@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import importlib.util
 import json
 import shutil
 import subprocess
+import sys
 from dataclasses import replace
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -30,6 +34,9 @@ from agentteam.domain.interactive import (
     InteractiveRunOutcome,
     InteractiveRunPhase,
     InteractiveRunRequestV1,
+    LiveEvidenceRefV1,
+    LiveLifecycleProofsV1,
+    ProviderLiveAttestationV1,
     ReceiptStatus,
     TeamMemberV2,
     TeamPreferencesV2,
@@ -59,6 +66,7 @@ from agentteam.interactive.archive import (
     InteractiveArchive,
     InteractiveArchiveError,
     InteractiveRunStore,
+    scan_interactive_audit_export,
 )
 from agentteam.interactive.controller import (
     InteractiveController,
@@ -73,6 +81,13 @@ from agentteam.interactive.tty import run_tty
 from agentteam.interactive.workspace import WorkspaceReservationError
 from agentteam.resolution.archive import hash_package
 from agentteam.resolution.package import load_package
+
+_G7_DRIVER = Path(__file__).resolve().parents[2] / "dev" / "m1c_g7_live.py"
+_G7_SPEC = importlib.util.spec_from_file_location("agentteam_m1c_g7_live_integration", _G7_DRIVER)
+assert _G7_SPEC is not None and _G7_SPEC.loader is not None
+g7: Any = importlib.util.module_from_spec(_G7_SPEC)
+sys.modules[_G7_SPEC.name] = g7
+_G7_SPEC.loader.exec_module(g7)
 
 
 class _ResumeRejectingOwnedProvider(OwnedProcessFakeProvider):
@@ -622,9 +637,7 @@ async def test_detach_attach_recreates_only_a_proven_empty_generation(
             member=member,
             assistant=launch.assistant,
             provider=(
-                _ResumeRejectingOwnedProvider()
-                if member == "lead"
-                else ExternalHostFakeProvider()
+                _ResumeRejectingOwnedProvider() if member == "lead" else ExternalHostFakeProvider()
             ),
             harness=launch.harness,
             executable=launch.executable,
@@ -671,9 +684,7 @@ async def test_resume_failure_after_a_turn_never_recreates_the_generation(
             member=member,
             assistant=launch.assistant,
             provider=(
-                _ResumeRejectingOwnedProvider()
-                if member == "lead"
-                else ExternalHostFakeProvider()
+                _ResumeRejectingOwnedProvider() if member == "lead" else ExternalHostFakeProvider()
             ),
             harness=launch.harness,
             executable=launch.executable,
@@ -1180,10 +1191,33 @@ async def test_work_controls_completion_reject_continue_accept_and_cleanup(tmp_p
     export = controller.archive.export_audit(tmp_path / "audit-export")
     assert not any(export.rglob("*.events.jsonl"))
     assert not (export / "runtime").exists()
+    assert not (export / "launch").exists()
+    assert not (export / "summaries").exists()
     assert InteractiveArchive(export).verify_manifest() == []
+    assert scan_interactive_audit_export(export) == []
     exported_bytes = b"\n".join(path.read_bytes() for path in export.rglob("*") if path.is_file())
     assert b"work complete" not in exported_bytes
     assert b"continue after review" not in exported_bytes
+    assert str(controller.record.workspace).encode() not in exported_bytes
+    assert all(
+        session.provider_session_ref.encode() not in exported_bytes
+        for session in controller.session_records.values()
+    )
+    exported_request = InteractiveArchive(export).load_request()
+    exported_record = InteractiveArchive(export).load_run()
+    assert exported_request.workspace == "<WORKSPACE>"
+    assert exported_record.workspace == "<WORKSPACE>"
+    assert exported_record.initial_checkpoint.canonical_path == "<WORKSPACE>"
+    assert exported_record.final_checkpoint is not None
+    assert exported_record.final_checkpoint.canonical_path == "<WORKSPACE>"
+    reservation = json.loads((export / "reservation.json").read_text(encoding="utf-8"))
+    assert reservation["workspace"] == "<WORKSPACE>"
+    assert {
+        json.loads(path.read_text(encoding="utf-8"))["provider_session_ref"]
+        for path in (export / "sessions").glob("*.json")
+    } == {"<PROVIDER_SESSION>"}
+    with pytest.raises(InteractiveArchiveError, match="cannot be inside its source"):
+        controller.archive.export_audit(controller.archive.root / "nested-export")
 
     unsafe = controller.archive.root / "unsafe-link"
     try:
@@ -1198,9 +1232,171 @@ async def test_work_controls_completion_reject_continue_accept_and_cleanup(tmp_p
         assert controller.archive.verify_manifest() == []
 
     store = InteractiveRunStore(tmp_path / "home" / "runs")
+    legacy = store.root / "run-legacy-batch"
+    legacy.mkdir()
+    (legacy / "run.json").write_text(
+        json.dumps({"schema_version": 1, "kind": "run-record", "status": "succeeded"}),
+        encoding="utf-8",
+    )
+    (legacy / "events.jsonl").write_text('{"sequence":99}\n', encoding="utf-8")
     assert [record.run_id for record in store.list_records()] == [closed.run_id]
     store.cleanup_closed(closed.run_id)
     assert not controller.archive.root.exists()
+
+
+async def test_audit_export_rejects_unredacted_absolute_content_atomically(
+    tmp_path: Path,
+) -> None:
+    team, source, request, launches = _team_and_request(tmp_path)
+    request = request.model_copy(update={"goal": f"inspect {tmp_path / 'private-target'}"})
+    controller = await InteractiveController.create(
+        request=request,
+        team=team,
+        team_source=source,
+        launches=launches,
+        runs_root=tmp_path / "home" / "runs",
+        reservations_root=tmp_path / "home" / "workspace-reservations",
+    )
+    closed = await controller.close(
+        InteractiveRunOutcome.CANCELLED,
+        reason="absolute content export test",
+    )
+    assert closed.phase is InteractiveRunPhase.CLOSED
+    destination = tmp_path / "rejected-export"
+    destination.mkdir()
+    with pytest.raises(InteractiveArchiveError, match="failed its safety scan"):
+        controller.archive.export_audit(destination)
+    assert destination.is_dir()
+    assert not any(destination.iterdir())
+
+    scanner_root = tmp_path / "scanner-root"
+    scanner_root.mkdir()
+    (scanner_root / "safe.md").write_text("source: https://example.invalid/a\n", encoding="utf-8")
+    assert scan_interactive_audit_export(scanner_root) == []
+    (scanner_root / "unsafe.md").write_text("local: /private/audit/path\n", encoding="utf-8")
+    (scanner_root / "windows.json").write_text(
+        json.dumps({"drive": "C:/Users/private", "unc": r"\\server\share"}),
+        encoding="utf-8",
+    )
+    (scanner_root / "environment.json").write_text(
+        json.dumps({"env_values": {"TOKEN": "not-publishable"}}),
+        encoding="utf-8",
+    )
+    (scanner_root / "file-uri.json").write_text(
+        json.dumps({"source": "file:///private/audit/path"}),
+        encoding="utf-8",
+    )
+    assert scan_interactive_audit_export(scanner_root) == [
+        "environment.json: contains an env_values key",
+        "file-uri.json: contains an absolute-path-shaped string",
+        "unsafe.md: contains an absolute-path-shaped string",
+        "windows.json: contains an absolute-path-shaped string",
+    ]
+
+
+def test_interactive_run_store_fails_closed_on_unknown_or_incomplete_run_identity(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "runs"
+    incomplete = root / "run-incomplete"
+    incomplete.mkdir(parents=True)
+    store = InteractiveRunStore(root)
+    with pytest.raises(InteractiveArchiveError, match="identity is missing"):
+        store.list_records()
+
+    (incomplete / "run.json").write_text(
+        json.dumps({"schema_version": 1, "kind": "unknown-run-record"}),
+        encoding="utf-8",
+    )
+    with pytest.raises(InteractiveArchiveError, match="unknown run identity"):
+        store.list_records()
+
+
+async def test_g7_evidence_staging_is_atomic_scanner_clean_and_exact(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    runs_root = home / "runs"
+    reservations_root = home / "workspace-reservations"
+    run_ids: list[str] = []
+    for sequence in range(1, 8):
+        source_root = tmp_path / f"source-{sequence}"
+        team, team_source, request, launches = _team_and_request(source_root)
+        run_id = f"run-g7-stage-{sequence}"
+        controller = await InteractiveController.create(
+            request=request,
+            team=team,
+            team_source=team_source,
+            launches=launches,
+            runs_root=runs_root,
+            reservations_root=reservations_root,
+            run_id=run_id,
+        )
+        await controller.close(
+            InteractiveRunOutcome.CANCELLED,
+            reason="deterministic evidence staging fixture",
+        )
+        assert controller.archive.verify_manifest() == []
+        run_ids.append(run_id)
+
+    proofs = LiveLifecycleProofsV1(
+        context_established=True,
+        strict_post_turn_resume=True,
+        recall=True,
+        reset_isolation=True,
+        new_run_isolation=True,
+        continuity_close=True,
+    )
+    attestations: dict[HarnessId, ProviderLiveAttestationV1] = {}
+    for offset, harness in enumerate(g7.LIFECYCLE_ORDER):
+        evidence = []
+        for run_id in run_ids[offset * 2 : offset * 2 + 2]:
+            manifest = runs_root / run_id / "manifest.sha256.json"
+            evidence.append(
+                LiveEvidenceRefV1(
+                    run_id=run_id,
+                    manifest_sha256=hashlib.sha256(manifest.read_bytes()).hexdigest(),
+                )
+            )
+        attestations[harness] = ProviderLiveAttestationV1(
+            schema_version=1,
+            kind="provider-live-attestation",
+            provider="direct-acp",
+            harness=harness,
+            target_fingerprint="a" * 64,
+            runtime_lock_hash="b" * 64,
+            native_version="deterministic-test",
+            platform="linux",
+            status="pass",
+            attempted_prompts=5,
+            proofs=proofs,
+            evidence=evidence,
+            checked_at=datetime.now(tz=UTC),
+        )
+
+    destination = tmp_path / "staged-evidence"
+    g7._stage_evidence(
+        destination,
+        candidate_head="c" * 40,
+        hosted_run="123456",
+        attestations=attestations,
+        workflow_run_id=run_ids[-1],
+        marker="marker-that-must-not-be-published",
+        evidence_date="2026-08-26",
+        environ={"AGENTTEAM_HOME": str(home)},
+    )
+    assert scan_interactive_audit_export(destination) == []
+    assert len(list((destination / "runs").iterdir())) == 7
+    assert (destination / "manifest.sha256.json").is_file()
+    ledger = json.loads((destination / "ledger.json").read_text(encoding="utf-8"))
+    assert ledger["counts"] == {
+        "ceiling": 23,
+        "diagnostic": 0,
+        "lifecycle": 15,
+        "per_harness": {"claude-code": 6, "codex": 6, "grok": 7},
+        "spent": 19,
+        "workflow": 4,
+    }
 
 
 async def test_stream_protocol_negotiates_recovers_from_bad_frames_and_correlates(
@@ -1274,6 +1470,12 @@ async def test_stream_protocol_negotiates_recovers_from_bad_frames_and_correlate
             break
         await asyncio.sleep(0.01)
     assert list(stream.permission_waiters) == ["permission-1"]
+    awaiting = next(
+        frame for frame in reversed(frames) if frame.get("event") == "permission-awaiting"
+    )
+    assert awaiting["classification"] == "workspace-write"
+    assert awaiting["tool_kind"] == "workspace-write"
+    assert awaiting["tool_input"] == '{"path": "fake-output.txt"}'
     await command(
         6,
         "permission-answer",
